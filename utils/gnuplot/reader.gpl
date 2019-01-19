@@ -1,0 +1,9 @@
+# Example on how to display a binary output with gnuplot. Be free to
+# adapt it.
+# Execution line: gnuplot -p reader.gpl. After the execution,
+# change the arguments.
+
+nx = 384; ny = 128
+filename = "gasdens2.dat"
+
+plot filename binary format="%lf" array=(nx,ny) w image

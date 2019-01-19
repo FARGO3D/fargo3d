@@ -1,0 +1,26 @@
+#Boundaries configuration file for p3diso.bound
+#----------------------------------------------
+
+Density:
+	Ymin: KEPLERIAN3DSPHDENSRAD
+	Ymax: KEPLERIAN3DSPHDENSRAD
+	Zmin: KEPLERIAN3DSPHDENSCOL
+	Zmax: SYMMETRIC
+
+Vx:
+	Ymin:	KEPLERIAN3DSPHVAZIMRAD
+	Ymax:   KEPLERIAN3DSPHVAZIMRAD
+	Zmin:	KEPLERIAN3DSPHVAZIMCOL
+	Zmax: 	SYMMETRIC
+
+Vy:
+	Ymin:	ANTISYMMETRIC
+	Ymax:   ANTISYMMETRIC
+	Zmin:	SYMMETRIC
+	Zmax:	SYMMETRIC
+
+Vz:
+	Ymin:	SYMMETRIC
+	Ymax:	SYMMETRIC
+	Zmin:	ANTISYMMETRIC
+	Zmax:	ANTISYMMETRIC

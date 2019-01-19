@@ -1,0 +1,20 @@
+SetUp			otvortex
+
+### Mesh parameters
+
+Nx			1
+Ny                	128
+Nz			128
+Ymin			0.0
+Ymax			1.0
+Zmin			0.0
+Zmax			1.0
+
+PeriodicY		yes
+PeriodicZ		yes
+
+### Output control parameters
+Ntot			1000		Total number of time steps
+Ninterm	 		1		Time steps between outputs
+DT			0.05		
+OutputDir		@outputs/otvortex

@@ -1,0 +1,29 @@
+#Centered of Field variables
+#---------------------------
+#C --> Centered
+#Otherwise indicates directions in which quantity is staggered
+
+Density:
+	Staggering: C    
+Energy:
+	Staggering: C
+EnergyRad:
+	Staggering: C
+Vx:
+	Staggering: x
+Vy:
+	Staggering: y
+Vz:
+	Staggering: z
+Bx:
+	Staggering: x
+By:
+	Staggering: y
+Bz:
+	Staggering: z
+Emfx:
+	Staggering: yz
+Emfy:
+	Staggering: xz
+Emfz:
+	Staggering: xy

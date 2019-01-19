@@ -1,0 +1,20 @@
+Setup			sod1d
+
+### Mesh parameters
+
+Nx			1
+Ny			1
+Nz			1000
+Zmin			0.0
+Zmax			1.0
+
+Ntot			5
+Ninterm	 		1
+DT			0.05
+OutputDir		@outputs/sod1d
+
+Gamma			1.4
+
+# Plot options
+Field			gasdens
+Autocolor		No

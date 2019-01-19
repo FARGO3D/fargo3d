@@ -1,0 +1,12 @@
+DT                 *= sqrt(R0*R0*R0/G/MSTAR)
+CS                 *= sqrt(G*MSTAR/R0)
+VERTICALDAMPING    *= sqrt(G*MSTAR/(R0*R0*R0))
+OMEGAFRAME         *= sqrt(G*MSTAR/(R0*R0*R0))
+OORTA              *= sqrt(G*MSTAR/(R0*R0*R0))
+PLANETMASS         *= MSTAR
+NU          	   *= sqrt(G*MSTAR*R0)
+ETA                *= sqrt(G*MSTAR*R0)
+SIGMA0             *= MSTAR/(R0*R0)
+MASSTAPER          *= sqrt(R0*R0*R0/G/MSTAR)
+RELEASERADIUS	   *= R0
+RELEASEDATE	   *= sqrt(R0*R0*R0/G/MSTAR)

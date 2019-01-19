@@ -1,0 +1,64 @@
+# You may enter a description between the BEGIN and END labels.
+# BEGIN
+# The "binary" setup is a 2D polar setup that is very similar to the
+# "fargo" setup, except that it can handle a binary star (with an
+# orbit smaller than the mesh inner boundary, i.e. it is meant to
+# simulate circumbinary disks). Note that the parameter file provided
+# with this setup (which corresponds to a system similar to Kepler 38)
+# is in cgs units. In order to run it, issue in the directory
+# 'fargo3d':
+#
+# make SETUP=binary UNITS=CGS RESCALE=0
+# ./fargo3d in/binary.par
+#
+# Note: this setup also requires that you manually redefine the
+# constant MSTAR_CGS in the file src/fondam.h; run it a first time
+# without this change, and a warning informative message will be
+# issued upon the run start, which will guide you exactly. Follow the
+# indications, then rebuild and rerun.
+#
+# END
+#-------------------------------------------------------------------------------
+# From the list below, activate/deactivate the options that apply to your run.
+#-------------------------------------------------------------------------------
+#Problem
+MONITOR_SCALAR = MASS | TORQ
+
+FARGO_OPT += -DSTOCKHOLM
+FARGO_OPT += -DHILLCUT
+
+#Dimension(s) of Simulation. Here 2D (r,Phi) like the former FARGO code
+FARGO_OPT +=  -DX #X --> PHI
+FARGO_OPT +=  -DY #Y --> R
+
+#Equation of State		# ONLY ONE OF THEM
+FARGO_OPT +=  -DISOTHERMAL	# ISOTHERMAL EQUATION OF STATE
+
+#Coordinate System.
+FARGO_OPT +=  -DCYLINDRICAL	# COORDINATE SYSTEM. 
+
+#Transport Algorithm
+#FARGO_OPT += -DSTANDARD	# YOU CAN USE THIS OPTION IF YOU WANT TO COMPARE THE 
+	      		 	# SPEEDUP OF THE FARGO ALGORITHM WITH RESPECT TO THE
+	      		 	# STANDARD ADVECTION ALGORITHM.
+
+FARGO_OPT += -DNODEFAULTSTAR
+
+#Algorithms
+#FARGO_OPT += -DNOSUBSTEP2	# DISABLES ARTIFICIAL VISCOSITY.
+
+#Gravity
+FARGO_OPT += -DPOTENTIAL
+
+#Viscosity
+FARGO_OPT += -DALPHAVISCOSITY
+
+FARGO_OPT += -DLEGACY
+
+#Cuda blocks
+ifeq (${GPU}, 1)
+FARGO_OPT += -DBLOCK_X=16
+FARGO_OPT += -DBLOCK_Y=16
+FARGO_OPT += -DBLOCK_Z=1
+endif
+

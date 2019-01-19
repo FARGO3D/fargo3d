@@ -1,0 +1,105 @@
+# Default values for the global parameters of the code.
+
+# If one of these variables is not defined in the SETUP.par file, its
+# default value is obtained from this file.
+
+# The value found in the SETUP.par file has priority over that found
+# in this file.
+
+# In practice, a parameter is defined in this file when the
+# declaration of the parameter is still needed when you change from
+# one setup to another.
+
+#Mesh parameters
+
+Nx			1
+Ny			1
+Nz			1
+Xmin			0.0
+Xmax			1.0
+Ymin			0.0
+Ymax			1.0
+Zmin			0.0
+Zmax			1.0
+Oorta			-0.75
+SigmaSlope		0.0
+Eccentricity		0.0
+Inclination		0.0
+ThicknessSmoothing	0.0
+RocheSmoothing		0.0
+AspectRatio		0.05
+Sigma0			1.0
+FlaringIndex		0.0
+Nu			0.0
+Eta			0.0
+Cs			1.0
+Frame			fixed
+OmegaFrame		0.0
+IndirectTerm		no
+ExcludeHill		no
+MassTaper		0.0
+Noise			0.0
+VerticalDamping		0.0
+Spacing			default
+Coordinates		standard
+Gamma			1.66666667
+Alpha			0.0
+PlanetConfig		NONE
+PeriodicZ		No
+PeriodicY		No
+PlanetHeating		No
+
+Resonance		0.5
+
+# Radial range for damping (in period-ratios).
+# Values smaller than one prevent damping.
+
+DampingZone 1.15
+
+# Characteristic time for damping,
+# in units of the inverse of the local orbital frequency.
+
+TauDamp 0.3
+
+# Fraction of the angle between midplane and mesh limit. Use negative
+# value to prevent damping
+
+KillingBCColatitude -0.2
+
+CFL			0.44
+
+Vtk			No
+RealType		Standard  #float or double
+
+PlanetMass		0.0
+Field			gasdens
+Cmap			magma
+
+PlotLog			no
+Colorbar		yes
+Autocolor		yes
+Aspect			auto
+vmin			0.0
+vmax			1.0
+PlotLine		field[:,:,0]
+
+OrbitalRadius		0.0
+ReleaseDate		0.0
+ReleaseRadius		0.0
+SemiMajorAxis		0.0
+
+FuncArchFile		std/func_arch.cfg
+Setup			Undefined
+
+Nsnap			0
+WriteDensity		No
+WriteEnergy		No
+WriteBx			No
+WriteBy			No
+WriteBz			No
+WriteVx			No
+WriteVy			No
+WriteVz			No
+WriteDivergence		No
+WriteEnergyRad		No
+WriteTau		No

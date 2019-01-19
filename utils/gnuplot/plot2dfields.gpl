@@ -1,0 +1,43 @@
+#-------------------------
+# Batch frame generator:
+#-------------------------
+#for m in `seq 1 10`;
+#do
+#gnuplot -e "nx=100; ny=40; m=$m" ../../../utils/gnuplot/plot2dfields.gpl
+#done
+#-------------------------
+
+#m = 1
+#nx = 100
+#ny = 40
+
+#Variables m, nx y ny must be defined inside gnuplot.
+
+title(n) = sprintf("Fields%d", n) 
+
+set terminal wxt size 1368,288 font ",8" persist
+
+#set terminal png size 2000,600
+#set output title(m).".png"
+
+set autoscale xfix
+set autoscale yfix
+dens(n) = sprintf("gasdens%d.dat", n)
+vx(n)   = sprintf("gasvx%d.dat", n)
+vy(n)   = sprintf("gasvy%d.dat", n)
+vz(n)   = sprintf("gasvz%d.dat", n)
+e(n)    = sprintf("gasenergy%d.dat", n)
+
+set multiplot layout 1,5 scale 1,1 title title(m)
+set title "Density"
+plot dens(m) binary array=(nx,ny) format='%lf' w image notitle
+set title "Vx"
+plot vx(m) binary array=(nx,ny) format='%lf' w image notitle
+set title "Vy"
+plot vy(m) binary array=(nx,ny) format='%lf' w image notitle
+set title "Vz"
+plot vz(m) binary array=(nx,ny) format='%lf' w image notitle
+set title "Energy"
+plot e(m) binary array=(nx,ny) format='%lf' w image notitle
+unset multiplot
+#set output

@@ -1,0 +1,53 @@
+### Run only this parameter file if FARGO3D was build using the setup 'binary'
+
+## Note: this parameter file is directly in cgs units. In order to run
+## it, FARGO3D must be built in the CGS unit system, with no
+## rescaling. This is done by issuing:
+
+# make UNITS=CGS RESCALE=0
+
+Setup			binary
+
+#The parameters of this setup are broadly similar to those of Kley &
+#Haghighipour (2014), A&A, 564, A72
+
+
+### Disk parameters
+
+AspectRatio     	0.05            Thickness over Radius in the disc
+Sigma0			3000.0		Surface Density at r=R0
+Alpha			0.01		Alpha viscosity
+SigmaSlope		0.5		Slope of the surface density
+FlaringIndex		0.0
+
+### Planet parameters
+
+PlanetConfig		planets/Kepler38.cfg
+ThicknessSmoothing 	0.6
+RocheSmoothing 		0.0
+Eccentricity		0.0
+ExcludeHill		Yes
+IndirectTerm		Yes
+
+
+### Mesh parameters
+
+Nx			512		Azimuthal number of zones
+Ny               	256		Radial number of zones
+Xmin			-3.14159265358979323844	
+Xmax			3.14159265358979323844
+Ymin			3.7399468e12	Inner boundary radius
+Ymax			2.8722791e13	Outer boundary radius
+OmegaFrame     		0.0
+Frame			F
+
+### Output control parameters
+
+Ntot			160000		Total number of time steps
+Ninterm	 		32		Time steps between outputs
+DT			864000.0	Time step length in seconds (10 days)
+OutputDir		@outputs/Kepler38
+
+#Plotting parameters
+
+Log			yes
