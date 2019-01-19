@@ -59,6 +59,7 @@ void cfl_cpu() {
   int size_z = Nz+NGHZ;
   real dx = Dx;
   int pitch2d = Pitch2D;
+  int fluidtype = Fluidtype;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -102,7 +103,7 @@ void cfl_cpu() {
 // real ALPHA(1);
 // real NU(1);
 //<\CONSTANT>
-
+ 
 //<MAIN_LOOP>
 
   i = j = k = 0;
@@ -155,8 +156,9 @@ void cfl_cpu() {
 #endif
 
 #ifdef MHD
-	soundspeed2 += ((bx[ll]*bx[ll]+by[ll]*by[ll]+bz[ll]*bz[ll])
-			/(MU0*rho[ll]));
+	if (fluidtype == GAS) {
+	  soundspeed2 += ((bx[ll]*bx[ll]+by[ll]*by[ll]+bz[ll]*bz[ll])/(MU0*rho[ll]));
+	}
 #endif
 
 	soundspeed = sqrt(soundspeed2);
@@ -218,16 +220,8 @@ void cfl_cpu() {
 	dtime[ll] = CFL/sqrt(cfl1*cfl1 + cfl2*cfl2 + 
 			     cfl3*cfl3 + cfl4*cfl4 + 
 			     cfl5*cfl5 + cfl6*cfl6 + 
-			     cfl7*cfl7 + cfl8*cfl8);
-//	if (dtime[ll] <= dtmin) {
-//	  dtmin = dtime[ll];
-//	  INSPECT_REAL (cfl5_a);
-//	  INSPECT_REAL (cfl5_b);
-//	  INSPECT_REAL (cfl5_c);
-//	  INSPECT_INT (i);
-//	  INSPECT_INT (j);
-//	  INSPECT_INT (k);
-//	}
+			     cfl7*cfl7 + cfl8*cfl8 );
+
 //<\#>
 #ifdef X
       }

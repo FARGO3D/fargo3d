@@ -26,8 +26,6 @@ void FillGhosts (int var) {
 
 }
 
-static boolean Resistivity_Profiles_Filled = NO;
-
 void Fill_Resistivity_Profiles () {
 
   OUTPUT2D(Eta_profile_xi);
@@ -49,178 +47,130 @@ void Fill_Resistivity_Profiles () {
   }
   Resistivity_Profiles_Filled = YES;
 }
-
-
-void AlgoGas () {
+void Sources(real dt) {
+     
+  SetupHook1 (); //Setup specific hook. Defaults to empty function.
   
-  real dtemp=0.0;
-  real dt=1.0;  
-  int var=0;
-
-  while(dtemp<DT) { // DT LOOP    
-
-    SetupHook1 (); //Setup specific hook. Defaults to empty function.
-
-#ifdef MHD
-  if (Resistivity_Profiles_Filled == NO) {
-    FARGO_SAFE(Fill_Resistivity_Profiles ());
-  }
-#endif
-
+  //Equations of state-----------------------------------------------------------
 #ifdef ADIABATIC
-    FARGO_SAFE(ComputePressureFieldAd());
+  FARGO_SAFE(ComputePressureFieldAd());
 #endif
-    
 #ifdef ISOTHERMAL
-    FARGO_SAFE(ComputePressureFieldIso());
+  FARGO_SAFE(ComputePressureFieldIso());
 #endif
-
 #ifdef POLYTROPIC
-    FARGO_SAFE(ComputePressureFieldPoly());
+  FARGO_SAFE(ComputePressureFieldPoly());
 #endif
+  //-----------------------------------------------------------------------------
     
-    /// AT THIS STAGE Vx IS THE INITIAL TOTAL VELOCITY IN X
-    
-#ifdef X
-#ifndef STANDARD
-    FARGO_SAFE(ComputeVmed(Vx)); // FARGO algorithm
-#endif
-#endif
-
-    /// NOW THE 2D MESH VxMed CONTAINS THE AZIMUTHAL AVERAGE OF Vx in X
-
-    InitSpecificTime (&t_Hydro, "Eulerian Hydro (no transport) algorithms");
-
-    /// REGARDLESS OF WHETHER WE USE FARGO, Vx IS ALWAYS THE TOTAL VELOCITY IN X
-    FARGO_SAFE(cfl());
-    dt = step_time; //cfl works with the 'step_time' global variable.
-    /// BEFORE AND AFTER THE CALL TO CFL.
-    dtemp+=dt;
-    if(dtemp>DT)  dt = DT - (dtemp-dt); // updating dt
-
-
+  InitSpecificTime (&t_Hydro, "Eulerian Hydro (no transport) algorithms");
+  
+  // REGARDLESS OF WHETHER WE USE FARGO, Vx IS ALWAYS THE TOTAL VELOCITY IN X
+  
 #ifdef POTENTIAL
-    FARGO_SAFE(compute_potential(dt));
+  FARGO_SAFE(compute_potential(dt));
 #endif
-
+  
 #if ((defined(SHEARINGSHEET2D) || defined(SHEARINGBOX3D)) && !defined(SHEARINGBC))
-    FARGO_SAFE(NonReflectingBC(Vy));
+  FARGO_SAFE(NonReflectingBC(Vy));
 #endif
-    
+
 #ifdef X
-    FARGO_SAFE(SubStep1_x(dt));
-#endif
+  FARGO_SAFE(SubStep1_x(dt));
+#endif    
 #ifdef Y
-    FARGO_SAFE(SubStep1_y(dt));
-#endif
+  FARGO_SAFE(SubStep1_y(dt));
+#endif  
 #ifdef Z
-    FARGO_SAFE(SubStep1_z(dt));
+  FARGO_SAFE(SubStep1_z(dt));
 #endif
-
+  
 #if (defined(VISCOSITY) || defined(ALPHAVISCOSITY))
-    viscosity(dt);
+  if (Fluidtype == GAS) viscosity(dt);
 #endif
-
+  
 #ifndef NOSUBSTEP2
-    FARGO_SAFE(SubStep2_a(dt));
-    FARGO_SAFE(SubStep2_b(dt));
-    /// NOW: Vx INITIAL X VELOCITY, Vx_temp UPDATED X VELOCITY FROM SOURCE TERMS + ARTIFICIAL VISCOSITY
+  FARGO_SAFE(SubStep2_a(dt));
+  FARGO_SAFE(SubStep2_b(dt));
 #endif
+
+  // NOW: Vx INITIAL X VELOCITY, Vx_temp UPDATED X VELOCITY FROM SOURCE TERMS + ARTIFICIAL VISCOSITY
+
 #ifdef ADIABATIC
-    FARGO_SAFE(SubStep3(dt));
+  FARGO_SAFE(SubStep3(dt));
 #endif
-
-
-    GiveSpecificTime (t_Hydro);
     
-#ifdef MHD //----------------------------------------------------------------
+  GiveSpecificTime (t_Hydro);
+  
+#ifdef MHD //-------------------------------------------------------------------
+  if(Fluidtype == GAS){
     InitSpecificTime (&t_Mhd, "MHD algorithms");
-    // THIS COPIES Vx_temp INTO Vx
     FARGO_SAFE(copy_velocities(VTEMP2V));
 #ifndef STANDARD // WE USE THE FARGO ALGORITHM
     FARGO_SAFE(ComputeVmed(Vx));
     FARGO_SAFE(ChangeFrame(-1, Vx, VxMed)); //Vx becomes the residual velocity
     VxIsResidual = YES;
 #endif
-
+     
     ComputeMHD(dt);
-    
+
 #ifndef STANDARD
     FARGO_SAFE(ChangeFrame(+1, Vx, VxMed)); //Vx becomes the total, updated velocity
     VxIsResidual = NO;
-#endif
+#endif //STANDARD
     FARGO_SAFE(copy_velocities(V2VTEMP));
     // THIS COPIES Vx INTO Vx_temp
     GiveSpecificTime (t_Mhd);
-#endif  //END MHD------------------------------------------------------------
-        
-    InitSpecificTime (&t_Hydro, "Transport algorithms");
+  }
+#endif //END MHD----------------------------------------------------------------
 
-    // V_temp IS USED IN TRANSPORT
+  InitSpecificTime (&t_Hydro, "Transport algorithms");
 
 #if ((defined(SHEARINGSHEET2D) || defined(SHEARINGBOX3D)) && !defined(SHEARINGBC))
-    FARGO_SAFE(NonReflectingBC (Vy_temp));
+  FARGO_SAFE(NonReflectingBC (Vy_temp));
 #endif
+  
+  FARGO_SAFE(copy_velocities(VTEMP2V));
+  FARGO_SAFE(FillGhosts(PrimitiveVariables()));
+  FARGO_SAFE(copy_velocities(V2VTEMP));
 
-    FARGO_SAFE(copy_velocities(VTEMP2V));
-    FARGO_SAFE(FillGhosts(PrimitiveVariables()));
-    FARGO_SAFE(copy_velocities(V2VTEMP));
-
+#ifdef MHD //-------------------------------------------------------------------
+  if(Fluidtype == GAS){ //We do MHD only for the gaseous component
     
-#ifdef MHD
     FARGO_SAFE(UpdateMagneticField(dt,1,0,0));
     FARGO_SAFE(UpdateMagneticField(dt,0,1,0));
     FARGO_SAFE(UpdateMagneticField(dt,0,0,1));
-#endif
 
-#if defined (MHD) && (!defined(STANDARD))
+#if !defined(STANDARD)
     FARGO_SAFE(MHD_fargo (dt)); // Perform additional field update with uniform velocity
 #endif
 
+  } 
+#endif //END MHD ---------------------------------------------------------------
+}
+
+void Transport(real dt) {
+
+  //NOTE: V_temp IS USED IN TRANSPORT
+
 #ifdef X
 #ifndef STANDARD
-    FARGO_SAFE(ComputeVmed(Vx_temp)); 
+  FARGO_SAFE(ComputeVmed(Vx_temp)); 
 #endif
 #endif
 
-    transport(dt);
-
-    GiveSpecificTime (t_Hydro);
-
-    if(CPU_Master) {
-      if (FullArrayComms)
-	printf("%s", "!");
-      else {
-	if (ContourComms)
-	  printf("%s", ":");
-	else
-	  printf("%s", ".");
-      }
-#ifndef NOFLUSH
-      fflush(stdout);
-#endif
-    }
-    if (ForwardOneStep == YES) prs_exit(EXIT_SUCCESS);
-    PhysicalTime+=dt;
-    FullArrayComms = 0;
-    ContourComms = 0;
+  transport(dt);
+  
+  GiveSpecificTime (t_Hydro);
+  
+  if (ForwardOneStep == YES) prs_exit(EXIT_SUCCESS);
+  
 #ifdef MHD
-    // EMFs claim ownership of their storage area
-    *(Emfx->owner) = Emfx;
-    *(Emfy->owner) = Emfy;
-    *(Emfz->owner) = Emfz;
+  if(Fluidtype == GAS) {   // We do MHD only for the gaseous component
+   *(Emfx->owner) = Emfx;  // EMFs claim ownership of their storage area
+   *(Emfy->owner) = Emfy;
+   *(Emfz->owner) = Emfz;
+ }
 #endif
-
-
-#ifdef STOCKHOLM
-    FARGO_SAFE(StockholmBoundary(dt));
-#endif
-
-    FARGO_SAFE(FillGhosts (PrimitiveVariables()));
-
-  }
-
-  dtemp = 0.0;
-  if(CPU_Master) printf("%s", "\n");
 
 }

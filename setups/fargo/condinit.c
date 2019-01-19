@@ -1,6 +1,6 @@
 #include "fargo3d.h"
 
-void CondInit() {
+void Init() {
   
   OUTPUT(Density);
   OUTPUT(Energy);
@@ -48,4 +48,10 @@ void CondInit() {
       vr[l]    = soundspeed*NOISE*(drand48()-.5);
     }
   } 
+}
+
+void CondInit() {
+   Fluids[0] = CreateFluid("gas",GAS);
+   SelectFluid(0);
+   Init();
 }

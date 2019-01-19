@@ -14,6 +14,7 @@
 typedef int MPI_Request;
 typedef int MPI_Status;
 typedef int MPI_Comm;
+typedef long MPI_Offset;
 
 void MPI_Comm_rank();
 void MPI_Barrier();

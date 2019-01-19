@@ -44,7 +44,7 @@ void repartition (int *nx, int ncpu, int *MX) {
   int pow2[MAXPRIME], comb[MAXPRIME];
   int nb;
   int mx[2], idx;
-  real best=1e30;
+  real best = 1e30;
 
   primefactors (ncpu, factors, &nfact); // Decompose ncpu into prime factors
   for (i = 0; i <= nfact; i++) {
@@ -81,11 +81,12 @@ void split(Grid *g) {
   int nx[2];
   int MX[2];
 
+#ifdef DEBUG
   char filename[200];
   FILE *grid_file;
   sprintf(filename, "%sgrid%03d.inf", OUTPUTDIR, CPU_Rank);
   grid_file = fopen_prs (filename, "w");
-
+#endif
 
   nx[0] = NY;
   nx[1] = NZ;
@@ -146,11 +147,13 @@ void split(Grid *g) {
   Y0 = y0cell;
   Z0 = z0cell;
 
+#ifdef DEBUG
   fprintf(grid_file, "CPU_Rank\tY0\tYN\tZ0\tZN\tIndexY\tIndexZ\n");
   fprintf(grid_file, "%d\t%d\t%d\t%d\t%d\t%d\t%d\n",CPU_Rank, \
-	  y0cell, y0cell+tamanyox-1, z0cell ,z0cell+tamanyoy-1, J, K);
+  	  y0cell, y0cell+tamanyox-1, z0cell ,z0cell+tamanyoy-1, J, K);
   fclose(grid_file);
-
+#endif
+  
   Xmin = (real *)malloc(sizeof(real)*(Nx+2*NGHX+1));
   Ymin = (real *)malloc(sizeof(real)*(Ny+2*NGHY+1));
   Zmin = (real *)malloc(sizeof(real)*(Nz+2*NGHZ+1));
@@ -197,6 +200,11 @@ void split(Grid *g) {
 
   DevMalloc(&InvVj_d,sizeof(real)*(Ny+2*NGHY));
 
+  DevMalloc(&Alpha_d,sizeof(real)*NFLUIDS*NFLUIDS);
+
 #endif
+  
+  //We allocate and initialize the memory of the collision matrix
+  Alpha = (real*) calloc(NFLUIDS*NFLUIDS,sizeof(real));
 
 }

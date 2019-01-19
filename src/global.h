@@ -7,6 +7,7 @@ boolean CPU_Master = YES;
 //Global variables
 
 
+boolean Resistivity_Profiles_Filled = NO;
 boolean VxIsResidual = NO;
 boolean LogGrid = NO;
 boolean GuidingCenter = NO;
@@ -36,7 +37,7 @@ real    XAxisRotationAngle = 0.0;
 char    NewOutputdir[1024];
 char    VersionString[1024];
 char    StickyOptions[1024];
-char    BoundaryFile[1024];
+char    BoundaryFile[4096];
 char    CommandLine[1024];
 char    FirstCommand[1024];
 char    ArchFile[1024];
@@ -69,7 +70,7 @@ PlanetarySystem *Sys;
 Point DiskOnPrimaryAcceleration;
 Point IndirectTerm;
 
-real step_time;
+real StepTime;
 
 real localforce[12];
 real globalforce[12];
@@ -85,6 +86,10 @@ Field *Vz;
 Field *Vx_temp;
 Field *Vy_temp;
 Field *Vz_temp;
+
+Field *Vx_half;
+Field *Vy_half;
+Field *Vz_half;
 
 Field *Slope;
 
@@ -104,6 +109,8 @@ Field *Qs;
 Field *Density;
 Field *Energy;
 Field *Pressure;
+
+Field *Total_Density;
 
 Field *QL;
 Field *QR;
@@ -148,17 +155,11 @@ Field *Emfz;
 Field *Divergence;
 //#endif
 
-
-
-
 Field2D *Density0;
 Field2D *Vx0;
 Field2D *Vy0;
 Field2D *Vz0;
 Field2D *Energy0;
-
-
-
 
 //Communications variables
 
@@ -177,6 +178,7 @@ Buffer Bfcur; //|
 //Useful numbers
 
 //CPU GLOBAL LIGHT ARRAYS
+
 real Dx;
 real *Xmin;
 real *Ymin;
@@ -197,6 +199,8 @@ real *InvVj;
 real shift_buffer[MAX1D];
 
 //GPU GLOBAL LIGHT ARRAYS
+real *Alpha;
+real *Alpha_d;
 real *Dx_d;
 real *Xmin_d;
 real *Ymin_d;
@@ -260,6 +264,13 @@ int Fscan;
 
 long VtkPosition = 0; 
 
+//Multifluid variables
+int Timestepcount = 0;
+int Fluidtype;
+int FluidIndex;
+real Min[NFLUIDS];
+Fluid *Fluids[NFLUIDS];
+
 //Pointers to functions
 //WARNING!!! FUNCTIONS' ARGUMENTS MUST NOT CONTAIN BLANK SPACES
 void (*ComputePressureFieldIso)();
@@ -297,7 +308,7 @@ void (*ComputeResidual)(real);
 void (*ChangeFrame)(int,Field*,Field2D*);
 void (*Potential)();
 void (*CorrectVtheta)(real);
-void (*cfl)();
+void (*cfl)(void);
 void (*_ComputeForce)(real,real,real,real,real);
 void (*copy_velocities)(int);
 void (*VanLeerX_PPA_a)(Field*);
@@ -315,6 +326,8 @@ void (*mon_reynolds)();
 void (*mon_maxwell)();
 void (*mon_bxflux)();
 void (*comm)();
+void (*Reset_field)(Field*);
+void (*ComputeTotalDensity)();
 //MHD..........................................
 void (*ComputeSlopes)(int,int,int,Field*,Field*);
 void (*_ComputeStar)(real,int,int,int,int,int,int,int,int,int,Field*,Field*,Field*,Field*,Field*,Field*,Field*,Field*,Field*,Field*);
@@ -323,7 +336,6 @@ void (*_UpdateMagneticField)(real,int,int,int,int,int,int,int,int,int,Field*,Fie
 void (*_LorentzForce)(real,int,int,int,int,int,int,int,int,int,int,int,Field*,Field*,Field*,Field*,Field*);
 void (*_Resist)(int,int,int,int,int,int,int,int,int,Field*,Field*,Field*,Field2D*);
 void (*EMF_Upstream_Integrate)(real);
-
 void (*StockholmBoundary)(real);
 void (*visctensor_cart)();
 void (*addviscosity_cart)(real);
@@ -331,16 +343,19 @@ void (*visctensor_cyl)();
 void (*addviscosity_cyl)(real);
 void (*visctensor_sph)();
 void (*addviscosity_sph)(real);
-void (*boundary_ymin)();
-void (*boundary_zmin)();
-void (*boundary_ymax)();
-void (*boundary_zmax)();
 void (*Fill_GhostsX)();
 void (*CheckMuteY)();
 void (*CheckMuteZ)();
 
 void (*SetupHook1)();
 
+void (*_collisions)(real,int,int,int,int);
+void (*Floor)();
+
 void (*__WriteField)();
 void (*__Restart)(Field*,int);
 
+void (*boundary_ymin[NFLUIDS])();
+void (*boundary_ymax[NFLUIDS])();
+void (*boundary_zmin[NFLUIDS])();
+void (*boundary_zmax[NFLUIDS])();

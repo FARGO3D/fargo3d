@@ -13,15 +13,27 @@ void SubStep2_a_cpu (real dt) {
   INPUT(Density);
   INPUT(Pressure);
 #ifdef X
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vx_half);
+#else 
   INPUT(Vx);
+#endif
   OUTPUT(Mpx);
 #endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vy_half);
+#else 
   INPUT(Vy);
+#endif
   OUTPUT(Mpy);
 #endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vz_half);
+#else 
   INPUT(Vz);
+#endif
   OUTPUT(Mpz);
 #endif
 //<\USER_DEFINED>
@@ -29,16 +41,28 @@ void SubStep2_a_cpu (real dt) {
 //<EXTERNAL>
   real* rho    = Density->field_cpu;
   real* p      = Pressure->field_cpu;
-#ifdef X  
+#ifdef X
+#ifdef COLLISIONPREDICTOR
+  real* vx     = Vx_half->field_cpu;
+#else
   real* vx     = Vx->field_cpu;
+#endif 
   real* pres_x = Mpx->field_cpu;
 #endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
+  real* vy     = Vy_half->field_cpu;
+#else
   real* vy     = Vy->field_cpu;
+#endif 
   real* pres_y = Mpy->field_cpu;
 #endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
+  real* vz     = Vz_half->field_cpu;
+#else
   real* vz     = Vz->field_cpu;
+#endif 
   real* pres_z = Mpz->field_cpu;
 #endif
   int pitch    = Pitch_cpu;

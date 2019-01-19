@@ -6,11 +6,12 @@
 # ./fargo3d in/sod1d.par
 # The default initial conditions are those of Stone & Norman 1992 ApJSS, 80, 753.
 # END
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
-#Dimension(s) of Simulation.
-#FARGO_OPT += -DX
-#FARGO_OPT += -DY
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
+
 FARGO_OPT  += -DZ
 
 #Coordinate System.

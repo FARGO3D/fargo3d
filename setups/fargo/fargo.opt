@@ -6,19 +6,19 @@
 # make SETUP=fargo
 # fargo3d in/fargo.par
 # END
-#-------------------------------------------------------------------------------
-# From the list below, activate/deactivate the options that apply to your run.
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
 
 #Monitoring options
 MONITOR_SCALAR = MASS | MOM_X | TORQ
 MONITOR_Y_RAW  = TORQ
 
 #Damping zones in the active mesh
-FARGO_OPT += -DSTOCKHOLM
 
-#Dimensions of simulation.
-#Here 2D (r,Phi) like the former FARGO code
+FARGO_OPT += -DSTOCKHOLM
 
 FARGO_OPT +=  -DX
 FARGO_OPT +=  -DY
@@ -32,10 +32,8 @@ FARGO_OPT +=  -DCYLINDRICAL
 #Legacy files for outputs
 FARGO_OPT += -DLEGACY
 
-#Gravity
 FARGO_OPT += -DPOTENTIAL
 
-#Constant nu viscosity
 FARGO_OPT += -DVISCOSITY
 
 #Cuda blocks

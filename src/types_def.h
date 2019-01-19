@@ -18,3 +18,5 @@ typedef struct zmeanprop ZmeanProp;
 typedef struct hashparam HashParam;
 typedef struct state_vector StateVector;
 typedef struct orbital_elements OrbitalElements;
+
+typedef struct fluid Fluid;

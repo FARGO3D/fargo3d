@@ -14,12 +14,14 @@
 # Note: the 'full disk' set up is now provided in the public release
 # and is called 'p3disof'
 # END
-#----------------------------------------------------------------------
+#-------------------------------------------------------------------------
+
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
 
 MONITOR_2D = MASS | MOM_X
 MONITOR_SCALAR = TORQ
-
-#Dimension(s) of Simulation. Here 3D (Phi,r,theta)
 
 FARGO_OPT +=  -DX
 FARGO_OPT +=  -DY

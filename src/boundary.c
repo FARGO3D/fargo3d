@@ -3,17 +3,17 @@ void boundaries() {
   if (!PERIODICZ) {
 #ifdef Z
     if(Gridd.bc_down)
-      boundary_zmin();
+      boundary_zmin[FluidIndex]();
     if(Gridd.bc_up)
-      boundary_zmax();
+      boundary_zmax[FluidIndex]();
 #endif
   }
   if (!PERIODICY) {
 #ifdef Y
     if(Gridd.bc_left)
-      boundary_ymin();
+      boundary_ymin[FluidIndex]();
     if(Gridd.bc_right)
-      boundary_ymax();
+      boundary_ymax[FluidIndex]();
 #endif
   }
 #ifdef GHOSTSX 

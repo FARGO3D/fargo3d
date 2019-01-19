@@ -178,7 +178,7 @@ void WriteVTKMerging(Field *f, int n) {
       for (j = 0; j<Ncpu_x; j++) {
 	if ((J==j) && (k>=Z0) && (k<(Z0+Nz))) {
 	  for (m=NGHY;m<Ny+NGHY;m++) {
-	    temp = Swap(f->field_cpu[m*Nx+(k-Z0)*Stride+NGHZ*Stride]);
+	    temp = Swap(f->field_cpu[i+m*Nx+(k-Z0)*Stride+NGHZ*Stride]);
 	    fwrite(&temp, sizeof(real), 1, ofile);
 	  }
 	}

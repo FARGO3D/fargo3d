@@ -7,7 +7,10 @@
 # END
 #-------------------------------------------------------------------------
 
-#Dimension(s) of Simulation.
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
+
 FARGO_OPT+=-DX
 FARGO_OPT+=-DY
 FARGO_OPT+=-DZ

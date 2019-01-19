@@ -84,14 +84,17 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
   real lsum=0.0, gsum=0.0;
   int j, k;
   FILE *Out;
+
   if (plnb < 0)
     sprintf (planet_number, "%s", "");
   else
     sprintf (planet_number, "_planet_%d", plnb);
+  
   if (r & MONITOR2D) {
     sprintf (filename, "%s_2d_%07d%s.dat", mon_name[idx], MonCounter, planet_number);
     Write2D (Reduction2D, filename, CurrentFineGrainDir, NOGHOSTINC);
   }
+
   if ((r & (MONITORY)) | (r & (MONITORY_RAW))) {
     centered = NO;
     if ((mon_cent[idx][1] == 'C') || (mon_cent[idx][1] == 'c'))
@@ -107,6 +110,7 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
 	Profile[j+y0cell-NGHY] += Reduction2D->field_cpu[l2D];
       }
     }
+    
 #ifndef FLOAT
     MPI_Reduce (Profile, GProfile, NY, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce (Coord,   GCoord,   NY, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -114,36 +118,46 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
     MPI_Reduce (Profile, GProfile, NY, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce (Coord,   GCoord,   NY, MPI_FLOAT, MPI_MAX, 0, MPI_COMM_WORLD);
 #endif
+
     // Now GProfile contains the intended 1D profile
     if (r & MONITORY) {
-      sprintf (filename, "%s/%s_1d_Y_%07d%s.dat",CurrentFineGrainDir,	\
+      sprintf (filename, "%s%s_1d_Y_%07d%s.dat",CurrentFineGrainDir,	\
 	       mon_name[idx], MonCounter, planet_number);
       Write1DFile (filename, GCoord, GProfile, NY);
     }
+
     if (r & MONITORY_RAW) {
-      sprintf (filename, "%s/%s_1d_Y_raw%s.dat", OUTPUTDIR, mon_name[idx], planet_number);
+      sprintf (filename, "%smonitor/%s/%s_1d_Y_raw%s.dat", OUTPUTDIR, Fluids[FluidIndex]->name,mon_name[idx], planet_number);
+      
       Out = fopen_prs (filename, "a");
+
       if (CPU_Rank == 0) {
 	fwrite (GProfile, sizeof (real), NY, Out);
       }
+      
       fclose (Out);
     }
   }
+  
   if ((r & MONITORZ) | (r & MONITORZ_RAW)) {
     centered = NO;
     if ((mon_cent[idx][3] == 'C') || (mon_cent[idx][3] == 'c'))
       centered = YES;
     INPUT2D (Reduction2D);
+
     for (j = 0; j < NY; j++) {
       Profile[j] = 0.0;
       Coord[j] = 0.0;
     }
+    
     for (k = NGHZ; k < Nz+NGHZ; k++) {
       Coord[k+z0cell-NGHZ] = (centered ? Zmed(j) : Zmin(j));
+
       for (j = NGHY; j < Ny+NGHY; j++) {
 	Profile[k+z0cell-NGHZ] += Reduction2D->field_cpu[l2D];
       }
     }
+    
 #ifndef FLOAT 
     MPI_Reduce (Profile, GProfile, NZ, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce (Coord,   GCoord,   NZ, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -151,14 +165,16 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
     MPI_Reduce (Profile, GProfile, NZ, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce (Coord,   GCoord,   NZ, MPI_FLOAT, MPI_MAX, 0, MPI_COMM_WORLD);
 #endif
+    
     // Now GProfile contains the intended 1D profile
     if (r & MONITORZ) {
       sprintf (filename, "%s/%s_1d_Z_%07d%s.dat",CurrentFineGrainDir,	\
 	       mon_name[idx], MonCounter, planet_number);
       Write1DFile (filename, GCoord, GProfile, NZ);
     }
+    
     if (r & MONITORZ_RAW) {
-      sprintf (filename, "%s/%s_1d_Z_raw%s.dat", OUTPUTDIR, mon_name[idx], planet_number);
+      sprintf (filename, "%smonitor/%s_1d_Z_raw%s.dat", OUTPUTDIR, mon_name[idx], planet_number);
       Out = fopen_prs (filename, "a");
       if (CPU_Rank == 0) {
 	fwrite (GProfile, sizeof (real), NZ, Out);
@@ -166,6 +182,7 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
       fclose (Out);
     }
   }
+  
   if (r & MONITORSCALAR) {
     INPUT2D (Reduction2D);
     for (k = NGHZ; k < Nz+NGHZ; k++) {
@@ -173,16 +190,20 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
 	lsum += Reduction2D->field_cpu[l2D];
       }
     }
+    
 #ifndef FLOAT
     MPI_Reduce(&lsum, &gsum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 #else
     MPI_Reduce(&lsum, &gsum, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 #endif
-    sprintf (filename, "%s/%s%s.dat", OUTPUTDIR, mon_name[idx], planet_number);
+    
+    sprintf (filename, "%smonitor/%s/%s%s.dat", OUTPUTDIR, Fluids[FluidIndex]->name,mon_name[idx], planet_number);
     Out = fopen_prs (filename, "a");
+
     if (CPU_Rank == 0) {
       fprintf (Out, "%.12g\t%.12g\n", PhysicalTime, gsum);
     }
+    
     fclose (Out);
   }
 }
@@ -215,7 +236,7 @@ void MonitorGlobal (int bitchoice) {
   char CurrentFineGrainDir[MAXLINELENGTH];
   int r=1, idx;
   if (func_declared == NO) InitMonitoring ();
-  sprintf (CurrentFineGrainDir, "%s/FG%06d/", OUTPUTDIR, TimeStep);
+  sprintf (CurrentFineGrainDir, "%smonitor/%s/FG%06d/", OUTPUTDIR, Fluids[FluidIndex]->name,TimeStep);
   if (bitchoice & REYNOLDS)
     ComputeVmed (Vx);
   while (bitchoice) {

@@ -1,6 +1,6 @@
 #include "fargo3d.h"
 
-void CondInit() {
+void Init() {
   int i,j,k;
   real *v1;
   real *v2;
@@ -52,4 +52,10 @@ void CondInit() {
       }
     }
   }
+}
+
+void CondInit() {
+   Fluids[0] = CreateFluid("gas",GAS);
+   SelectFluid(0);
+   Init();
 }

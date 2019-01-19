@@ -16,7 +16,7 @@
 void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 
 //<USER_DEFINED>
-  INPUT(Density);
+  INPUT(Total_Density);
   OUTPUT(Mmx);
   OUTPUT(Mpx);
   OUTPUT(Mmy);
@@ -26,7 +26,7 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 //<\USER_DEFINED>
 
 //<EXTERNAL>
-  real* dens = Density->field_cpu;
+  real* dens = Total_Density->field_cpu;
   real* fxi  = Mmx->field_cpu;
   real* fyi  = Mpx->field_cpu;
   real* fzi  = Mmy->field_cpu;
@@ -54,9 +54,7 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
   real dz;
   real InvDist3; 
   real hill_cut; 
-  (void) hill_cut;
   real planet_distance;
-  (void) planet_distance;
 //<\INTERNAL>
 
 //<CONSTANT>

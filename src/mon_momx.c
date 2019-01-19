@@ -33,7 +33,6 @@ void mon_momx_cpu () {
   int k;
   int ll;
   real rcyl;
-  (void) rcyl;
 //<\INTERNAL>
 
 //<CONSTANT>

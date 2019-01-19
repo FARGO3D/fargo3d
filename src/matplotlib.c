@@ -212,8 +212,9 @@ void plot2d(char* name, int n, int merge) {
   if (merge) {
     if (VTK)
       pyrun("f = open('%s%s%d.vtk')",OUTPUTDIR, name, n);
-    else
+    else {
       pyrun("f = open('%s%s%d.dat')",OUTPUTDIR, name, n);
+    }
   }
   else {
     if (VTK)
@@ -373,4 +374,37 @@ void plot3d(char* name, int n, int merge) {
     }
     pyrun("fig.canvas.flush_events()");
  }
+}
+
+void Display() {
+  
+#if ((defined(X) && defined(Y) && !defined(Z)) || \
+     (defined(X) && defined(Z) && !defined(Y)) || \
+     (defined(Y) && defined(Z) && !defined(X)))
+  if (Merge) {
+    if (CPU_Master) {
+      plot2d(FIELD, TimeStep, Merge);
+    }
+  }
+  else {
+    plot2d(FIELD, TimeStep, Merge);
+  }
+#endif
+
+#if (defined(X) && defined(Y) && defined(Z))
+  if (Merge) {
+    if (CPU_Master) {
+      plot3d(FIELD, TimeStep, Merge);
+    }
+  }
+  else {
+    plot3d(FIELD, TimeStep, Merge);
+  }
+#endif
+  
+#if ((defined(X) & !(defined(Y) || defined(Z))) ||  \
+     (defined(Y) & !(defined(X) || defined(Z)))  || \
+     (defined(Z) & !(defined(X) || defined(Y))))
+  plot1d(FIELD, TimeStep, Merge);
+#endif
 }

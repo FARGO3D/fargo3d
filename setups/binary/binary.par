@@ -46,7 +46,7 @@ Frame			F
 Ntot			160000		Total number of time steps
 Ninterm	 		32		Time steps between outputs
 DT			864000.0	Time step length in seconds (10 days)
-OutputDir		@outputs/Kepler38
+OutputDir		@outputs/binary
 
 #Plotting parameters
 

@@ -94,6 +94,29 @@ struct field { //Multiple fields on code (density, vx, vy,...)
   struct zmeanprop zp;
 };
 
+struct fluid {
+  char *name;
+  int Fluidtype;
+  struct field2D *VxMed;
+  struct field *Density;
+  struct field *Energy;
+  struct field *Vx;
+  struct field *Vx_temp;
+  struct field *Vy;
+  struct field *Vy_temp;
+  struct field *Vz;
+  struct field *Vz_temp;
+  struct field *Vx_half;
+  struct field *Vy_half;
+  struct field *Vz_half;
+#ifdef STOCKHOLM
+  struct field2D *Density0;
+  struct field2D *Energy0;
+  struct field2D *Vx0;
+  struct field2D *Vy0;
+  struct field2D *Vz0;
+#endif
+};
 
 struct field2D { //Multiple 2D fields on code (azimuthal averages, etc.)
   char *name;

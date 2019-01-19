@@ -10,12 +10,15 @@
 # Note: if you want to simulate a half disk with reflecting boundary
 # conditions at the midplane, use the setup 'p3diso'.
 # END
-#----------------------------------------------------------------------
+#-------------------------------------------------------------------------
+
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
 
 MONITOR_2D = MASS | MOM_X
 MONITOR_SCALAR = TORQ
 
-#Dimension(s) of Simulation. Here 3D (Phi,r,theta)
 FARGO_OPT +=  -DX
 FARGO_OPT +=  -DY
 FARGO_OPT +=  -DZ

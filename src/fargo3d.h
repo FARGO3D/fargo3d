@@ -26,10 +26,6 @@
 #include "types_def.h"
 #include "fondam.h"
 
-//#ifndef __NOPROTO //Nvcc is problematic with double references.
-#include "prototypes.h"
-//#endif
-
 #ifdef PARALLEL
 #ifndef __GPU
 #include <mpi.h>
@@ -40,6 +36,10 @@
 #include "mpi_dummy.h"
 #endif
 
+//#ifndef __NOPROTO //Nvcc is problematic with double references.
+#include "prototypes.h"
+//#endif
+
 #include "param.h"
 
 #ifndef __LOCAL // ONLY VAR.C HAS __LOCAL
@@ -49,3 +49,4 @@
 #include "structs.h"
 #include "global.h"
 #endif
+

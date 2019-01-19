@@ -95,7 +95,7 @@ def opt_reader():
         
 def literal(lines, option, verbose = False):
 
-    found  = False
+    founded = False
     output = []
 
     begin = '//<'   + option + '>'
@@ -106,11 +106,9 @@ def literal(lines, option, verbose = False):
         print 'Looking for ', option, ' lines.\n'
 
     for line in lines:
-        if re.match("^\s*$",line): #We test for empty lines
-            continue               #and skip them
         line = line[:-1] # Avoiding \n
         if line == begin:
-            found = True
+            founded = True
             continue
 
         if line == end:
@@ -121,7 +119,7 @@ def literal(lines, option, verbose = False):
                 print '---------------------------------\n'
             return output
 
-        if found:
+        if founded:
             output.append(line)
             if verbose:
                 print line[:-1], 'is a/an ' + option + ' line.'
@@ -328,7 +326,7 @@ def make_constant(symbols):
                 '0, cudaMemcpyDeviceToDevice);\n'
         sizes.append(s.group(7))
 
-#determining the size of constant memory....
+#determining size of constant memory....
     numvar = len(symbols)
     exact_size = 0
     vectors = 0
@@ -369,7 +367,7 @@ def make_constant(symbols):
 
 def make_mainloop(mainloop):
     data = re.compile(r"""
-               (\s?|\s+)for\s*\(              #identifying a for "1"
+               (\s?|\s+)for\s*\(                 #identifying a for "1"
                (\s?|\s+)(.*)(\s+|\s?)=        #ivariable "3"
                (\s?|\s+)(.*)(\s+|\s?);        #lower index "6"
                (\s?|\s+).*(\s?|\s+)<

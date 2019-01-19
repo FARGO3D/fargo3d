@@ -111,7 +111,7 @@ endif
 #LINUX PLATFORM (GENERIC, default)
 #FARGO_ARCH must be set to LINUX
 CC_LINUX      = gcc 
-SEQOPT_LINUX  = -O3 -ffast-math
+SEQOPT_LINUX  = -O3
 PARAOPT_LINUX = ${SEQOPT_LINUX}
 PARACC_LINUX  = mpicc
 LIBS_LINUX    = -lm
@@ -122,6 +122,7 @@ PARAINC_LINUX =
 PARALIB_LINUX =
 CUDAINC_LINUX = -I${CUDA}/include/
 CUDALIB_LINUX = -L${CUDA}/lib64/  -lcudart
+CUDALIB_LINUX = -L${CUDA}/lib64/  -lcudart -lstdc++
 CXX_LINUX     = g++ -stdlib=libstdc++
 CXXPARA_LINUX = mpic++ -stdlib=libstdc++
 #---------------------------------------------------------------------
@@ -250,9 +251,7 @@ CUDALIB_MacIntel = -L${CUDA}/lib/ -lcudart
 CUDAINC_MacIntel = -I${CUDA}/include/
 CXX_MacIntel     = g++ -stdlib=libstdc++
 CXXPARA_MacIntel = mpic++ -stdlib=libstdc++
-
 #--------------Architecture independent names-------------------------
-
 CC	 = ${CC_${FARGO_ARCH}}
 SEQOPT   = ${SEQOPT_${FARGO_ARCH}}
 PARAOPT  = ${PARAOPT_${FARGO_ARCH}}
@@ -269,7 +268,6 @@ CXX      = ${CXX_${FARGO_ARCH}}
 CXXPARA  = ${CXXPARA_${FARGO_ARCH}}
 INCLUDE  = ${INC_${FARGO_ARCH}} ${CUDAINC_${FARGO_ARCH}} \
 	  -I${SRCDIR} -I${BINDIR}
-
 #---------------------------------------------------------------------
 
 MAKEFILE= makefile
@@ -280,100 +278,118 @@ GLOBAL   = ${MAKEFILE} ${SCRIPTSDIR}/c2cuda.py ${FARGO_OPT_FILE}
 
 GLOBAL += fargo3d.h define.h types_def.h prototypes.h fondam.h structs.h
 
-BOUNDARIES =  boundparser.py boundaries.txt 			    \
-	      centering.txt  				    	    \
-	      $(wildcard ${SETUPSDIR}/${SETUP}/$(SETUP).bound) 	    \
-	      boundary_template.c
+BOUNDARIES_DEP = boundparser.py boundary_template.c  \
+	    	 $(wildcard ${SETUPSDIR}/${SETUP}/$(SETUP).bound.*)
+
+
+
 
 MPIDUMMY = mpi_dummy.o #dummy file, for sequential runs.
 EXENAME  = ../fargo3d  #Name and location of the executable file
 
+
 VPATH=${SETUPSDIR}/${SETUP}:${STDDIR}:${SCRIPTSDIR}:${SRCDIR}
 
 #---------------#Sequential and parallel objects----------------------
-MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    	\
-	   split.o comm.o CompPresIso.o CompPresPoly.o         	    	\
-	   boundary.o checknans.o 				    	\
-	   vanleer_x_a.o vanleer_x_b.o 				    	\
-           vanleer_y_a.o vanleer_y_b.o				    	\
-	   vanleer_z_a.o vanleer_z_b.o 				    	\
-	   divrho.o transport.o 				    	\
-	   substep3.o CompPresAd.o			    	    	\
-	   substep2_a.o substep2_b.o condinit.o     		    	\
-	   output.o output2d.o output_vtk.o 			    	\
-	   output_vtk_merging.o			                    	\
-	   algogas.o planets.o runge_kutta.o	        	    	\
-	   stockholm.o mhd.o potential.o	           	    	\
-	   timeinfo.o allocate.o resistivity.o		      	    	\
-	   defout.o fresh.o  light_global_dev.o          	    	\
-	   fargo_mhd.o substep1_x.o substep1_y.o substep1_z.o	    	\
-	   compfields.o advect_shift.o rescale.o		    	\
-	   momenta_x.o momenta_y.o momenta_z.o			    	\
-	   reduction_sum.o reduction_min.o			    	\
-	   update_x.o update_y.o update_z.o 			    	\
-           update_density_x.o update_density_y.o update_density_z.o 	\
-	   newvel_x.o newvel_y.o newvel_z.o 				\
-	   compute_residual.o change_frame.o compute_vmed.o		\
-           correct_vtheta.o cfl.o cfl_b.o				\
-	   compute_force.o compute_slopes.o compute_star.o		\
-	   compute_emf.o update_magnetic.o lorentz_force.o		\
-	   fargo_ppa_a.o fargo_ppa_b.o fargo_ppa_c.o            	\
-	   fargo_ppa_d.o fargo_ppa_d_2d.o fargo_ppa_steep.o		\
-	   vanleerx_ppa.o dh_boundary.o cpvel.o resist.o		\
-	   integrate_emf.o monitor.o Compute_Mean.o 			\
-	   viscosity.o init_stockholm.o visctensor_cart.o		\
-	   addviscosity_cart.o addviscosity_cyl.o			\
-	   addviscosity_sph.o visctensor_sph.o				\
-	   visctensor_cyl.o stretch.o 					\
-	   ymin_bound.o ymax_bound.o					\
-           zmin_bound.o zmax_bound.o					\
-	   mon_dens.o mon_momx.o mon_momy.o mon_momz.o          	\
-	   mon_torque.o comm_device.o checkmute_y.o			\
-	   checkmute_z.o mon_reynolds.o mon_maxwell.o           	\
-	   mon_bxflux.o                                         	\
-	   postrestarthook.o change_arch.o select_device.o		\
-	   redefoptions.o setuphook1.o					\
-	   fill_ghostsx.o summary.o
+MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    \
+	   split.o comm.o CompPresIso.o CompPresPoly.o         	    \
+	   boundary.o checknans.o 				    \
+	   vanleer_x_a.o vanleer_x_b.o 				    \
+           vanleer_y_a.o vanleer_y_b.o				    \
+	   vanleer_z_a.o vanleer_z_b.o 				    \
+	   divrho.o transport.o 				    \
+	   substep3.o CompPresAd.o			    	    \
+	   substep2_a.o substep2_b.o condinit.o     		    \
+	   output.o output2d.o output_vtk.o 			    \
+	   output_vtk_merging.o			                    \
+	   algogas.o planets.o runge_kutta.o	        	    \
+	   stockholm.o mhd.o potential.o	           	    \
+	   timeinfo.o allocate.o              		      	    \
+	   defout.o fresh.o  light_global_dev.o          	    \
+	   fargo_mhd.o substep1_x.o substep1_y.o substep1_z.o	    \
+	   compfields.o advect_shift.o rescale.o		    \
+	   momenta_x.o momenta_y.o momenta_z.o			    \
+	   reduction_sum.o reduction_min.o			    \
+	   update_x.o update_y.o update_z.o 			    \
+           update_density_x.o update_density_y.o update_density_z.o \
+	   newvel_x.o newvel_y.o newvel_z.o 			\
+	   compute_residual.o change_frame.o compute_vmed.o	\
+           correct_vtheta.o cfl.o cfl_b.o			\
+	   compute_force.o compute_slopes.o compute_star.o	\
+	   compute_emf.o update_magnetic.o lorentz_force.o	\
+	   fargo_ppa_a.o fargo_ppa_b.o fargo_ppa_c.o            \
+	   fargo_ppa_d.o fargo_ppa_d_2d.o fargo_ppa_steep.o	\
+	   vanleerx_ppa.o dh_boundary.o cpvel.o         	\
+	   integrate_emf.o monitor.o resist.o resistivity.o	\
+	   viscosity.o init_stockholm.o visctensor_cart.o	\
+	   addviscosity_cart.o addviscosity_cyl.o		\
+	   addviscosity_sph.o visctensor_sph.o			\
+	   visctensor_cyl.o stretch.o 				\
+	   mon_dens.o mon_momx.o mon_momy.o mon_momz.o          \
+	   mon_torque.o comm_device.o checkmute_y.o		\
+	   checkmute_z.o mon_reynolds.o mon_maxwell.o           \
+	   mon_bxflux.o                                         \
+	   postrestarthook.o change_arch.o select_device.o	\
+	   redefoptions.o setuphook1.o				\
+           fill_ghostsx.o cfl_fluids_min.o colrate.o 		\
+	   collisions.o resetfield.o totaldens.o		\
+	   floor.o ShearingPeriodicBC.o summary.o
 #-----------------------#Cuda objects---------------------------------
-GPU_OBJ  =  reduction_sum_device.o reduction_min_device.o		\
-	   	ymin_bound_gpu.o ymax_bound_gpu.o			\
-	        zmin_bound_gpu.o zmax_bound_gpu.o               	\
+GPU_OBJ  =  reduction_sum_device.o reduction_min_device.o	\
 	   	lowtasks_gpu.o 
 
 
 #<CUDA OBJECTS> #Do not remove!!!
-GPU_OBJBLOCKS =  CompPresIso_gpu.o CompPresAd_gpu.o 			\
-	   compute_slopes_gpu.o compute_star_gpu.o			\
-	   compute_emf_gpu.o update_magnetic_gpu.o			\
-	   substep1_x_gpu.o substep1_y_gpu.o substep1_z_gpu.o 		\
-           substep2_a_gpu.o substep2_b_gpu.o substep3_gpu.o 		\
-	   divrho_gpu.o stockholm_gpu.o 				\
-	   vanleer_x_a_gpu.o vanleer_x_b_gpu.o 				\
-	   vanleer_y_a_gpu.o vanleer_y_b_gpu.o 				\
-	   vanleer_z_a_gpu.o vanleer_z_b_gpu.o 				\
-	   momenta_x_gpu.o momenta_y_gpu.o momenta_z_gpu.o		\
-	   update_x_gpu.o update_y_gpu.o update_z_gpu.o 		\
+GPU_OBJBLOCKS =  CompPresIso_gpu.o CompPresAd_gpu.o 		\
+	   compute_slopes_gpu.o compute_star_gpu.o		\
+	   compute_emf_gpu.o update_magnetic_gpu.o		\
+	   substep1_x_gpu.o substep1_y_gpu.o substep1_z_gpu.o 	\
+           substep2_a_gpu.o substep2_b_gpu.o substep3_gpu.o 	\
+	   divrho_gpu.o stockholm_gpu.o 			\
+	   vanleer_x_a_gpu.o vanleer_x_b_gpu.o 			\
+	   vanleer_y_a_gpu.o vanleer_y_b_gpu.o 			\
+	   vanleer_z_a_gpu.o vanleer_z_b_gpu.o 			\
+	   momenta_x_gpu.o momenta_y_gpu.o momenta_z_gpu.o	\
+	   update_x_gpu.o update_y_gpu.o update_z_gpu.o 	\
 	   update_density_x_gpu.o update_density_y_gpu.o update_density_z_gpu.o\
-           newvel_x_gpu.o newvel_y_gpu.o newvel_z_gpu.o 		\
-	   advect_shift_gpu.o compute_residual_gpu.o 			\
-	   change_frame_gpu.o potential_gpu.o 				\
-	   correct_vtheta_gpu.o cfl_gpu.o compute_force_gpu.o		\
-	   lorentz_force_gpu.o CompPresPoly_gpu.o 			\
-	   fargo_ppa_a_gpu.o fargo_ppa_b_gpu.o				\
-	   fargo_ppa_c_gpu.o fargo_ppa_d_gpu.o				\
-	   fargo_ppa_d_2d_gpu.o resist_gpu.o 				\
-	   integrate_emf_gpu.o visctensor_cart_gpu.o 			\
-	   addviscosity_cart_gpu.o addviscosity_cyl_gpu.o		\
-	   visctensor_cyl_gpu.o addviscosity_sph_gpu.o			\
-	   mon_dens_gpu.o mon_momx_gpu.o mon_momy_gpu.o         	\
-	   mon_momz_gpu.o mon_torque_gpu.o checkmute_y_gpu.o		\
-	   checkmute_z_gpu.o mon_reynolds_gpu.o                 	\
-	   mon_maxwell_gpu.o visctensor_sph_gpu.o               	\
-	   mon_bxflux_gpu.o                                     	\
-	   fargo_ppa_steep_gpu.o setuphook1_gpu.o			\
-           fill_ghostsx_gpu.o                                   	\
+           newvel_x_gpu.o newvel_y_gpu.o newvel_z_gpu.o 	\
+	   advect_shift_gpu.o compute_residual_gpu.o 		\
+	   change_frame_gpu.o potential_gpu.o 			\
+	   correct_vtheta_gpu.o cfl_gpu.o compute_force_gpu.o	\
+	   lorentz_force_gpu.o CompPresPoly_gpu.o 		\
+	   fargo_ppa_a_gpu.o fargo_ppa_b_gpu.o			\
+	   fargo_ppa_c_gpu.o fargo_ppa_d_gpu.o			\
+	   fargo_ppa_d_2d_gpu.o resist_gpu.o 			\
+	   integrate_emf_gpu.o visctensor_cart_gpu.o 		\
+	   addviscosity_cart_gpu.o addviscosity_cyl_gpu.o	\
+	   visctensor_cyl_gpu.o addviscosity_sph_gpu.o		\
+	   mon_dens_gpu.o mon_momx_gpu.o mon_momy_gpu.o         \
+	   mon_momz_gpu.o mon_torque_gpu.o checkmute_y_gpu.o	\
+	   checkmute_z_gpu.o mon_reynolds_gpu.o                 \
+	   mon_maxwell_gpu.o visctensor_sph_gpu.o               \
+	   mon_bxflux_gpu.o                   			\
+	   fargo_ppa_steep_gpu.o setuphook1_gpu.o		\
+           fill_ghostsx_gpu.o collisions_gpu.o                  \
+           totaldens_gpu.o floor_gpu.o		                \
+	   resetfield_gpu.o                                     
+
 #</CUDA OBJECTS>
 #---------------------------------------------------------------------
+
+ifeq (-DY,${findstring -DY,${FARGO_OPT}})
+MAINOBJ += $(foreach var, $(FLUIDS), ymin_bound_$(var).o)
+MAINOBJ += $(foreach var, $(FLUIDS), ymax_bound_$(var).o)
+GPU_OBJ += $(foreach var, $(FLUIDS), ymin_bound_$(var)_gpu.o)
+GPU_OBJ += $(foreach var, $(FLUIDS), ymax_bound_$(var)_gpu.o)
+endif
+
+ifeq (-DZ,${findstring -DZ,${FARGO_OPT}})
+MAINOBJ += $(foreach var, $(FLUIDS), zmin_bound_$(var).o)
+MAINOBJ += $(foreach var, $(FLUIDS), zmax_bound_$(var).o)
+GPU_OBJ += $(foreach var, $(FLUIDS), zmin_bound_$(var)_gpu.o)
+GPU_OBJ += $(foreach var, $(FLUIDS), zmax_bound_$(var)_gpu.o)
+endif
+
 
 MAINOBJ += ${CPU_OBJECTS}
 GPUOBJ += ${GPU_OBJ} ${GPU_OBJBLOCKS}
@@ -427,7 +443,7 @@ all:
 	@echo "You must be in the upper level directory to invoke 'make'"
 	@echo "Do 'cd ..' then 'make' to proceed."
 
-allp: ${EXENAME}
+allp:  ${EXENAME}
 	@echo ""
 ifdef FARGO_COLOR
 	@echo "${BLUE}"
@@ -504,7 +520,7 @@ endif
 #---------------------------------------------------------------------
 #------------------------MAIN RULE------------------------------------
 
-${EXENAME} : ${OBJECTS}
+${EXENAME} : ${SCRIPTSDIR}/bound_proto.code ${OBJECTS}
 	@echo ""
 	@echo "All objects are OK. Linking stage"
 # You may remove the '@' sign in the instructions below if you need a verbose output
@@ -514,17 +530,17 @@ ${EXENAME} : ${OBJECTS}
 	@cd $(ARCHDIR)/..;/bin/rm -f temparch; tar jcf temparch $(SHORTARCH) 2> /dev/null
 	@mv $(ARCHDIR)/../temparch $(ARCHDIR)/$(ARCHNAME)
 ifdef LONGSUMMARY
-	@cat ${SETUPSDIR}/${SETUP}/${SETUP}.bound >> $(EXENAME)
-	@wc -c ${SETUPSDIR}/${SETUP}/${SETUP}.bound | sed -e "s|${SETUPSDIR}/${SETUP}/${SETUP}.bound.*$$||" | xargs printf "%012d" >> ${EXENAME}
+	@cat ${SETUPSDIR}/${SETUP}/${SETUP}.bound.* >> $(EXENAME)
+	@cat ${SETUPSDIR}/${SETUP}/${SETUP}.bound.* | wc -c | xargs printf "%012d" >> ${EXENAME}
 	@cat $(ARCHDIR)/$(ARCHNAME) >> $(EXENAME)
 	@wc -c $(ARCHDIR)/$(ARCHNAME) | sed -e "s|$(ARCHDIR).*$$||" | xargs printf "%012d" >> ${EXENAME}
 	@cat $(STDDIR)/.lastflags >> ${EXENAME}
 	@wc -c $(STDDIR)/.lastflags | sed -e "s|$(STDDIR).*$$||" | xargs printf "%012d" >> ${EXENAME}
 endif
 ifdef FARGO_COLOR
-	@echo "${GREEN}"
+	@echo -n "${GREEN}"
 	@echo "The executable file has been created."
-	@echo "${END_COLOR}"
+	@echo -n "${END_COLOR}"
 endif
 #---------------------------------------------------------------------
 
@@ -545,12 +561,24 @@ rescale.c: ${PARFILE} ${SCRIPTSDIR}/unitparser.py ${STDDIR}/standard.units ${SET
 gitversion: force
 	@echo '$(GIT_VERSION)' | cmp -s - $@ || echo '$(GIT_VERSION)' > $@
 clean:
-	@-rm -f *.o *~ *.s *.il global_ex.h param.h var.c ymin_bound.c ymax_bound.c zmin_bound.c zmax_bound.c rescale.c
+	@-rm ${SCRIPTSDIR}/bound_*.code
+	@-rm ${BINDIR}/*
 	@echo
 	@echo "Everything has been cleaned"
 	@echo
 
 main.o: gitversion
+change_arch.o : change_arch.c ${SCRIPTSDIR}/bound_cpu.code ${SCRIPTSDIR}/bound_gpu.code
+	@echo CC $< "==>" $*.o
+	@${COMPILER} $< -c ${INCLUDE} ${OPTIONS} ${CUDAINC} ${FARGO_OPT} -DMONITOR_SCALAR='${MONITOR_SCALAR}' -DMONITOR_2D='${MONITOR_2D}' -DMONITOR_Y='${MONITOR_Y}' -DMONITOR_Y_RAW='${MONITOR_Y_RAW}' -DMONITOR_Z='${MONITOR_Z}' -DMONITOR_Z_RAW='${MONITOR_Z_RAW}' -DSETUPNAME='${SETUP}'
+
+${SCRIPTSDIR}/bound_proto.code ${SCRIPTSDIR}/bound_cpu.code ${SCRIPTSDIR}/bound_gpu.code:
+	@echo "Generating bound_code files..."
+	@python ${SCRIPTSDIR}/bound_code.py ${SETUP} ${NFLUIDS}
+
+collisions.cu: collisions_template.cu ${GLOBAL}
+	@echo "PARSING collisions.cu"
+	@python ${SCRIPTSDIR}/collisions_gpu.py ${NFLUIDS}
 
 %_gpu.o : %.cu ${GLOBAL} #Rule: test_gpu.o is created from test.cu
 	@echo NVCC $< "==>" $*_gpu.o
@@ -571,24 +599,29 @@ reduction_min_device.o: reduction_min_device.cu
 	@/bin/cp -f $< $(ARCHDIR)
 	@${NVCC} $^ -c ${CUDAOPT} ${CUDAINC} ${INCLUDE}	${FARGO_OPT}
 
-%_bound.o: ymin_bound.c ${GLOBAL}
-	@/bin/cp -f $*_bound.c $(ARCHDIR)
-	@${COMPILER} $*_bound.c -c ${INCLUDE} ${OPTIONS} ${FARGO_OPT}
 
-#-------------------------------------------------------------------------------
-#---- Comment the following lines if you want to define your own boundaries ----
+# If HARDBOUNDARIES is set in the .opt file, boundaries are not created by the script
+ifneq (-DHARDBOUNDARIES,${findstring -DHARDBOUNDARIES,${FARGO_OPT}})
+ymin_bound_%.o: ymin_bound_%.c ${GLOBAL}
+	@echo CC $< "==>" ymin_bound_$*.o
+	@${COMPILER} ymin_bound_$*.c -c ${INCLUDE} ${OPTIONS} ${FARGO_OPT}
+ymax_bound_%.o: ymax_bound_%.c ${GLOBAL}
+	@echo CC $< "==>" ymax_bound_$*.o
+	@${COMPILER} ymax_bound_$*.c -c ${INCLUDE} ${OPTIONS} ${FARGO_OPT}
+zmin_bound_%.o: zmin_bound_%.c ${GLOBAL}
+	@echo CC $< "==>" zmin_bound_$*.o
+	@${COMPILER} zmin_bound_$*.c -c ${INCLUDE} ${OPTIONS} ${FARGO_OPT}
+zmax_bound_%.o: zmax_bound_%.c ${GLOBAL}
+	@echo CC $< "==>" zmax_bound_$*.o
+	@${COMPILER} zmax_bound_$*.c -c ${INCLUDE} ${OPTIONS} ${FARGO_OPT}
 
-ymin_bound.c: ${BOUNDARIES} ${GLOBAL}
-	@echo PARSING BOUNDARIES...
+ymin_bound_%.c ymax_bound_%.c zmin_bound_%.c zmax_bound_%.c: boundaries.txt centering.txt ${SETUPSDIR}/${SETUP}/$(SETUP).bound.% ${GLOBAL} ${BOUNDARIES_DEP}
 	@-python ${SCRIPTSDIR}/boundparser.py $^
 
-ymax_bound.c zmin_bound.c zmax_bound.c: ymin_bound.c
-
-#Comment until here -------------------------------------------------------------
-#--------------------------------------------------------------------------------
+endif
 
 # You may remove the '@' sign in the instructions below if you need a verbose output
-%.o : %.c ${GLOBAL}
+%.o : %.c ${GLOBAL} ${SCRIPTSDIR}/bound_proto.code
 	@echo CC $< "==>" $*.o
 	@/bin/cp -f $< $(ARCHDIR)
 	@${COMPILER} $< -c ${INCLUDE} ${OPTIONS} ${CUDAINC} ${FARGO_OPT}  	\

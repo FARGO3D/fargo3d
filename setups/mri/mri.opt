@@ -3,13 +3,11 @@
 # The "mri" setup is a 3D cylindrical setup for global, unstratified
 # MRI calculations.
 # END
-#----------------------------------------------------------------------
-# From the list below, please activate/deactivate the options that     
-# apply to your run. If you modify any of these options, make sure     
-# that you recompile the whole code by typing "make clean; make".      
-#----------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
-#Dimension(s) of Simulation
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
 
 #MONITOR_Y = REYNOLDS | MAXWELL | MASS
 MONITOR_Y_RAW = REYNOLDS | MAXWELL | MASS
@@ -33,7 +31,8 @@ FARGO_OPT +=  -DCYLINDRICAL
 
 #Gravity
 FARGO_OPT += -DPOTENTIAL
-
+FARGO_OPT += -DOHMICDIFFUSION
+               
 #Cuda blocks
 ifeq (${GPU}, 1)
 FARGO_OPT += -DBLOCK_X=16

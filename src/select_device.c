@@ -49,7 +49,7 @@ void SelectDevice(int myrank){
   masterprint("%s%ld%s\n","VIDEO RAM MEMORY: ", prop.totalGlobalMem/1000000000 ," GB");
   masterprint("%s\n\n","=========================");
 
-  if (abs((prop.major)) > 100) {
+  if (fabs((prop.major)) > 100) {
     masterprint("Error!!! Verify your device, something is wrong. Try to use manual device selection (-D switch)\n\n");
     exit(EXIT_FAILURE);
   }

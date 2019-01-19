@@ -42,6 +42,61 @@ Field *CreateFieldAlias(char *name, Field *clone, int type) {
   return field;
 }
 
+Fluid *CreateFluid(char *name, int fluidtype) {
+  Fluid *f;
+  char fieldname[80];
+
+  char *fluidname = (char*) malloc(sizeof(char)*MAXNAMELENGTH);
+  fluidname = (char *) malloc(sizeof(char) * 80);
+  sprintf(fluidname, "%s", name);
+
+  f = (Fluid *) malloc(sizeof(Fluid));
+  f->name = fluidname;
+  f->Fluidtype = fluidtype;
+
+  sprintf(fieldname,"%s%s",name,"dens");
+  f->Density = CreateField(fieldname, DENS, 0,0,0);
+
+  sprintf(fieldname,"%s%s",name,"energy");
+  f->Energy  = CreateField(fieldname, ENERGY, 0,0,0);  
+  f->VxMed   = CreateField2D ("VxMed", YZ);
+
+#ifdef X
+  sprintf(fieldname,"%s%s",name,"vx");
+  f->Vx      = CreateField(fieldname, VX, 1,0,0);
+  f->Vx_temp = CreateField("Vx_temp", VXTEMP, 1,0,0);
+#ifdef COLLISIONPREDICTOR
+  f->Vx_half = CreateField("Vx_half", VXTEMP, 1,0,0);
+#endif
+#endif
+#ifdef Y
+  sprintf(fieldname,"%s%s",name,"vy");
+  f->Vy      = CreateField(fieldname, VY, 0,1,0);
+  f->Vy_temp = CreateField("Vy_temp", VYTEMP,0,1,0);
+#ifdef COLLISIONPREDICTOR
+  f->Vy_half = CreateField("Vy_half", VYTEMP, 1,0,0);
+#endif
+#endif
+#ifdef Z
+  sprintf(fieldname,"%s%s",name,"vz");
+  f->Vz      = CreateField(fieldname, VZ, 0,0,1);
+  f->Vz_temp = CreateField("Vz_temp", VZTEMP,0,0,1);
+#ifdef COLLISIONPREDICTOR
+  f->Vz_half = CreateField("Vz_half", VZTEMP, 1,0,0);
+#endif
+#endif
+
+#ifdef STOCKHOLM
+  f->Density0 = CreateField2D ("rho0", YZ);
+  f->Energy0   = CreateField2D ("e0", YZ);
+  f->Vx0  = CreateField2D ("vx0", YZ);
+  f->Vy0  = CreateField2D ("vy0", YZ);
+  f->Vz0  = CreateField2D ("vz0", YZ);
+#endif
+
+  return f;
+}
+
 Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
   /*sx = YES ==> Field is staggered in X. Useful for determining the
     domain of each field.*/
@@ -127,7 +182,7 @@ Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
   }
   check_errors ("CreateField");
   field->cpu_pp = make_cudaPitchedPtr (array, (Nx+2*NGHX)*sizeof(real), (Nx+2*NGHX), Ny+2*NGHY);
-  printf("Field %s has been created on the GPU\n", name);
+  masterprint("Field %s has been created on the GPU\n", name);
 
   field->fresh_cpu     =  YES;
   for (i = 0; i < 4; i++) {
@@ -150,7 +205,7 @@ Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
     Stride_gpu = pitch/sizeof(real);
   }
 #ifdef DEBUG
-  printf("------>>>Pitch of %s = %d\n",field->name,pitch);
+  masterprint("------>>>Pitch of %s = %d\n",field->name,pitch);
 #endif
   Host2Dev3D(field); // Do NOT remove this
 #endif
@@ -232,13 +287,13 @@ Field2D *CreateField2D(char *name, int dim) {
   //Now on the GPU
 #ifdef GPU
   if(cudaMallocPitch(&arr_gpu, &pitch, size1*sizeof(real), size2) == cudaSuccess){
-    printf("Field %s has created on the GPU\n", name);
-    printf("Pitch = %d bytes (%d elements)\n", (int)pitch, (int)(pitch/sizeof(real)));
+    masterprint("Field %s has created on the GPU\n", name);
+    masterprint("Pitch = %d bytes (%d elements)\n", (int)pitch, (int)(pitch/sizeof(real)));
     field->field_gpu = (real*)arr_gpu;
     field->pitch = pitch/sizeof(real); //number of elements
   }
   else{
-    printf("There was an error allocating %s on the GPU.\n", field->name);
+    masterprint("There was an error allocating %s on the GPU.\n", field->name);
     check_errors ("CreateField2D");
     MPI_Finalize();
     exit(1);
@@ -306,7 +361,7 @@ FieldInt2D *CreateFieldInt2D(char *name) {
 #ifdef GPU
   cudaMallocPitch (&arr_gpu, &pitch, (Ny+2*NGHY)*sizeof(int), Nz+2*NGHZ);
   check_errors ("CreateFieldInt2D");
-  printf("Integer field %s has been created on the GPU\n", name);
+  masterprint("Integer field %s has been created on the GPU\n", name);
   field->field_gpu =  (int*)arr_gpu;
 #endif
   Pitch_Int_gpu = pitch/sizeof(int);

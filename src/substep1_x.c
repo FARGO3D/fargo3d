@@ -9,6 +9,7 @@
 
 void SubStep1_x_cpu (real dt) {
 
+
 //<USER_DEFINED>
   INPUT(Pressure);
   INPUT(Density);
@@ -43,6 +44,7 @@ void SubStep1_x_cpu (real dt) {
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
   real dx = Dx;
+  int fluidtype = Fluidtype;
 //<\EXTERNAL>
   
 //<INTERNAL>
@@ -79,10 +81,11 @@ void SubStep1_x_cpu (real dt) {
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
 
+
 //<MAIN_LOOP>
 
   i = j = k = 0;
-
+  
 #ifdef Z
   for(k=1; k<size_z; k++) {
 #endif
@@ -108,32 +111,40 @@ void SubStep1_x_cpu (real dt) {
 #ifdef POTENTIAL
 	vx_temp[ll] -= (pot[ll]-pot[llxm])*dt/zone_size_x(j,k);
 #endif
-	
+
 #ifdef MHD
+	if(fluidtype == GAS) {
+
 #ifndef PASSIVEMHD
-	bmean  = 0.5*(by[ll] + by[llyp]);
-	bmeanm = 0.5*(by[llxm] + by[llxm+pitch]);
-	
-	db1 = (bmean*bmean-bmeanm*bmeanm);
-
+	  
+	  bmean  = 0.5*(by[ll] + by[llyp]);
+	  bmeanm = 0.5*(by[llxm] + by[llxm+pitch]);
+	  
+	  db1 = (bmean*bmean-bmeanm*bmeanm);
+	  
 #if defined(CYLINDRICAL) || defined(SPHERICAL)
-	brmean = .5*(bmean+bmeanm);
-	vx_temp[ll] += dtOVERrhom*brmean*bx[ll]/(MU0*ymed(j));
+	  brmean = .5*(bmean+bmeanm);
+	  vx_temp[ll] += dtOVERrhom*brmean*bx[ll]/(MU0*ymed(j));
 #endif
-
-	bmean  = 0.5*(bz[ll] + bz[llzp]);
-	bmeanm = 0.5*(bz[llxm] + bz[llxm+stride]);
-	
-	db2 = (bmean*bmean-bmeanm*bmeanm);
-	
-	vx_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(MU0*zone_size_x(j,k));
+	  
+	  bmean  = 0.5*(bz[ll] + bz[llzp]);
+	  bmeanm = 0.5*(bz[llxm] + bz[llxm+stride]);
+	  
+	  db2 = (bmean*bmean-bmeanm*bmeanm);
+	  
+	  vx_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(MU0*zone_size_x(j,k));
+	  
 #ifdef SPHERICAL
 	btmean = .5*(bmean+bmeanm);
-	vx_temp[ll] += dtOVERrhom*btmean*cos(zmed(k))*bx[ll]/(MU0*ymed(j)*sin(zmed(k)));
+	vx_temp[ll] += dtOVERrhom*btmean*cos(zmed(k)))*bx[ll]/(MU0*ymed(j)*sin(zmed(k)));
+#endif
+      
+#endif
+      }
 #endif
 #endif
-#endif
-#endif
+      
+
 //<\#>
 #ifdef X
       }

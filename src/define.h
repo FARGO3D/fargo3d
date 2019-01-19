@@ -9,6 +9,9 @@
 #define CVNR 1.41
 #define CVNL 0.05
 
+#define GAS 1
+#define DUST 2
+
 #define Input 0
 #define Output 1
 
@@ -193,6 +196,8 @@
 #define ymed(i) Ymed[(i)]
 #define zmed(i) Zmed[(i)]
 
+#define alpha(i) Alpha[(i)]
+
 #else // #ifdef __GPU
 
 #ifndef BIGMEM
@@ -216,6 +221,9 @@
 #define Xmed(i) Xmed[(i)]
 #define Ymed(i) Ymed[(i)]
 #define Zmed(i) Zmed[(i)]
+
+#define alpha(i) Alpha[(i)]
+
 
 #define InvDiffXmed(i) InvDiffXmed[(i)]
 #define InvDiffYmed(i) InvDiffYmed[(i)]
@@ -458,7 +466,7 @@
 //  SynchronizeHD ();\
 //  }
 
-#define FARGO_SAFE( call) call; 
+#define FARGO_SAFE( call) call;
 
 // #define FARGO_SAFE( call) {			\
 //printf ("*** Executing %s\n", #call);		\
@@ -595,6 +603,12 @@ a bug and obtain hints about its origin. */
 #define str(s) #s
 
 #define DUMP_PPVAR( var) {fprintf (sum, "%s = %s = %g\n", #var, xstr(var), (double)var);} // To be used in summary.c only
+#define MULTIFLUID( call)						\
+  for (FluidIndex=0;FluidIndex<NFLUIDS;FluidIndex++) {			\
+    SelectFluid(FluidIndex);						\
+    call;}
+
+#define index(i,j) j+i*NFLUIDS
 
 #define SMALLVEL (1e-9*sqrt(G*MSTAR/R0))
 #define SMALLTIME (1e-10*sqrt(R0*R0*R0/(G*MSTAR)))

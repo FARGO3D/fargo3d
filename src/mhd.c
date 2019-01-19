@@ -24,8 +24,8 @@ void ComputeMHD(real dt) {
   FARGO_SAFE(ComputeStar(dt, 1,0,0, 0,0,1, 1, B2_star,V2_star,Slope_b1,Slope_v1,Slope_b2,Slope_v2));
 
   FARGO_SAFE(ComputeEmf(dt, 0, 1, 0, B1_star, V1_star, B2_star, V2_star));
-
-// EMF in z
+  
+  // EMF in z
   FARGO_SAFE(ComputeSlopes(0,1,0,Vx,Slope_v1));
   FARGO_SAFE(ComputeSlopes(0,1,0,Bx,Slope_b1));
   FARGO_SAFE(ComputeSlopes(1,0,0,Vy,Slope_v2));
@@ -36,14 +36,14 @@ void ComputeMHD(real dt) {
 
   FARGO_SAFE(ComputeEmf(dt, 0, 0, 1, B1_star, V1_star, B2_star, V2_star));
 
-  //---------------------ADD RESISTIVE TERMS TO EMFs
-
+  //---------------------ADD RESISTIVE TERMS TO THE EMFs
+#ifdef OHMICDIFFUSION
   FARGO_SAFE(Resist (1,0,0));
   FARGO_SAFE(Resist (0,1,0));
   FARGO_SAFE(Resist (0,0,1));
-  
+#endif  
   //-------------------------------------------------------
-
+  
 #ifndef PASSIVEMHD
   FARGO_SAFE(ComputeSlopes(0,1,0,Bx,Slope_b1));
   FARGO_SAFE(ComputeSlopes(0,1,0,Vx,Slope_v1));

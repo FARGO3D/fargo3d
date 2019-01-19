@@ -44,6 +44,7 @@ ex OrbitalElements SV2OE (StateVector, real);
 
 //var.c Prototypes
 ex void InitVariables(void);
+ex void Init(void);
 
 //LowTask.c Prototypes
 ex int PrimitiveVariables (void);
@@ -80,7 +81,6 @@ ex void InitSpace(void);
 ex void InitSurfaces(void);
 ex void CreateFields(void);
 ex real ComputeMass(void);
-ex real ComputeMean(Field *);
 ex void SaveState(void);
 ex void SaveStateSecondary(void);
 ex void RestoreState(void);
@@ -95,6 +95,9 @@ ex real ComputeMagneticFlux_Z (void);
 
 //mpi_dummy.c Prototypes are present in mpi_dummy.h
 
+//resetfields prototypes
+ex void Reset_field_cpu(Field*);
+
 //RungeKutta.c Prototypes
 ex void DerivMotionRK5(real*, real*, real*, int, real, boolean*);
 ex void TranslatePlanetRK5 (real*, real, real, real, real, real, real*, int);
@@ -103,15 +106,13 @@ ex void AdvanceSystemRK5(real);
 
 //algogas.c Prototypes
 ex void FillGhosts (int);
-ex void AlgoGas(void);
+ex void Sources(real);
+ex void Transport(real);
 ex void SetupHook1_cpu (void);
 
-
 //boundary.c Prototypes
-ex void boundary_ymin_cpu(void);
-ex void boundary_ymax_cpu(void);
-ex void boundary_zmax_cpu(void);
-ex void boundary_zmin_cpu(void);
+#include "../scripts/bound_proto.code"
+
 ex void Fill_GhostsX_cpu(void);
 ex void Fill_GhostsX_erad_cpu(void);
 ex void boundaries(void);
@@ -150,6 +151,8 @@ ex void FillFieldFromBuffer(Field*);
 ex void SendRecv(int);
 ex void comm_cpu(int);
 ex void comm_gpu(int);
+
+ex void (_collisions_gpu)(real,int,int,int,int);
 
 //Monitoring Prototypes
 ex void mon_dens_cpu(void);
@@ -203,7 +206,13 @@ ex int  RestartSimulation(int);
 ex void RestartDat(Field*, int);
 
 ex void compute_potential(real);
+//planet2d.c Prototypes
+ex void InitDensPlanet(void);
+ex void InitSoundSpeedPlanet(void);
+ex void InitVazimPlanet(void);
+ex void planet2d(void);
 
+ex void compute_potential(real);
 //planets.c Prototypes
 ex void Potential_cpu(void);
 ex Force ComputeForce(real, real, real, real, real);
@@ -228,6 +237,7 @@ ex void SubStep1_x_cpu(real);
 ex void SubStep1_y_cpu(real);
 ex void SubStep1_z_cpu(real);
 
+
 //substep2.c Prototypes
 ex void SubStep2_a_cpu(real);
 ex void SubStep2_b_cpu(real);
@@ -245,10 +255,13 @@ ex void X_advection (Field*, real);
 ex void transport(real);
 
 //vanleer.c Prototypes
+
 ex void VanLeerX_a_cpu(Field *);
 ex void VanLeerX_b_cpu(real, Field *, Field *, Field *);
+
 ex void VanLeerY_a_cpu(Field *);
 ex void VanLeerY_b_cpu(real, Field *, Field *);
+
 ex void VanLeerZ_a_cpu(Field *);
 ex void VanLeerZ_b_cpu(real, Field *, Field *);
 
@@ -270,6 +283,9 @@ ex char *ExtractFromExecutable (boolean, char*, int);
 ex void SelectArchFileName (void);
 ex void StoreFileToChar (char**, char*);
 ex void GetHostsList (void);
+ex void SelectWrite(void);
+ex void Write_offset(int, char*, char*);
+ex MPI_Offset ParallelIO(Field *, int, int , MPI_Offset, int);
 
 ex void WriteDim(void);
 
@@ -282,7 +298,8 @@ ex void WriteFieldInt2D(FieldInt2D*, int);
 ex void WriteField2D(Field2D*, int);
 ex void WriteFieldGhost(Field*, int);
 ex void WriteBinFile(int, int, int, real*, char*);
-ex void WriteOutputsAndDisplay(int);
+ex void WriteOutputs(int);
+ex void Display(void);
 ex void DumpAllFields (int);
 
 ex void WriteVTK(Field *, int);
@@ -299,7 +316,6 @@ ex void UpdateZ_cpu(real, Field*, Field*);
 ex void UpdateDensityX_cpu(real, Field*, Field*);
 ex void UpdateDensityY_cpu(real, Field*);
 ex void UpdateDensityZ_cpu(real, Field*);
-
 //newvel Prototypes
 ex void NewVelocity_x_cpu (void);
 ex void NewVelocity_y_cpu (void);
@@ -390,6 +406,7 @@ ex boolean CompareField (Field *);
 ex void CondInit(void);
 ex void PostRestartHook(void);
 
+
 //CUDA PROTOTYPES-----------------------------------------------------
 
 //fresh.c Prototypes
@@ -433,6 +450,9 @@ ex void Input_Contour_Outside (Field *);
 //comm_device prototypes
 ex void MakeCommunicatorGPU (int, int, int, int, int, int, int, int, int, int, int, int);
 ex void ResetBuffersGPU(void);
+
+//resetfields prototypes
+ex void Reset_field_gpu(Field*);
 
 ex void reduction_SUM_gpu (Field *, int, int, int, int);
 ex void reduction_MIN_gpu (Field *, int, int, int, int);
@@ -490,15 +510,12 @@ ex void cfl_gpu(void);
 
 ex void  _ComputeForce_gpu(real, real, real, real, real);
 
-ex void boundary_ymin_gpu(void);
-ex void boundary_ymax_gpu(void);
-ex void boundary_zmax_gpu(void);
-ex void boundary_zmin_gpu(void);
 ex void Fill_GhostsX_gpu(void);
 
 ex void CheckMuteY_gpu(void);
 ex void CheckMuteZ_gpu(void);
 ex void SetupHook1_gpu (void);
+
 
 //MHD-----------------------------------------------------
 
@@ -512,6 +529,7 @@ ex void _ComputeEmf_gpu(real,int,int,int,int,int,int,
 ex void _UpdateMagneticField_gpu(real,int,int,int,int,int,int,int,int,int,
 			      Field*,Field*,Field*);
 ex void _LorentzForce_gpu(real, int, int, int, int, int, int, int, int, int, int, int, Field*, Field*,Field*, Field*,Field*);
+
 
 ex void VanLeerX_PPA_a_gpu(Field *);
 ex void VanLeerX_PPA_b_gpu(Field *);
@@ -531,7 +549,9 @@ ex void addviscosity_cyl_gpu(real);
 ex void visctensor_sph_gpu(void);
 ex void addviscosity_sph_gpu(real);
 
-/////////////
+ex void Reset_field_gpu(Field *);
+ex void ComputeTotalDensity_gpu(void);
+ex void Floor_gpu(void);
 
 #ifndef __NOPROTO
 
@@ -552,4 +572,19 @@ ex int Dev2Host2DInt (FieldInt2D *);
 
 ex void explore(real *, int);
 
+// Multifluid prototypes
+ex Fluid *CreateFluid(char*,int);
+ex void CflFluidsMin(void);
+ex void SelectFluid(int);
+ex void ColRate(real,int,int,int);
+ex void Collisions(real,int);
+
+ex void (_collisions_cpu)(real,int,int,int,int);
+
+ex void ComputeTotalDensity_cpu(void);
+ex void Floor_cpu(void);
+
+
+
 #endif
+

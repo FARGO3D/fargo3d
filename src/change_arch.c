@@ -38,9 +38,9 @@ void ChangeArch() {
   momenta_x   = momenta_x_cpu;
   momenta_y   = momenta_y_cpu;
   momenta_z   = momenta_z_cpu;
-  UpdateX    = UpdateX_cpu;
-  UpdateY    = UpdateY_cpu;
-  UpdateZ    = UpdateZ_cpu;
+  UpdateX     = UpdateX_cpu;
+  UpdateY     = UpdateY_cpu;
+  UpdateZ     = UpdateZ_cpu;
   UpdateDensityX = UpdateDensityX_cpu;
   UpdateDensityY = UpdateDensityY_cpu;
   UpdateDensityZ = UpdateDensityZ_cpu;
@@ -59,17 +59,15 @@ void ChangeArch() {
   _ComputeForce = _ComputeForce_cpu;
   StockholmBoundary = StockholmBoundary_cpu;
   
-  visctensor_cart = visctensor_cart_cpu;
+  visctensor_cart   = visctensor_cart_cpu;
   addviscosity_cart = addviscosity_cart_cpu;
-  visctensor_cyl = visctensor_cyl_cpu;
-  addviscosity_cyl = addviscosity_cyl_cpu;
-  visctensor_sph = visctensor_sph_cpu;
-  addviscosity_sph = addviscosity_sph_cpu;
+  visctensor_cyl    = visctensor_cyl_cpu;
+  addviscosity_cyl  = addviscosity_cyl_cpu;
+  visctensor_sph    = visctensor_sph_cpu;
+  addviscosity_sph  = addviscosity_sph_cpu;
 
-  boundary_ymin  = boundary_ymin_cpu;
-  boundary_ymax  = boundary_ymax_cpu;
-  boundary_zmin  = boundary_zmin_cpu;
-  boundary_zmax  = boundary_zmax_cpu;
+  #include <../scripts/bound_cpu.code>
+
   Fill_GhostsX =  Fill_GhostsX_cpu;
 
   mon_dens = mon_dens_cpu;
@@ -97,8 +95,10 @@ void ChangeArch() {
   _Resist = _Resist_cpu;
   EMF_Upstream_Integrate = EMF_Upstream_Integrate_cpu;
   //----------------------------------------------------
-
-
+  _collisions = _collisions_cpu;
+  ComputeTotalDensity = ComputeTotalDensity_cpu;
+  Floor = Floor_cpu; 
+  Reset_field = Reset_field_cpu; 
   //-----------------------------------------------------
 
 
@@ -171,6 +171,13 @@ void ChangeArch() {
 	  printf("DivideByRho runs on the GPU\n");
 	}
       }
+      if (strcmp(name, "resetfield") == 0) {
+	if(strval[0] == 'g'){
+	  Reset_field = Reset_field_gpu;
+	  printf("resetfield on the GPU\n");
+	}
+      }
+
       if (strcmp(name, "vanleer") == 0) {
 	if(strval[0] == 'g'){
 	  VanLeerX_a = VanLeerX_a_gpu;
@@ -368,12 +375,10 @@ void ChangeArch() {
 #endif
 	}
       }
+      
       if (strcmp(name, "boundaries") == 0) {
 	if(strval[0] == 'g'){
-	  boundary_ymin  = boundary_ymin_gpu;
-	  boundary_ymax  = boundary_ymax_gpu;
-	  boundary_zmin  = boundary_zmin_gpu;
-	  boundary_zmax  = boundary_zmax_gpu;
+	  #include <../scripts/bound_gpu.code>
 	  printf("boundaries runs on the GPU\n");
 	}
       }
@@ -401,8 +406,32 @@ void ChangeArch() {
 	}
       }
 
+      if (strcmp(name, "collisions") == 0) {
+	if(strval[0] == 'g'){
+	  _collisions = _collisions_gpu;
+	  printf("collisions runs on the GPU\n");
+	}
+      }
 
+if (strcmp(name, "computetotaldensity") == 0) {
+	if(strval[0] == 'g'){
+	  ComputeTotalDensity = ComputeTotalDensity_gpu;
+	  printf("ComputeTotalDensity runs on the GPU\n");
+	}
+      }
+      if (strcmp(name, "resetfield") == 0) {
+	if(strval[0] == 'g'){
+	  Reset_field = Reset_field_gpu;
+	  printf("Reset_field runs on the GPU\n");
+	}
+      }
 
+      if (strcmp(name, "floor") == 0) {
+	if(strval[0] == 'g'){
+	  Floor = Floor_gpu;
+	  printf("Floor runs on the GPU\n");
+	}
+      }
 #endif
     }
   }

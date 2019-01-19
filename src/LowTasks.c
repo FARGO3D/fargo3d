@@ -24,10 +24,14 @@ int PrimitiveVariables () {
 #ifdef Z
   var |= VZ;  
 #endif
+
 #ifdef MHD
-  var |= BX|BY|BZ;
-  var |= EMFX|EMFY|EMFZ;
+  if(Fluidtype==GAS){
+    var |= BX|BY|BZ;
+    var |= EMFX|EMFY|EMFZ;
+  }
 #endif
+
   return var;
 }
 
@@ -119,7 +123,7 @@ void MakeDir (char *string) {
   if (dir) {
     closedir (dir);
   } else {
-    fprintf (stdout, "Process %d creates the directory %s\n", CPU_Rank, string);
+    fprintf (stdout, "Process %d created the directory %s\n", CPU_Rank, string);
     sprintf (command, "mkdir -p %s", string);
     temp = system (command);
   }
@@ -137,7 +141,6 @@ FILE *fopen_prs (char *string, char *mode) {
     strncpy (dir, string, MAXLINELENGTH-1);
     if ((p = strrchr (dir, '/')) != NULL) {
       *p = 0;
-      printf ("TRYING TO OPEN %s\n", dir);
       MakeDir (dir);
     }
     f = fopen (string, "w");	/* "w" instead of mode: at this stage we know the file does not exist */
@@ -315,22 +318,32 @@ void InitSpace() {
   for (k = 0; k<Nz+2*NGHZ; k++) {
     Zmed(k) = 0.5*(Zmin(k+1)+Zmin(k));
   }
+
   for (i = 1; i<Nx+2*NGHX; i++) {
     InvDiffXmed(i) = 1./(Xmed(i)-Xmed(i-1));
   }
-  InvDiffXmed(0) = InvDiffXmed(1);
+  if (Nx+2*NGHX>1) InvDiffXmed(0) = InvDiffXmed(1);
+  else InvDiffXmed(0) = 0.0;
+
   for (j = 1; j<Ny+2*NGHY; j++) {
     InvDiffYmed(j) = 1./(Ymed(j)-Ymed(j-1));
   }
-  InvDiffYmed(0) = InvDiffYmed(1);
+
+  if (Ny+2*NGHY>1) InvDiffYmed(0) = InvDiffYmed(1);
+  else InvDiffYmed(0) = 0.0;
+  
 #ifdef Z
   for (k = 1; k<Nz+2*NGHZ; k++) {
     InvDiffZmed(k) = 1./(Zmed(k)-Zmed(k-1));
   }
-  InvDiffZmed(0) = InvDiffZmed(1);
-#else
-  InvDiffZmed(1) = 0.0;
-  InvDiffZmed(0) = InvDiffZmed(1);
+
+  if(Nz+2*NGHZ>1){
+    InvDiffZmed(1) = 0.0;
+    InvDiffZmed(0) = InvDiffZmed(1);
+  }
+  else{
+    InvDiffZmed(0) = 0.0;
+  }
 #endif
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -521,25 +534,52 @@ void InitSurfaces() {
 #endif
 }
 
+void SelectFluid(int n) {
+  //Function for selecting the current fluid
+  Fluidtype = Fluids[n]->Fluidtype;
+  Density = Fluids[n]->Density;
+  Energy = Fluids[n]->Energy;
+  VxMed = Fluids[n]->VxMed;
+#ifdef X
+  Vx = Fluids[n]->Vx;
+  Vx_temp = Fluids[n]->Vx_temp;
+  Vx_half = Fluids[n]->Vx_half;
+#endif
+#ifdef Y
+  Vy = Fluids[n]->Vy;
+  Vy_temp = Fluids[n]->Vy_temp;
+  Vy_half = Fluids[n]->Vy_half;
+#endif
+#ifdef Z
+  Vz = Fluids[n]->Vz;
+  Vz_temp = Fluids[n]->Vz_temp;
+  Vz_half = Fluids[n]->Vz_half;
+#endif
+#ifdef STOCKHOLM
+  Density0 = Fluids[n]->Density0;
+  Energy0 = Fluids[n]->Energy0;
+  Vx0 = Fluids[n]->Vx0;
+  Vy0 = Fluids[n]->Vy0;
+  Vz0 = Fluids[n]->Vz0;
+#endif
+}
 
 void CreateFields() {
 
   Reduction2D = CreateField2D ("Reduction2D", YZ);
 
 #if (defined(X) || defined(MHD))
-  Vx          = CreateField("gasvx"     , VX, 1,0,0);
-  Vx_temp     = CreateField("Vx_temp", VXTEMP, 1,0,0);
-  Mpx         = CreateField("Moment_Plus_X" , 0, 1,0,0);
-  Mmx         = CreateField("Moment_Minus_X", 0, 1,0,0);
-  VxMed       = CreateField2D ("VxMed", YZ);
-  Vxhy        = CreateField2D ("Vxhy", YZ);
-  Vxhyr       = CreateField2D ("Vxhyr", YZ);
-  Vxhz        = CreateField2D ("Vxhz", YZ);
-  Vxhzr       = CreateField2D ("Vxhzr", YZ);
-  Eta_profile_xi = CreateField2D("Eta_xi", YZ);
-  Eta_profile_xizi = CreateField2D("Eta_xizi", YZ);
-  Eta_profile_zi = CreateField2D("Eta_zi", YZ);
-
+  
+  Mpx              = CreateField   ("Moment_Plus_X" , 0, 1,0,0);
+  Mmx              = CreateField   ("Moment_Minus_X", 0, 1,0,0);
+  
+  Vxhy             = CreateField2D ("Vxhy"    , YZ);
+  Vxhyr            = CreateField2D ("Vxhyr"   , YZ);
+  Vxhz             = CreateField2D ("Vxhz"    , YZ);
+  Vxhzr            = CreateField2D ("Vxhzr"   , YZ);
+  Eta_profile_xi   = CreateField2D ("Eta_xi"  , YZ);
+  Eta_profile_xizi = CreateField2D ("Eta_xizi", YZ);
+  Eta_profile_zi   = CreateField2D ("Eta_zi"  , YZ);
 
   Nshift = CreateFieldInt2D ("Nshift");
   Nxhy   = CreateFieldInt2D ("Nxhy");
@@ -547,33 +587,30 @@ void CreateFields() {
 #endif
 
 #if (defined(Y) || defined(MHD))
-  Vy      = CreateField("gasvy"     , VY, 0,1,0);
-  Vy_temp = CreateField("Vy_temp", VYTEMP,0,1,0);
-  Mpy     = CreateField("Moment_Plus_Y" , 0, 0,1,0);
-  Mmy     = CreateField("Moment_Minus_Y", 0, 0,1,0);
+  Mpy     = CreateField("Moment_Plus_Y" , 0,0,1,0);
+  Mmy     = CreateField("Moment_Minus_Y", 0,0,1,0);
 #endif
-
+  
 #if (defined(Z) || defined(MHD))
-  Vz      = CreateField("gasvz"     , VZ,0,0,1);
-  Vz_temp = CreateField("Vz_temp", VZTEMP,0,0,1);
   Mpz     = CreateField("Moment_Plus_Z" , 0,0,0,1);
   Mmz     = CreateField("Moment_Minus_Z", 0,0,0,1);
 #endif
 
-  Pot     = CreateField("potential", 0, 0,0,0);
-  Slope   = CreateField("Slope"    , 0, 0,0,0);
-  DivRho  = CreateField("DivRho"   , 0, 0,0,0); // This field cannot
+  Pot     = CreateField("potential", 0,0,0,0);
+  Slope   = CreateField("Slope"    , 0,0,0,0);
+  DivRho  = CreateField("DivRho"   , 0,0,0,0);  // This field cannot
 						// be aliased wherever
 						// reductions are
 						// needed
-  DensStar= CreateField("DensStar" , 0, 0,0,0);
-  Qs      = CreateField("Qs"       , 0, 0,0,0);
-  Pressure= CreateField("Pressure" , 0, 0,0,0);
-  Density = CreateField("gasdens"  , DENS, 0,0,0);
-  Energy  = CreateField("gasenergy"   , ENERGY, 0,0,0);
-
+  
+  DensStar      = CreateField("DensStar"     , 0,0,0,0);
+  Qs            = CreateField("Qs"           , 0,0,0,0);
+  Pressure      = CreateField("Pressure"     , 0,0,0,0);
+  Total_Density = CreateField("Total_Density", 0,0,0,0);
+  
   QL      = CREATEFIELDALIAS("QLeft", Pressure, 0);
   QR      = CreateField("QRight", 0,0,0,0);
+  
 #ifdef PPA_STEEPENER
   LapPPA  = CreateField("LapPPA", 0,0,0,0);
 #endif
@@ -583,14 +620,14 @@ void CreateFields() {
   By      = CreateField("by", BY,0,1,0);
   Bz      = CreateField("bz", BZ,0,0,1);
 
-  B1_star = CREATEFIELDALIAS("B1_star" ,Vx_temp , 0);
-  B2_star = CREATEFIELDALIAS("B2_star" ,Vy_temp , 0);
-  V1_star = CREATEFIELDALIAS("V1_star" ,Vz_temp , 0);
-  V2_star = CREATEFIELDALIAS("V2_star" ,Mmx     , 0);
-  Slope_b1= CREATEFIELDALIAS("Slope_b1",Mpx     , 0);
-  Slope_v1= CREATEFIELDALIAS("Slope_v1",Mmy     , 0);
-  Slope_b2= CREATEFIELDALIAS("Slope_b2",DensStar, 0);
-  Slope_v2= CREATEFIELDALIAS("Slope_v2",Qs      , 0);
+  B1_star = CREATEFIELDALIAS("B1_star" , Mpy      , 0);
+  B2_star = CREATEFIELDALIAS("B2_star" , Mmz      , 0);
+  V1_star = CREATEFIELDALIAS("V1_star" , Pressure , 0);
+  V2_star = CREATEFIELDALIAS("V2_star" , Mmx      , 0);
+  Slope_b1= CREATEFIELDALIAS("Slope_b1", Mpx      , 0);
+  Slope_v1= CREATEFIELDALIAS("Slope_v1", Mmy      , 0);
+  Slope_b2= CREATEFIELDALIAS("Slope_b2", DensStar , 0);
+  Slope_v2= CREATEFIELDALIAS("Slope_v2", Qs       , 0);
 
   Emfx    = CREATEFIELDALIAS("Emfx", Mpz   , EMFX);
   Emfy    = CREATEFIELDALIAS("Emfy", Slope , EMFY);
@@ -602,15 +639,7 @@ void CreateFields() {
   *(Emfz->owner) = Emfz;
   
   Divergence = CreateField("divb", 0, 0,0,0);  
-#endif
 
-  
-#ifdef STOCKHOLM
-  Density0 = CreateField2D ("rho0", YZ);
-  Energy0   = CreateField2D ("e0", YZ);
-  Vx0  = CreateField2D ("vx0", YZ);
-  Vy0  = CreateField2D ("vy0", YZ);
-  Vz0  = CreateField2D ("vz0", YZ);
 #endif
 
 }
@@ -723,9 +752,11 @@ void RestoreState () {
 }
 
 int RestartSimulation(int n) {
+
   int begin;
   masterprint("Restarting simulation...\n");
 
+#ifndef MPIIO
   if (VTK)
     __Restart = RestartVTK;
   else
@@ -740,13 +771,13 @@ int RestartSimulation(int n) {
     __Restart = RestartVTK;
   }
   __Restart(Density, n);
-#ifdef X	
+#ifdef X
   __Restart(Vx, n);
 #endif
-#ifdef Y	
+#ifdef Y
   __Restart(Vy, n);
 #endif
-#ifdef Z	
+#ifdef Z
   __Restart(Vz, n);
 #endif
   __Restart(Energy, n);
@@ -755,6 +786,38 @@ int RestartSimulation(int n) {
   __Restart(By, n);
   __Restart(Bz, n);
 #endif
+#endif
+  
+#ifdef MPIIO
+  MPI_Offset offset;
+  offset = 0; //We start at the begining of the file
+  
+  //Density and Energy are mandatory for a restart
+  offset = ParallelIO(Density, n, MPI_MODE_RDONLY, offset,FALSE);
+  offset = ParallelIO(Energy, n, MPI_MODE_RDONLY, offset,FALSE);
+#ifdef X
+  //Vx is also mandatory ifdef X
+  offset = ParallelIO(Vx, n, MPI_MODE_RDONLY, offset,FALSE);
+#endif
+#ifdef Y
+  //Idem
+  offset = ParallelIO(Vy, n, MPI_MODE_RDONLY, offset,FALSE);
+#endif
+#ifdef Z
+  //Idem
+  offset = ParallelIO(Vz, n, MPI_MODE_RDONLY, offset,FALSE);
+#endif
+#ifdef MHD //MHD is 3D.
+  if(Fluidtype == GAS){
+    offset = ParallelIO(Bx, n, MPI_MODE_RDONLY, offset,FALSE);
+    offset = ParallelIO(By, n, MPI_MODE_RDONLY, offset,FALSE);
+    offset = ParallelIO(Bz, n, MPI_MODE_RDONLY, offset,FALSE);    
+  }
+  //We don't need the divergency for a restart
+  //offset = ParallelIO(Divergence, n, MPI_MODE_RDONLY, offset, FALSE);
+#endif
+#endif
+  
   begin = n*NINTERM;
   if (PostRestart)
     PostRestartHook ();

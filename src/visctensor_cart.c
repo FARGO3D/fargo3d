@@ -12,17 +12,29 @@ void visctensor_cart_cpu(){
 //<USER_DEFINED>
   INPUT(Density);
 #ifdef X
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vx_half);
+#else
   INPUT(Vx);
+#endif
   OUTPUT(Mmx);
   OUTPUT(Mpx);
 #endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vy_half);
+#else
   INPUT(Vy);
+#endif
   OUTPUT(Mmy);
   OUTPUT(Mpy);
 #endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vz_half);
+#else
   INPUT(Vz);
+#endif
   OUTPUT(Mmz);
   OUTPUT(Mpz);
 #endif
@@ -31,13 +43,25 @@ void visctensor_cart_cpu(){
 //<EXTERNAL>
   real* rho = Density->field_cpu;
 #ifdef X
+#ifdef COLLISIONPREDICTOR
   real* vx = Vx->field_cpu;
+#else
+  real* vx = Vx_half->field_cpu;
+#endif
 #endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
   real* vy = Vy->field_cpu;
+#else
+  real* vy = Vy_half->field_cpu;
+#endif
 #endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
   real* vz = Vz->field_cpu;
+#else
+  real* vz = Vz_half->field_cpu;
+#endif
 #endif
 #ifdef X
   real* tauxx = Mmx->field_cpu;

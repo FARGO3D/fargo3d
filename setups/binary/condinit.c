@@ -104,7 +104,7 @@ void InitVazimPlanet() {
   }    
 }
 
-void CondInit() {
+void Init() {
   
   OUTPUT(Density);
   OUTPUT(Energy);
@@ -132,4 +132,10 @@ void CondInit() {
   InitDensPlanet ();
   InitSoundSpeedPlanet ();
   InitVazimPlanet ();
+}
+
+void CondInit() {
+   Fluids[0] = CreateFluid("gas",GAS);
+   SelectFluid(0);
+   Init();
 }

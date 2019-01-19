@@ -1,6 +1,6 @@
 #include "fargo3d.h"
 
-void CondInit() {
+void Init() {
   int i,j,k;
   real* rho = Density->field_cpu;
   real* e = Energy->field_cpu;
@@ -32,4 +32,10 @@ void CondInit() {
 #endif
     }
   }
+}
+
+void CondInit() {
+   Fluids[0] = CreateFluid("gas",GAS);
+   SelectFluid(0);
+   Init();
 }

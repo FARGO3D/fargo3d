@@ -12,27 +12,32 @@ void compute_potential(real dt) {
   real OmegaNew, domega;
   int i;
   int subcycling = 5;
-  
-  if (Corotating) GetPsysInfo (MARK);
-  
+  static int alreadycalculated = -1;
+
+  if (alreadycalculated != Timestepcount){ //For multifluid purposes...
+    
+    if (Corotating) GetPsysInfo (MARK);
+    
 #ifdef GPU
-  //Copy all the planetary data to device
-  DevMemcpyH2D(Sys->x_gpu, Sys->x_cpu, sizeof(real)*(Sys->nb+1));
-  DevMemcpyH2D(Sys->y_gpu, Sys->y_cpu, sizeof(real)*(Sys->nb+1));
-  DevMemcpyH2D(Sys->z_gpu, Sys->z_cpu, sizeof(real)*(Sys->nb+1));
-  DevMemcpyH2D(Sys->mass_gpu, Sys->mass_cpu, sizeof(real)*(Sys->nb+1));
+    //Copy all the planetary data to device
+    DevMemcpyH2D(Sys->x_gpu, Sys->x_cpu, sizeof(real)*(Sys->nb+1));
+    DevMemcpyH2D(Sys->y_gpu, Sys->y_cpu, sizeof(real)*(Sys->nb+1));
+    DevMemcpyH2D(Sys->z_gpu, Sys->z_cpu, sizeof(real)*(Sys->nb+1));
+    DevMemcpyH2D(Sys->mass_gpu, Sys->mass_cpu, sizeof(real)*(Sys->nb+1));
 #endif
-  
-  DiskOnPrimaryAcceleration = ComputeAccel(0.0, 0.0, 0.0, 0.0, 0.0);
-  FARGO_SAFE(ComputeIndirectTerm());
-  FARGO_SAFE(Potential()); // Gravitational potential from star and planet(s)
-  FARGO_SAFE(AdvanceSystemFromDisk(dt));
+    
+    DiskOnPrimaryAcceleration = ComputeAccel(0.0, 0.0, 0.0, 0.0, 0.0);
+    FARGO_SAFE(ComputeIndirectTerm());
+    FARGO_SAFE(Potential()); // Gravitational potential from star and planet(s)
+    FARGO_SAFE(AdvanceSystemFromDisk(dt));
 
   if (ThereIsACentralBinary)
     subcycling = 30;		/* Arbitrary number of subcycles which
 				   should fit most needs */
   for (i = 0; i < subcycling; i++)
     FARGO_SAFE(AdvanceSystemRK5(1.0/((double)(subcycling))*dt));
+  
+  alreadycalculated = Timestepcount;
   
   if (Corotating) {
     OmegaNew = GetPsysInfo(GET)/dt;
@@ -41,6 +46,7 @@ void compute_potential(real dt) {
     OMEGAFRAME = OmegaNew;
   }
   RotatePsys(OMEGAFRAME*dt);
+  }
 }
 
 void Potential_cpu() {

@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
   
   int   i=0, OutputNumber = 0, d;
   char  sepline[]="===========================";
-
   sprintf (FirstCommand, "%s", argv[0]);
   sprintf (CommandLine, "%s ", argv[0]);
   while (++i < argc) {
@@ -26,9 +25,9 @@ int main(int argc, char *argv[]) {
 
 #ifdef LONGSUMMARY
   strncpy (StickyOptions, ExtractFromExecutable (YES, "", 1), 1023);
-  strncpy (BoundaryFile, ExtractFromExecutable (YES, "", 3), 1023);
+  strncpy (BoundaryFile, ExtractFromExecutable (YES, "", 3), 4095);
 #endif
-  
+
   strcpy (ParameterFile, "");
   for (i = 1; i < argc; i+=d) {
     d=1;
@@ -251,7 +250,9 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
     CondInit (); //Needed even for restarts: some setups have custom
 		 //definitions (eg potential for setup MRI) or custom
 		 //scaling laws (eg. setup planetesimalsRT).
-    begin_i = RestartSimulation(NbRestart);
+
+    MULTIFLUID( begin_i  = RestartSimulation(NbRestart));
+    
     if (ThereArePlanets) {
       PhysicalTime  = GetfromPlanetFile (NbRestart, 9, 0);
       OMEGAFRAME  = GetfromPlanetFile (NbRestart, 10, 0);
@@ -269,8 +270,8 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
   if (StretchOldOutput == YES) {
     StretchOutput (StretchNumber);
   }
-
-  FARGO_SAFE(comm(ENERGY)); //Very important for isothermal cases!
+  
+  MULTIFLUID(comm(ENERGY)); //Very important for isothermal cases!
 
   /* This must be placed ***after*** reading the input files in case of a restart */
   if ((ArrayNb) && (EarlyOutputRename == NO)) {
@@ -294,11 +295,12 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
   ExtractFromExecutable (NO, ArchFile, 2);
 #endif
   
-  FillGhosts(PrimitiveVariables()); 
+  MULTIFLUID(FillGhosts(PrimitiveVariables()));
+  
 #ifdef STOCKHOLM 
-  FARGO_SAFE(init_stockholm());
+  FARGO_SAFE(init_stockholm()); //ALREADY IMPLEMENTED MULTIFLUID COMPATIBILITY
 #endif
-
+  
 #ifdef GHOSTSX
   masterprint ("\n\nNew version with ghost zones in X activated\n");
 #else
@@ -315,34 +317,128 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
 	WritePlanetSystemFile(TimeStep, NO);
       
 #ifndef NOOUTPUTS
-      WriteOutputsAndDisplay(ALL);
-
-
+      MULTIFLUID(WriteOutputs(ALL));
+      
+#ifdef MATPLOTLIB
+      Display();
+#endif
+      
       if(CPU_Master) printf("OUTPUTS %d at date t = %f OK\n", TimeStep, PhysicalTime);
 #endif
+      
+      if (TimeInfo == YES) GiveTimeInfo (TimeStep);
 
-      if (TimeInfo == YES)
-	GiveTimeInfo (TimeStep);
     }
-
+    
     if (NSNAP != 0) {
       if (NSNAP * (TimeStep = (i / NSNAP)) == i) {
-	WriteOutputsAndDisplay(SPECIFIC);
+	MULTIFLUID(WriteOutputs(SPECIFIC));
+#ifdef MATPLOTLIB
+	Display();
+#endif
       }
     }
+
+    if (i==NTOT)
+      break;
     
-    AlgoGas();
-    MonitorGlobal (MONITOR2D      | MONITORY | MONITORY_RAW|	\
-		   MONITORSCALAR  | MONITORZ | MONITORZ_RAW);
+    dtemp = 0.0;
     
+    while (dtemp<DT) { // DT LOOP
+      
+      /// AT THIS STAGE Vx IS THE INITIAL TOTAL VELOCITY IN X
+#ifdef X
+#ifndef STANDARD
+      MULTIFLUID(ComputeVmed(Vx)); // FARGO algorithm -- very important to have it here!
+#endif
+#endif
+      /// NOW THE 2D MESH VxMed CONTAINS THE AZIMUTHAL AVERAGE OF Vx in X
+      
+#ifdef FLOOR
+      MULTIFLUID(Floor());
+#endif
+
+#ifdef MHD
+  if (Resistivity_Profiles_Filled == NO) {
+    FARGO_SAFE(Fill_Resistivity_Profiles ());
+  }
+#endif
+
+      // CFL condition is applied below ----------------------------------------
+      MULTIFLUID(cfl());
+
+      CflFluidsMin(); /*Fills StepTime with the " global min " of the
+			cfl, computed from each fluid.*/
+      dt = StepTime; //cfl works with the 'StepTime' global variable.
+      
+      dtemp+=dt;
+      if(dtemp>DT)  dt = DT - (dtemp-dt); //updating dt
+      //------------------------------------------------------------------------
+      
+      //------------------------------------------------------------------------
+      /* We now compute the total density of the mesh. We need first
+	 reset an array and then fill it by adding the density of each
+	 fluid */
+      FARGO_SAFE(Reset_field(Total_Density)); 
+      MULTIFLUID(ComputeTotalDensity()); 
+      //------------------------------------------------------------------------
+
+#ifdef COLLISIONPREDICTOR
+      FARGO_SAFE(Collisions(0.5*dt, 0)); // 0 --> V is used and we update v_half.
+#endif
+      
+      MULTIFLUID(Sources(dt)); //v_half is used in the R.H.S
+
+#ifdef DRAGFORCE
+      FARGO_SAFE(Collisions(dt, 1)); // 1 --> V_temp is used.
+#endif
+
+      MULTIFLUID(Transport(dt));
+
+      PhysicalTime+=dt;
+      Timestepcount++;
+
+#ifdef STOCKHOLM
+      MULTIFLUID(StockholmBoundary(dt));
+#endif
+
+      //We apply comms and boundaries at the end of the step
+      MULTIFLUID(FillGhosts(PrimitiveVariables()));
+
+      if(CPU_Master) {
+	if (FullArrayComms)
+	  printf("%s", "!");
+	else {
+	  if (ContourComms)
+	    printf("%s", ":");
+	  else
+	    printf("%s", ".");
+	}
+#ifndef NOFLUSH
+	fflush(stdout);
+#endif
+      }
+      FullArrayComms = 0;
+      ContourComms = 0;
+    }
+    
+    if(CPU_Master) printf("%s", "\n");
+    
+    MULTIFLUID(MonitorGlobal (MONITOR2D      |	\
+			      MONITORY       |	\
+			      MONITORY_RAW   |	\
+			      MONITORSCALAR  |	\
+			      MONITORZ       |	\
+			      MONITORZ_RAW));
+
     if (ThereArePlanets) {
-      WriteTorqueAndWork(TimeStep, 0);
       WritePlanetSystemFile(TimeStep, YES);
       SolveOrbits (Sys);
     }
   }
-
-  MPI_Finalize();  
-  printf("End of simulation!\n");
+  
+  MPI_Finalize();
+  
+  masterprint("End of the simulation!\n");
   return 0;  
 }

@@ -56,7 +56,7 @@ def get_variable(parameters):
     return params
 
 def complete_parameters(base,params):
-    if parameters == None:
+    if params == None:
         return base
     else:
         for key in base.keys():
@@ -105,6 +105,40 @@ def jobs_check(parameters):
             return njobs.group(1)
     return None
 
+def nfluid_check(parameters):
+    
+    setup = parameters['SETUP']
+    
+    msg = '''
+========================== ERROR ===========================
+*  It seems you are compiling an old (single fluid) setup  *
+*  with a multifluid version of FARGO3D (later than v1.3)  *
+*  You need to make small changes to your setup files      *
+*  in order to build the code.                             *
+*  A python script is provided in this distribution which  *
+*  can perform these changes automatically:                *
+*  Go to the scripts/ directory (cd scripts) and issue:    *
+*  "python single2multi.py {0:s}".                         * 
+*  See chapter multifluid in the documentation.            *
+============================================================\n'''.format(setup)
+
+    opt_file = open('../setups/{0:s}/{0:s}.opt'.format(setup), 'r')
+    lines = opt_file.readlines()
+    count = 0
+    for line in lines:
+        if re.match('\s*#.*\n',line): ## Skipping comments
+            continue
+        if re.search('\s*FLUIDS\s*:=',line):
+            count += 1
+        if re.search('^[^A-Z]*NFLUIDS',line):
+            count += 1
+        if re.search('-DNFLUIDS\s*=',line):
+            count += 1
+    if(count < 3):
+        print msg
+        exit()
+    return None
+
 make = "make -f "+ SRCDIR+ "makefile PYTHONMAKE=1 "
 last = get_last()
 
@@ -127,8 +161,8 @@ else:
 
 new_params = complete_parameters(base,parameters)
 final_params = check_coherence(base,new_params)
-
 write_last(final_params)
+nfluid_check(final_params)
 
 if not build_is_fresh(base,final_params):
     os.system(make + "clean")

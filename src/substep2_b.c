@@ -12,19 +12,31 @@ void SubStep2_b_cpu (real dt) {
 //<USER_DEFINED>
   INPUT(Density);
 #ifdef X
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vx_half);
+#else
   INPUT(Vx);
+#endif
   INPUT(Vx_temp);
   INPUT(Mpx);
   OUTPUT(Vx_temp);
 #endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vy_half);
+#else
   INPUT(Vy);
+#endif
   INPUT(Vy_temp);
   INPUT(Mpy);
   OUTPUT(Vy_temp);
 #endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vz_half);
+#else
   INPUT(Vz);
+#endif
   INPUT(Vz_temp);
   INPUT(Mpz);
   OUTPUT(Vz_temp);
@@ -37,18 +49,30 @@ void SubStep2_b_cpu (real dt) {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef X  
+#ifdef X
+#ifdef COLLISIONPREDICTOR
+  real* vx = Vx_half->field_cpu;
+#else
   real* vx = Vx->field_cpu;
+#endif
   real* vx_temp = Vx_temp->field_cpu;
   real* pres_x = Mpx->field_cpu;
 #endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
+  real* vy = Vy_half->field_cpu;
+#else
   real* vy = Vy->field_cpu;
+#endif
   real* vy_temp = Vy_temp->field_cpu;
   real* pres_y = Mpy->field_cpu;
 #endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
+  real* vz = Vz_half->field_cpu;
+#else
   real* vz = Vz->field_cpu;
+#endif
   real* vz_temp = Vz_temp->field_cpu;
   real* pres_z = Mpz->field_cpu;
 #endif
@@ -70,21 +94,15 @@ void SubStep2_b_cpu (real dt) {
   int ll;
 #ifdef X
   int llxm;
-#ifdef ADIABATIC
   int llxp;
-#endif
 #endif
 #ifdef Y
   int llym;
-#ifdef ADIABATIC
   int llyp;
-#endif
 #endif
 #ifdef Z
   int llzm;
-#ifdef ADIABATIC
   int llzp;
-#endif
 #endif
 //<\INTERNAL>
 
@@ -112,21 +130,15 @@ void SubStep2_b_cpu (real dt) {
 	ll = l;
 #ifdef X
 	llxm = lxm;
-#ifdef ADIABATIC
 	llxp = lxp;
-#endif
 #endif
 #ifdef Y
 	llym = lym;
-#ifdef ADIABATIC
 	llyp = lyp;
 #endif
-#endif
 #ifdef Z
-	llzm = lzm;
-#ifdef ADIABATIC
 	llzp = lzp;
-#endif
+	llzm = lzm;
 #endif
 #ifdef X
 	vx_temp[ll] += - 2.0*(pres_x[ll]-pres_x[llxm])/(rho[ll]+rho[llxm])* \

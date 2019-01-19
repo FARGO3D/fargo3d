@@ -1,3 +1,4 @@
+### Run only this parameter file is FARGO3D was build using the setup 'otvortex'
 SetUp			otvortex
 
 ### Mesh parameters
@@ -18,3 +19,5 @@ Ntot			1000		Total number of time steps
 Ninterm	 		1		Time steps between outputs
 DT			0.05		
 OutputDir		@outputs/otvortex
+
+

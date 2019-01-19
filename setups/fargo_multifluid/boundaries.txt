@@ -1,0 +1,93 @@
+#Useful notes:
+#For now, it's allowed to use geometrical varibales such as xmin/xmed(i), ymin/ymed(i), zmin/zmax(i), 
+#and variables such that zone_size_x/y/z, but not Surf_x/y/z nor InvVol, Vol...
+#
+#Also, you can use any variable or macrocommand defined in the code. A consecuence of this, is that
+#you can use any variable defined in your SETUP.var file and setted in your .par file. All global variables
+#must to be used in the form |...'global_variable'...|, with "'"!
+#
+#Example with global variables:
+#SYMMETRIC:
+#	   Centered:	|'OMEGAFRAME'**2+2*'FLARINGINDEX'+'MSTAR'+xmed(i)-ymed(j)+active|active|
+#
+#As all the boundaries-related files are case-insensitive, you could define the same without capitals:
+#
+#	   Centered:	|'omegaframe'**2+2*'flaring'+'mstar'+xmed(i)-ymed(j)+active|active|#
+#
+#You must to be care with the name of the active cell. Be sure that the chain "active" 
+#is not inside your varibles. 
+#Wrong example (that you never should to do):
+#
+#       		|'omegactive'|active|
+#
+#Explanation: the parser first makes the substitution:'omegactive'-->'omegavariable', and then uses 
+# 'omegavariable' for the allocation. "varible" is a variable defined in a .bound file.
+
+
+#FARGO3D's Boundaries library
+#----------------------------
+
+SYMMETRIC:
+	   Centered:	|a|a|
+
+ANTISYMMETRIC:
+	   Staggered:	|-a|0|a|
+
+NOBOUNDARY:		#Used for periodic runs
+	    Centered:	       |a|a|
+	    Staggered:	       |a|a|a|
+
+
+##############################################################
+### BELOW: BOUNDARY CONDITIONS FOR THE ENERGY IN THE
+### RAYLEIGH-TAYLOR TEST. HYDROSTATIC EQUILIBRIUM EXTRAPOLATED.
+##############################################################
+
+ENERGY_RT_LEFT:
+	    Centered:    |(energy[i+(NGHY+1)*pitch]-energy[i+NGHY*pitch])/(Ymed(NGHY+1)-Ymed(NGHY))*(Ymed(jgh)-Ymed(NGHY))+energy[i+NGHY*pitch]|active|
+
+ENERGY_RT_RIGHT:
+	    Centered:  |(energy[i+(Ny+NGHY+1)*pitch]-energy[i+(Ny+NGHY)*pitch])/(Ymed(Ny+NGHY+1)-Ymed(Ny+NGHY))*(Ymed(jgh)-Ymed(Ny+NGHY))+energy[i+(Ny+NGHY)*pitch]|active|
+
+
+##############################################################
+### BELOW: BOUNDARY CONDITIONS FOR 2D KEPLERIAN DISKS WITH PRESSURE
+### SUPPORT IN THEIR ROTATIONAL EQUILIBRIUM
+##############################################################
+ 
+KEPLERIAN2DDENS:                       #Analytic extension of surface density profile
+            Centered:            |surfdens*pow(Ymed(jact)/Ymed(jgh),'SIGMASLOPE')|surfdens|
+
+KEPLERIAN2DVAZIM:    #Analytic Keplerian extrapolation of velocity profile
+  Centered: |(vt+Ymed(jact)*'OmegaFrame')*sqrt(Ymed(jact)/Ymed(jgh))-Ymed(jgh)*'OmegaFrame'|vt|
+
+EXTRAPOLATE_LEFT:
+	    Centered:    |(density[i+(NGHY+1)*pitch]-density[i+NGHY*pitch])/(Ymed(NGHY+1)-Ymed(NGHY))*(Ymed(jgh)-Ymed(NGHY))+density[i+NGHY*pitch]|a|
+
+EXTRAPOLATE_RIGHT:   #Used for periodic runs
+	    Centered:  |(density[i+(Ny+NGHY-1)*pitch]-density[i+(Ny+NGHY-2)*pitch])/(Ymed(Ny+NGHY-1)-Ymed(Ny+NGHY-2))*(Ymed(jgh)-Ymed(Ny+NGHY-1))+density[i+(Ny+NGHY-1)*pitch]|a|
+
+##############################################################
+##############################################################
+### BELOW: BOUNDARY CONDITIONS FOR 3D KEPLERIAN DISKS WITH PRESSURE
+### SUPPORT IN THEIR ROTATIONAL EQUILIBRIUM. THE SOUND SPEED IS
+### ASSUMED TO BE A FUNCTION OF THE SPHERICAL RADIUS ONLY. IN ALL THE
+### SUBSEQUENT EXPRESSIONS, THE LAST MULTIPLICATIVE FACTOR ACCOUNTS
+### FOR THE POSSIBLE RADIAL VARIATION OF THE ASPECT RATIO. IN THE CASE
+### THE ASPECT RATIO IS CONSTANT (VANISHING FLARING INDEX), THE
+### EXPRESSIONS ARE SIMPLER AS THEY ARE SEPARABLE IN RADIUS AND
+### COLATITUDE. 
+##############################################################
+##############################################################
+ 
+KEPLERIAN3DSPHDENSRAD: #Approximate extrapolation in radius
+	Centered: |ds*pow(Ymed(jact)/Ymed(jgh),'SIGMASLOPE'+'FLARINGINDEX'+1.)*exp(-pow(cos(Zmed(k)),2.)/('ASPECTRATIO'*'ASPECTRATIO')*(1.-Ymed(jgh)/(.5*(Ymed(jact)+Ymed(jgh))))*'FLARINGINDEX'*pow(.5*(Ymed(jgh)+Ymed(jact))/'R0',-2.*'FLARINGINDEX'-1.))|ds|
+ 
+KEPLERIAN3DSPHVAZIMRAD:
+        Centered: |(vv+'OmegaFrame'*Ymed(jact)*sin(Zmed(k)))*sqrt(Ymed(jact)/Ymed(jgh))*(1.+(2.+'SIGMASLOPE'-'FLARINGINDEX')*(Ymed(jact)-Ymed(jgh))/'R0'*'FLARINGINDEX'*'ASPECTRATIO'*'ASPECTRATIO'*pow((Ymed(jgh)+Ymed(jact))/(2.*'R0'),2.*'FLARINGINDEX'-1.))-Ymed(jgh)*'OmegaFrame'*sin(Zmed(k))|vv|
+
+KEPLERIAN3DSPHDENSCOL: #Approximate extrapolation in COLatitude (Z)
+	Centered: |ds*pow(sin(Zmed(kgh))/sin(Zmed(kact)),'FLARINGINDEX'-2.-'SIGMASLOPE'+1./('ASPECTRATIO'*'ASPECTRATIO')*pow(Ymed(j)/'R0',-2.*'FLARINGINDEX'))|ds|
+
+KEPLERIAN3DSPHVAZIMCOL:
+	Centered: |(vv+'OmegaFrame'*Ymed(j)*sin(Zmed(kact)))*(1.+'FLARINGINDEX'*cos(.5*(Zmed(kgh)+Zmed(kact)))*(Zmed(kact)-Zmed(kgh))) -Ymed(j)*'OmegaFrame'*sin(Zmed(k))|vv|

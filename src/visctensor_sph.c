@@ -15,17 +15,29 @@ void visctensor_sph_cpu(){
   INPUT(Energy);
 #endif
 #ifdef X
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vx_half);
+#else
   INPUT(Vx);
+#endif
   OUTPUT(Mmx);
   OUTPUT(Mpx);
 #endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vy_half);
+#else
   INPUT(Vy);
+#endif
   OUTPUT(Mmy);
   OUTPUT(Mpy);
 #endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vz_half);
+#else
   INPUT(Vz);
+#endif
   OUTPUT(Mmz);
   OUTPUT(Mpz);
 #endif
@@ -37,13 +49,25 @@ void visctensor_sph_cpu(){
   real* energy = Energy->field_cpu;
 #endif
 #ifdef X
+#ifdef COLLISIONPREDICTOR
+  real* vx = Vx_half->field_cpu;
+#else
   real* vx = Vx->field_cpu;
 #endif
+#endif
 #ifdef Y
+#ifdef COLLISIONPREDICTOR
+  real* vy = Vy_half->field_cpu;
+#else
   real* vy = Vy->field_cpu;
 #endif
+#endif
 #ifdef Z
+#ifdef COLLISIONPREDICTOR
+  real* vz = Vz_half->field_cpu;
+#else
   real* vz = Vz->field_cpu;
+#endif
 #endif
 #ifdef X
   real* tauxx = Mmx->field_cpu;
@@ -78,6 +102,8 @@ void visctensor_sph_cpu(){
   real div_v;
   real viscosity;
   real viscositym;
+  real viscosityzm;
+  real viscosityzmym;
 //<\INTERNAL>
 
 //<CONSTANT>
@@ -111,14 +137,16 @@ void visctensor_sph_cpu(){
 //<#>
 #ifdef ALPHAVISCOSITY
 #ifdef ISOTHERMAL
-       viscosity = ALPHA*energy[l]*energy[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
-       viscositym= ALPHA*.5*(energy[l]*energy[l]+energy[lym]*energy[lym])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
+	viscosityzm   = ALPHA*0.25*(energy[l]+energy[lzm])*(energy[l]+energy[lzm])*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
+	viscosityzmym = ALPHA*0.0625*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
+	viscosity     = ALPHA*energy[l]*energy[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
+	viscositym    = ALPHA*0.25*(energy[l]+energy[lym])*(energy[l]+energy[lym])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 #else
-       viscosity = ALPHA*GAMMA*(GAMMA-1.0)*energy[l]/rho[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
-       viscositym= ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lym])/(rho[l]+rho[lym])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
+	viscosity  = ALPHA*GAMMA*(GAMMA-1.0)*energy[l]/rho[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
+	viscositym = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lym])/(rho[l]+rho[lym])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 #endif
 #else
-       viscositym = viscosity = NU;
+	viscositym = viscosity = NU;
 #endif
 //Evaluate centered divergence.
 	div_v = 0.0;
@@ -138,7 +166,7 @@ void visctensor_sph_cpu(){
 	tauxx[l] = viscosity*rho[l]*(2.0*(vx[lxp]-vx[l])/zone_size_x(j,k) - div_v);
 #endif
 #if defined(Y) && defined(X)
-	tauxx[l] += viscosity*rho[l]*(vy[lxp]+vy[l])/ymed(j);
+	tauxx[l] += viscosity*rho[l]*(vy[lyp]+vy[l])/ymed(j);
 #endif
 #if defined(Z) && defined(X)
 	tauxx[l] += viscosity*rho[l]*(vz[lzp]+vz[l])*cos(zmed(k))/(sin(zmed(k))*ymed(j));
@@ -154,15 +182,15 @@ void visctensor_sph_cpu(){
 #endif
 
 #if defined(X) && defined(Z)
-	  tauxz[l] = viscosity*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]/sin(zmed(k))-vx[lzm]/sin(zmed(k-1)))*sin(zmin(k))/(ymed(j)*(zmed(k)-zmed(k-1))) + (vz[l]-vz[lxm])/(dx*sin(zmin(k))*ymed(j))); //centered on lower, left "radial" edge in y
+	tauxz[l] = viscosityzm*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]/sin(zmed(k))-vx[lzm]/sin(zmed(k-1)))*sin(zmin(k))/(ymed(j)*(zmed(k)-zmed(k-1))) + (vz[l]-vz[lxm])/(dx*sin(zmin(k))*ymed(j))); //centered on lower, left "radial" edge in y
 #endif
-
+	
 #if defined(Y) && defined(X)
 	tauyx[l] = viscositym*.25*(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*((vy[l]-vy[lxm])/(dx*ymin(j)*sin(zmed(k))) + (vx[l]-vx[lym])/(ymed(j)-ymed(j-1))-.5*(vx[l]+vx[lym])/ymin(j)); //centered on left, inner vertical edge in z
 #endif
-
+	
 #if defined(Z) && defined(Y)
-	tauzy[l] = viscositym*.25*(rho[l]+rho[lym]+rho[lzm]+rho[lym-stride])*((vz[l]-vz[lym])/(ymed(j)-ymed(j-1)) -.5*(vz[l]+vz[lym])/ymin(j) + (vy[l]-vy[lzm])/(ymin(j)*(zmed(k)-zmed(k-1)))); //centered on lower, inner edge in x ("azimuthal")
+	tauzy[l] = viscosityzmym*.25*(rho[l]+rho[lym]+rho[lzm]+rho[lym-stride])*((vz[l]-vz[lym])/(ymed(j)-ymed(j-1)) -.5*(vz[l]+vz[lym])/ymin(j) + (vy[l]-vy[lzm])/(ymin(j)*(zmed(k)-zmed(k-1)))); //centered on lower, inner edge in x ("azimuthal")
 #endif
 //<\#>
 #ifdef X

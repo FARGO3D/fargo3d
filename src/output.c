@@ -146,26 +146,19 @@ void WriteTorqueAndWork(int TimeStep, int n) {
   x = Sys->x[n];
   y = Sys->y[n];
   z = Sys->z[n];
+  vx = Sys->vx[n];
+  vy = Sys->vy[n];
+  vz = Sys->vz[n];
   r = sqrt(x*x + y*y + z*z);
+  
   if (ROCHESMOOTHING != 0)
     smoothing = r*pow(m/3./MSTAR,1./3.)*ROCHESMOOTHING;
   else
     smoothing = ASPECTRATIO*pow(r/R0,FLARINGINDEX)*r*THICKNESSSMOOTHING;
 
   force = ComputeForce(x,y,z,smoothing,m);
-  //  printf ("Updating 'planet%d.dat'...", n);
-  //fflush (stdout);
 
   sprintf (name, "%stqwk%d.dat", OUTPUTDIR, n);
-
-  x = Xplanet;
-  y = Yplanet;
-  z = Zplanet;
-  vx = VXplanet;
-  vy = VYplanet;
-  vz = VZplanet;
-  m = MplanetVirtual;
-  r = sqrt(x*x + y*y + z*z);
 
   if (ROCHESMOOTHING != 0)
     smoothing = r*pow(m/3./MSTAR,1./3.)*ROCHESMOOTHING;
@@ -186,7 +179,6 @@ void WriteTorqueAndWork(int TimeStep, int n) {
 	   vx*force.fx_ex_outer+vy*force.fy_ex_outer,
 	   PhysicalTime);
   fclose (output);
-  //  printf ("done\n");
   fflush (stdout);
 }
 
@@ -203,7 +195,7 @@ void WritePlanetSystemFile (int t, boolean big) {
     VYplanet = Sys->vy[i];
     VZplanet = Sys->vz[i];
     MplanetVirtual = Sys->mass[i];
-    //    WriteTorqueAndWork(t, i);
+    WriteTorqueAndWork(t, i);
     WritePlanetFile (t, i, big);
   }
 }
@@ -215,6 +207,7 @@ void WriteDim () {
   int temp;
 
   if(CPU_Rank==0) {
+#ifdef DEBUG
     sprintf(filename, "%sdimensions.dat", OUTPUTDIR);
     dims = fopen(filename, "w");
     fprintf(dims,"%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", \
@@ -224,6 +217,7 @@ void WriteDim () {
     	    XMIN, XMAX, YMIN, YMAX, ZMIN, ZMAX, NX, NY, NZ,	\
     	    Ncpu_x, Ncpu_y, NGHY, NGHZ, NGHX);
     fclose(dims);
+#endif
 #ifdef LEGACY
     sprintf(filename, "%sdims.dat", OUTPUTDIR);
     dims = fopen(filename, "w");
@@ -332,6 +326,199 @@ void WriteMerging(Field *f, int n) {
   fclose(fo);
 }
 
+void Write_offset(int file_offset, char* fieldname, char* fluidname){
+
+  FILE *fp;
+  char filename[MAXNAMELENGTH];
+
+  if(CPU_Master){
+    sprintf(filename, "%s/output%s.dat", OUTPUTDIR, fluidname);
+    fp = fopen(filename,"a");
+    fprintf(fp, "%d\t%s\n", file_offset, fieldname);
+    fclose(fp);
+  }
+  
+}
+
+#ifdef MPIIO
+MPI_Offset ParallelIO(Field *field, int n, int mode, MPI_Offset file_offset, int writeoffset) {
+
+  INPUT(field);
+  
+  char filename[MAXNAMELENGTH];
+
+  //subarray of memory (fields)
+  MPI_Datatype mpi_memtype;
+  int mem_global_size[3]; 
+  int mem_local_size[3];
+  int mem_start[3];
+  //subarray of file (fields)
+  MPI_Datatype mpi_filetype;
+  int file_global_size[3];
+  int file_local_size[3];
+  int file_start[3];
+  //---------------------
+
+  MPI_Info mpi_info;
+  MPI_File mpi_file;
+  MPI_Status status;
+
+  sprintf(filename, "%s%s_%d.mpio", OUTPUTDIR, Fluids[FluidIndex]->name, n);
+
+  //Setting memory space per rank
+  mem_global_size[0] = Nz+2*NGHZ;
+  mem_global_size[1] = Ny+2*NGHY;
+  mem_global_size[2] = Nx;
+
+  
+#if !defined(WRITEGHOSTS)
+  mem_local_size[0] = Nz;
+  mem_local_size[1] = Ny;
+  mem_local_size[2] = Nx;
+
+  mem_start[0] = NGHZ;
+  mem_start[1] = NGHY;
+  mem_start[2] = NGHX;
+#else
+  if (CPU_Number>1) {
+    mastererr("This version doesn't write ghosts in the parallel version.\n");
+    exit(1);
+  }
+  mem_local_size[0] = Nz+2*NGHZ;
+  mem_local_size[1] = Ny+2*NGHY;
+  mem_local_size[2] = Nx+2*NGHX;
+
+  mem_start[0] = 0;
+  mem_start[1] = 0;
+  mem_start[2] = 0;
+#endif
+  
+  MPI_Type_create_subarray(3, mem_global_size, mem_local_size, mem_start,  
+			   MPI_ORDER_C, MPI_DOUBLE, &mpi_memtype);
+  MPI_Type_commit(&mpi_memtype);
+
+  //Setting file space
+
+#if !defined(WRITEGHOSTS)
+  file_global_size[0] = NZ;
+  file_global_size[1] = NY;
+  file_global_size[2] = NX;
+
+  file_local_size[0] = Nz;
+  file_local_size[1] = Ny;
+  file_local_size[2] = Nx;
+#else
+  file_global_size[0] = NZ+2*NGHZ;
+  file_global_size[1] = NY+2*NGHY;
+  file_global_size[2] = NX+2*NGHX;
+
+  file_local_size[0] = Nz+2*NGHZ;
+  file_local_size[1] = Ny+2*NGHY;
+  file_local_size[2] = Nx+2*NGHX;
+#endif
+  file_start[0] = Z0;
+  file_start[1] = Y0;
+  file_start[2] = 0;
+
+  MPI_Type_create_subarray(3, file_global_size, file_local_size, file_start,  
+			   MPI_ORDER_C, MPI_DOUBLE, &mpi_filetype);
+  MPI_Type_commit(&mpi_filetype);
+
+  
+  //Writing.....
+  MPI_File_open(MPI_COMM_WORLD, filename, mode, MPI_INFO_NULL, &mpi_file);
+  
+  //We write the only at the begining of the file
+  if (file_offset == 0) {
+    if (mode & MPI_MODE_WRONLY) {
+      if (CPU_Master)
+	MPI_File_write_at(mpi_file, 0, Xmin, NX+1, MPI_DOUBLE, &status);
+    }
+    else {
+      MPI_File_read_at(mpi_file, 0, Xmin, NX+1, MPI_DOUBLE, &status);
+    }    
+
+    file_offset += NX+1;
+    
+    if (mode & MPI_MODE_WRONLY) {
+      if (Z0 == 0) {
+	if (J == (Ncpu_x - 1))
+	  MPI_File_write_at(mpi_file, (file_offset+Y0)*sizeof(real),
+			    Ymin+NGHY, Ny+1, MPI_DOUBLE, &status);
+	else
+	  MPI_File_write_at(mpi_file, (file_offset+Y0)*sizeof(real),
+			    Ymin+NGHY, Ny, MPI_DOUBLE, &status);
+ 
+      }
+
+      file_offset += NY+1;
+
+      if (Y0 == 0) {
+	if (K == (Ncpu_y - 1))
+	  MPI_File_write_at(mpi_file, (file_offset+Z0)*sizeof(real),
+			    Zmin+NGHZ, Nz+1, MPI_DOUBLE, &status);
+	else
+	  MPI_File_write_at(mpi_file, (file_offset+Z0)*sizeof(real),
+			    Zmin+NGHZ, Nz, MPI_DOUBLE, &status);
+      }
+      
+      file_offset += (NZ+1);
+          
+    }
+    else { //If LOADFIELDS
+      if (J == (Ncpu_x - 1))
+	MPI_File_read_at(mpi_file, (file_offset+Y0)*sizeof(real),
+			 Ymin+NGHY, Ny+1, MPI_DOUBLE, &status);
+      else
+	MPI_File_read_at(mpi_file, (file_offset+Y0)*sizeof(real),
+			 Ymin+NGHY, Ny, MPI_DOUBLE, &status);
+
+    file_offset += NY+1;
+    
+    if (K == (Ncpu_y - 1))
+      MPI_File_read_at(mpi_file, (file_offset+Z0)*sizeof(real),
+		       Zmin+NGHZ, Nz+1, MPI_DOUBLE, &status);
+    else
+      MPI_File_read_at(mpi_file, (file_offset+Z0)*sizeof(real),
+		       Zmin+NGHZ, Nz, MPI_DOUBLE, &status);
+
+    file_offset += (NZ+1);
+    
+    }
+#ifdef DEBUG
+  debugprint(__LINE__,__FILE__,"Offset after r/w domain %d\n", file_offset);
+#endif
+  }
+
+  //We append more fields on the same file
+
+  MPI_File_set_view(mpi_file, file_offset*sizeof(real), MPI_DOUBLE, mpi_filetype,
+		    "native", MPI_INFO_NULL);
+
+  if (mode & MPI_MODE_WRONLY)
+    MPI_File_write_all(mpi_file, field->field_cpu, 1,
+		       mpi_memtype, &status);
+  else
+    MPI_File_read_all(mpi_file, field->field_cpu, 1,
+		      mpi_memtype, &status);
+
+  if(writeoffset == TRUE ) Write_offset(file_offset, field->name, Fluids[FluidIndex]->name);  
+#if !defined(WRITEGHOSTS)
+  file_offset += NX*NY*NZ;
+#else
+  file_offset += (NX+2*NGHX)*(NY+2*NGHY)*(NZ+2*NGHZ);
+#endif
+  
+#ifdef DEBUG
+  debugprint(__LINE__,__FILE__,"Offset after r/w %s: %d\n",field->name, file_offset);
+#endif
+
+  MPI_File_close(&mpi_file);
+  return file_offset;
+
+}
+#endif
+
 void WriteBinFile(int n1, int n2, int n3,	\
 		  real *var1, char *filename) {
   int i,j,k;
@@ -379,7 +566,7 @@ void DumpAllFields (int number) {
   printf ("\n");
 }
 
-void WriteOutputsAndDisplay(int type) {
+void WriteOutputs(int type) {
 
  /* If type=ALL, all fields are dumped (This is the old fashion
      style). If type=SPECIFIC, this routine only dumps specific
@@ -400,6 +587,12 @@ void WriteOutputsAndDisplay(int type) {
 
   char outputdir[MAXLINELENGTH];
   static int init = 0;
+  static int writeoffset = TRUE;
+  static int counter = 0;
+  MPI_Offset offset;
+
+  FILE *fp;
+  char filename[MAXNAMELENGTH];
 
   Summary (TimeStep);
   
@@ -433,20 +626,78 @@ void WriteOutputsAndDisplay(int type) {
       init = 1;
     }
   }
+  // we truncate the output.dat file
+  if(CPU_Master && (writeoffset == TRUE)) {
+    sprintf(filename, "%s/output%s.dat", OUTPUTDIR, Fluids[FluidIndex]->name);
+    fp = fopen(filename,"w");
+    fclose(fp);
+  }
+  
+  /// MPIIO ouput version
+#ifdef MPIIO
+  offset = 0; //We start at the begining of the file  
+ 
+  if (WRITEDENSITY)
+    offset = ParallelIO(Density, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+  if (WRITEENERGY)
+    offset = ParallelIO(Energy, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+#ifdef X
+  if (WRITEVX)
+    offset = ParallelIO(Vx, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+#endif
+#ifdef Y
+  if (WRITEVY)
+    offset = ParallelIO(Vy, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+#endif
+#ifdef Z
+  if (WRITEVZ)
+    offset = ParallelIO(Vz, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+#endif
+#ifdef MHD //MHD is 3D.
+  if(Fluidtype == GAS){
+    if (WRITEBX)
+      offset = ParallelIO(Bx, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+    if (WRITEBY)
+      offset = ParallelIO(By, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+    if (WRITEBZ)
+      offset = ParallelIO(Bz, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+    if (WRITEDIVERGENCE)
+      offset = ParallelIO(Divergence, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+  }
+#endif
 
+  if (counter < 2*NFLUIDS) {
+    if (NSNAP == 0) {
+      if (counter == NFLUIDS-1 || Restart == YES || Restart_Full == YES) {
+	writeoffset = FALSE;
+      }
+    }
+    else {
+      if (counter == 2*NFLUIDS-1 || Restart == YES || Restart_Full == YES) {
+	writeoffset = FALSE;
+      }
+    }
+    counter += 1;
+  }
+#endif
+
+  /// Standard ouput version
+#ifndef MPIIO
   if (WRITEDENSITY)
     __WriteField(Density, TimeStep);
   if (WRITEENERGY)
     __WriteField(Energy, TimeStep);
 #ifdef MHD //MHD is 3D.
-  if (WRITEDIVERGENCE)
-    __WriteField(Divergence,TimeStep);
-  if (WRITEBX)
-    __WriteField(Bx, TimeStep);
-  if (WRITEBY)
-    __WriteField(By, TimeStep);
-  if (WRITEBZ)
-    __WriteField(Bz, TimeStep);
+  if(Fluidtype == GAS){
+    if (WRITEDIVERGENCE)
+      __WriteField(Divergence,TimeStep);
+    if (WRITEBX)
+      __WriteField(Bx, TimeStep);
+    if (WRITEBY)
+      __WriteField(By, TimeStep);
+    if (WRITEBZ)
+      __WriteField(Bz, TimeStep);
+  }
 #endif
 #ifdef X
   if (WRITEVX)
@@ -459,6 +710,7 @@ void WriteOutputsAndDisplay(int type) {
 #ifdef Z
   if (WRITEVZ)
     __WriteField(Vz, TimeStep);
+#endif
 #endif
   
 if (type == ALL){ //We recover the .par variables' value
@@ -476,42 +728,6 @@ if (type == ALL){ //We recover the .par variables' value
     prs_exit(EXIT_SUCCESS);
   if(Dat2vtk)
     prs_exit(EXIT_SUCCESS);
-
-#if ((defined(X) && defined(Y) && !defined(Z)) || \
-     (defined(X) && defined(Z) && !defined(Y)) || \
-     (defined(Y) && defined(Z) && !defined(X)))
-#ifdef MATPLOTLIB
-  if (Merge) {
-    if (CPU_Master) {
-      plot2d(FIELD, TimeStep, Merge);
-    }
-  }
-  else {
-    plot2d(FIELD, TimeStep, Merge);
-  }
-#endif
-#endif
-
-#if (defined(X) && defined(Y) && defined(Z))
-#ifdef MATPLOTLIB
-  if (Merge) {
-    if (CPU_Master) {
-      plot3d(FIELD, TimeStep, Merge);
-    }
-  }
-  else {
-    plot3d(FIELD, TimeStep, Merge);
-  }
-#endif
-#endif
-  
-#if ((defined(X) & !(defined(Y) || defined(Z))) ||  \
-     (defined(Y) & !(defined(X) || defined(Z)))  || \
-     (defined(Z) & !(defined(X) || defined(Y))))
-#ifdef MATPLOTLIB
-  plot1d(FIELD, TimeStep, Merge);
-#endif
-#endif
 
  if (type != ALL)
     sprintf(OUTPUTDIR,"%s",outputdir);

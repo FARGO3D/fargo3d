@@ -1,0 +1,42 @@
+#Boundaries configuration file 
+#-----------------------------
+
+Density:
+	Ymin: SYMMETRIC
+	Ymax: SYMMETRIC
+
+Vx:
+	Ymin: KEPLERIAN2DVAZIM
+	Ymax: KEPLERIAN2DVAZIM
+
+Vy:
+	Ymin:	ANTISYMMETRIC
+	Ymax:   ANTISYMMETRIC
+
+Vz:
+	Ymin: SYMMETRIC
+	Ymax: SYMMETRIC
+
+Bx:
+	Ymin: SYMMETRIC
+	Ymax: SYMMETRIC
+
+By:
+	Ymin: ANTISYMMETRIC
+	Ymax: ANTISYMMETRIC
+
+Bz:
+	Ymin: SYMMETRIC
+	Ymax: SYMMETRIC
+
+Emfx:
+	Ymin: ANTISYMMETRIC
+	Ymax: ANTISYMMETRIC
+
+Emfy:
+	Ymin: SYMMETRIC
+	Ymax: SYMMETRIC
+
+Emfz:
+	Ymin: ANTISYMMETRIC
+	Ymax: ANTISYMMETRIC

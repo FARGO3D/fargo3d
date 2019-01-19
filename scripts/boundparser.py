@@ -3,7 +3,7 @@ import copy
 import sys
 import os
 
-STDDIR = "../std/" #Where is "boundary_template.c"
+STDDIR = "../std/" #Where "boundary_template.c" is located
 
 def pformat_read(name,dataformat):
     """
@@ -34,7 +34,7 @@ def pformat_read(name,dataformat):
     init = 0
     for line in lines:
         search = None
-        skip = re.match("\s*#+",line) #Very compact comment line!
+        skip = re.match("\s*#+",line) #Comment line
         if skip != None:
             continue
         search1 = re.match("\s*(\w+)\s*:\s*\n",line)    #without comment
@@ -52,7 +52,7 @@ def pformat_read(name,dataformat):
             init = 1
             continue
         if temp_field == field_name:
-            field['name'] = field_name #ugly but works! Can be improved!
+            field['name'] = field_name #ugly but it works! It can be improved
             search = re.match("\s*(\w+)\s*:\s*("+dataformat+")",line)
             if search != None:
                 prop  = search.group(1).lower()
@@ -135,13 +135,14 @@ class Boundary():
     It is the core of the data. The programmer does not need
     to go to another place, everything is managed from here...
     """
-    def __init__(self,side,Setup,Template):
+    def __init__(self,side,number,Setup,Template):
         self.name = side+"_bound.c"
         self.side = side
         self.template = Template
         self.setup = Setup
         self.stones = self.template.stones
-
+        self.number = number
+        
         self.process_side()
         self.process_ifields()
         self.process_ofields()
@@ -153,7 +154,7 @@ class Boundary():
         self.write_output()
 
     def write_output(self):
-        output = open(self.side+"_bound.c","w")
+        output = open(self.side+"_bound_{:d}.c".format(self.number),"w")
         for line in self.template.template:
             output.write(line)
 
@@ -161,7 +162,7 @@ class Boundary():
         string = "%side"
         n = self.stones[string]
         self.template.template[n] = \
-            self.template.template[n].replace(string,self.side+"_cpu")
+            self.template.template[n].replace(string,self.side+"_{:d}_cpu".format(self.number))
 
     def process_ifields(self):
         ifields_lines = ""
@@ -355,15 +356,15 @@ class Boundary():
         n = self.stones[string]
         self.template.template[n] = indices_lines + self.template.template[n]
 
-def write_mute(side, template):
+def write_mute(side, number, template):
 
     template1 = copy.deepcopy(template)
     template2 = copy.deepcopy(template)
     stones = template.stones
 
-    output1 = open(side+"min_bound.c","w")
+    output1 = open(side+"min_bound_{:d}.c".format(number),"w")
     template1.template[stones['%side']] = \
-        template1.template[stones['%side']].replace("%side",side+"min_cpu")
+        template1.template[stones['%side']].replace("%side",side+"min_{:d}_cpu".format(number))
     for key in stones.keys():
         if key == "%size_y":
             template1.template[stones['%size_y']] = \
@@ -380,9 +381,9 @@ def write_mute(side, template):
         output1.write(line)
     output1.close()
 
-    output2 = open(side+"max_bound.c","w")
+    output2 = open(side+"max_bound_{:d}.c".format(number),"w")
     template2.template[stones['%side']] = \
-        template2.template[stones['%side']].replace("%side",side+"max_cpu")
+        template2.template[stones['%side']].replace("%side",side+"max_{:d}_cpu".format(number))
     for key in stones.keys():
         if key == "%size_y":
             template2.template[stones['%size_y']] = \
@@ -401,22 +402,28 @@ def write_mute(side, template):
     output2.close()
 
 def process_arguments(arguments):
-    SETUP = BOUNDARIES = CENTERING = None
+    SETUP = FLUIDNUMBER = BOUNDARIES = CENTERING = None
     for argument in arguments:
-        search = re.search(".*\.bound",argument)
+        search = re.search(".*\.bound.(\d+)",argument)
         if search!=None:
             SETUP = search.group(0)
+            FLUIDNUMBER = int(search.group(1))
         search = re.search(".*boundaries.txt",argument)
         if search!=None:
             BOUNDARIES = search.group(0)
         search = re.search(".*centering.txt",argument)
         if search!=None:
-            CENTERING = search.group(0)
-    return SETUP, BOUNDARIES, CENTERING
+            CENTERING = search.group(0)            
+    return SETUP, FLUIDNUMBER, BOUNDARIES, CENTERING
 
 if __name__ == '__main__':
 
-    SETUP, BOUNDARIES, CENTERING = process_arguments(sys.argv[1:])
+    SETUP, FLUIDNUMBER, BOUNDARIES, CENTERING = process_arguments(sys.argv[1:4])
+
+    if (FLUIDNUMBER == 0):
+        print "PARSING BOUNDARIES..."
+        print "Note: This process is suppressed by declaring HARDBOUNDARIES in the .opt file."
+    
     if SETUP == None:
         print "Check your setup.bound file..."
     if BOUNDARIES == None:
@@ -431,35 +438,38 @@ if __name__ == '__main__':
     try:
         setup = Setup(SETUP, BOUNDARIES, CENTERING)
     except:
-        write_mute("y",copy.deepcopy(template))
-        write_mute("z",copy.deepcopy(template))
-        print "================================="
-        print "Warning: Some file is missing..." 
-        "\nCheck the files: \n" + SETUP + "\n" \
-            + BOUNDARIES + "\n" + CENTERING + \
-            "\nThis version was compiled with"
-        "periodic boundaries."
-        print "================================="
+        write_mute("y",FLUIDNUMBER,copy.deepcopy(template))
+        write_mute("z",FLUIDNUMBER,copy.deepcopy(template))
+        if (FLUIDNUMBER == 0):
+            print "================================="
+            print "Warning: Some file is missing..." 
+            "\nCheck the files: \n" + SETUP + "\n" \
+                + BOUNDARIES + "\n" + CENTERING + \
+                "\nThis version was compiled with"
+            "periodic boundaries."
+            print "================================="
         exit()
 
     try:
-        left  = Boundary("ymin",
+        left  = Boundary("ymin", FLUIDNUMBER,
                          copy.deepcopy(setup),
                          copy.deepcopy(template))
-        right = Boundary("ymax", 
+        right = Boundary("ymax", FLUIDNUMBER,
                          copy.deepcopy(setup), 
                          copy.deepcopy(template))
     except KeyError:
-        write_mute("y", copy.deepcopy(template))
-        print "Skipping boundaries in Y. Not defined."
+        write_mute("y", FLUIDNUMBER, copy.deepcopy(template))
+        if (FLUIDNUMBER == 0):
+            print "Warning: Y boundaries are not defined."
 
     try:
-        down  = Boundary("zmin", 
+        down  = Boundary("zmin", FLUIDNUMBER,
                          copy.deepcopy(setup),
                          copy.deepcopy(template))
-        up    = Boundary("zmax", 
+        up    = Boundary("zmax", FLUIDNUMBER,
                          copy.deepcopy(setup), 
                          copy.deepcopy(template))
     except KeyError:
-        write_mute("z", copy.deepcopy(template))
-        print "Skipping boundaries in Z. Not defined."
+        write_mute("z", FLUIDNUMBER, copy.deepcopy(template))
+        if (FLUIDNUMBER == 0):
+            print "Warning: Z boundaries are not defined."

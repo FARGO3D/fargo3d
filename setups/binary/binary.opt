@@ -18,39 +18,30 @@
 # indications, then rebuild and rerun.
 #
 # END
-#-------------------------------------------------------------------------------
-# From the list below, activate/deactivate the options that apply to your run.
-#-------------------------------------------------------------------------------
-#Problem
+#-------------------------------------------------------------------------
+
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
+
 MONITOR_SCALAR = MASS | TORQ
 
 FARGO_OPT += -DSTOCKHOLM
 FARGO_OPT += -DHILLCUT
 
-#Dimension(s) of Simulation. Here 2D (r,Phi) like the former FARGO code
-FARGO_OPT +=  -DX #X --> PHI
-FARGO_OPT +=  -DY #Y --> R
+FARGO_OPT +=  -DX
+FARGO_OPT +=  -DY 
 
-#Equation of State		# ONLY ONE OF THEM
-FARGO_OPT +=  -DISOTHERMAL	# ISOTHERMAL EQUATION OF STATE
+#Equation of State		
+FARGO_OPT +=  -DISOTHERMAL	
 
 #Coordinate System.
-FARGO_OPT +=  -DCYLINDRICAL	# COORDINATE SYSTEM. 
-
-#Transport Algorithm
-#FARGO_OPT += -DSTANDARD	# YOU CAN USE THIS OPTION IF YOU WANT TO COMPARE THE 
-	      		 	# SPEEDUP OF THE FARGO ALGORITHM WITH RESPECT TO THE
-	      		 	# STANDARD ADVECTION ALGORITHM.
+FARGO_OPT +=  -DCYLINDRICAL	
 
 FARGO_OPT += -DNODEFAULTSTAR
 
-#Algorithms
-#FARGO_OPT += -DNOSUBSTEP2	# DISABLES ARTIFICIAL VISCOSITY.
-
-#Gravity
 FARGO_OPT += -DPOTENTIAL
 
-#Viscosity
 FARGO_OPT += -DALPHAVISCOSITY
 
 FARGO_OPT += -DLEGACY

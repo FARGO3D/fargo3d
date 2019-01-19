@@ -285,7 +285,12 @@ void var_assign(){
   mastererr ("VISCOSITY and ALPHAVISCOSITY. Fix, rebuild and rerun.\n");
   prs_exit (1);
 #endif
-  
+
+#if (defined(COLLISIONPREDICTOR) && !defined(DRAGFORCE))
+  mastererr ("ERROR - You cannot activate the COLLISIONPREDICTOR without the DRAGFORCE\n");
+  prs_exit (1);
+#endif
+
 
   if (NGHX > NX) {
     mastererr ("\n\n\nERROR\n\nThe buffer zones in X are wider than the active mesh\n");

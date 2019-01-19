@@ -9,13 +9,15 @@
 
 void SubStep1_z_cpu (real dt) {
 
-
 //<USER_DEFINED>
   INPUT(Pressure);
   INPUT(Density);
   INPUT(Pot);
 #ifdef X
   INPUT(Vx);
+#ifdef COLLISIONPREDICTOR
+  INPUT(Vx_half);
+#endif
 #endif
 #ifdef Z
   INPUT(Vz);
@@ -36,6 +38,11 @@ void SubStep1_z_cpu (real dt) {
   real* rho = Density->field_cpu;
 #ifdef X
   real* vx      = Vx->field_cpu;
+#ifdef COLLISIONPREDICTOR
+  real* vx_half = Vx_half->field_cpu;
+#else
+  real* vx_half = Vx->field_cpu;
+#endif
   real* vx_temp = Vx_temp->field_cpu;
 #endif
 #ifdef Z
@@ -54,6 +61,7 @@ void SubStep1_z_cpu (real dt) {
   int size_x = XIP; 
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
+  int fluidtype = Fluidtype;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -78,7 +86,6 @@ void SubStep1_z_cpu (real dt) {
   real bmean;
 #endif
   real vphi;
-  (void) vphi;
 //<\INTERNAL>
 
 //<CONSTANT>
@@ -88,6 +95,7 @@ void SubStep1_z_cpu (real dt) {
 // real OMEGAFRAME(1);
 // real VERTICALDAMPING(1);
 //<\CONSTANT>
+
 
 //<MAIN_LOOP>
 
@@ -125,16 +133,18 @@ void SubStep1_z_cpu (real dt) {
 #endif //END POTENTIAL
 
 #ifdef MHD
-	bmean  = 0.5*(bx[ll] + bx[llxp]);
-	bmeanm = 0.5*(bx[llzm] + bx[llxp-stride]);
-	db1 = (bmean*bmean-bmeanm*bmeanm);
-
-	bmean = 0.5*(by[ll] + by[llyp]);
-	bmeanm  = 0.5*(by[llzm] + by[llzm+pitch]);
-
-	db2 = (bmean*bmean-bmeanm*bmeanm);
-
-	vz_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(MU0*(zmed(k)-zmed(k-1)));
+	if(fluidtype==GAS) {
+	  bmean  = 0.5*(bx[ll] + bx[llxp]);
+	  bmeanm = 0.5*(bx[llzm] + bx[llxp-stride]);
+	  db1 = (bmean*bmean-bmeanm*bmeanm);
+	  
+	  bmean = 0.5*(by[ll] + by[llyp]);
+	  bmeanm  = 0.5*(by[llzm] + by[llzm+pitch]);
+	  
+	  db2 = (bmean*bmean-bmeanm*bmeanm);
+	  
+	  vz_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(MU0*(zmed(k)-zmed(k-1)));
+	}
 #endif //END MHD
 #endif //END CARTESIAN
 
@@ -146,25 +156,27 @@ void SubStep1_z_cpu (real dt) {
 #ifdef POTENTIAL
 	vz_temp[ll] -= (pot[ll]-pot[llzm]) * dt / (zmed(k)-zmed(k-1));
 #endif //END POTENTIAL
-
+	
 #ifdef MHD
+	if(fluidtype==GAS) {
 #ifndef PASSIVEMHD
-	bmean  = 0.5*(bx[ll] + bx[llxp]);
-	bmeanm = 0.5*(bx[llzm] + bx[llxp-stride]);
-	db1 = (bmean*bmean-bmeanm*bmeanm);
-
-	bmean = 0.5*(by[ll] + by[llyp]);
-	bmeanm  = 0.5*(by[llzm] + by[llzm+pitch]);
-
-	db2 = (bmean*bmean-bmeanm*bmeanm);
-
-	vz_temp[l] -= (db1 + db2)/(rho[l]+rho[lzm])*dt/((zmed(k)-zmed(k-1))*MU0);
+	  bmean  = 0.5*(bx[ll] + bx[llxp]);
+	  bmeanm = 0.5*(bx[llzm] + bx[llxp-stride]);
+	  db1 = (bmean*bmean-bmeanm*bmeanm);
+	  
+	  bmean = 0.5*(by[ll] + by[llyp]);
+	  bmeanm  = 0.5*(by[llzm] + by[llzm+pitch]);
+	  
+	  db2 = (bmean*bmean-bmeanm*bmeanm);
+	  
+	  vz_temp[l] -= (db1 + db2)/(rho[l]+rho[lzm])*dt/((zmed(k)-zmed(k-1))*MU0);
 #endif //END PASSIVEMHD
+	}
 #endif //END MHD
 #endif //END CYLINDRICAL
-
+	  
 #ifdef SPHERICAL
-	vphi = .25*(vx[ll] + vx[llxp] + vx[llzm] + vx[llxp-stride]);
+	 vphi = .25*(vx_half[ll] + vx_half[llxp] + vx_half[llzm] + vx_half[llxp-stride]);
 	vphi += ymed(j)*sin(zmin(k))*OMEGAFRAME;
  	vz_temp[ll] = vz[ll] - 
 	  dtOVERrhom*(p[ll]-p[llzm])/(ymed(j)*(zmed(k)-zmed(k-1)));
@@ -176,25 +188,27 @@ void SubStep1_z_cpu (real dt) {
 #endif //END POTENTIAL
 
 #ifdef MHD
+	if(fluidtype==GAS) {
 #ifndef PASSIVEMHD
-	bmean  = 0.5*(bx[ll] + bx[llxp]);
-	bmeanm = 0.5*(bx[llzm] + bx[llxp-stride]);
-	db1 = (bmean*bmean-bmeanm*bmeanm);
-
-	vz_temp[ll] -= (dtOVERrhom*.25*(bmean+bmeanm)*(bmean+bmeanm)	\
-			*cos(zmin(k))/sin(zmin(k))/(MU0*ymed(j)));
-	/* Above: geometric source term -B_\phi^2*cot(theta)/(mu0*rho*r) */
+	  bmean  = 0.5*(bx[ll] + bx[llxp]);
+	  bmeanm = 0.5*(bx[llzm] + bx[llxp-stride]);
+	  db1 = (bmean*bmean-bmeanm*bmeanm);
+	  
+	  vz_temp[ll] -= (dtOVERrhom*.25*(bmean+bmeanm)*(bmean+bmeanm)	\
+			  *cos(zmin(k))/sin(zmin(k))/(MU0*ymed(j)));
+	  /* Above: geometric source term -B_\phi^2*cot(theta)/(mu0*rho*r) */
 	
-	bmean = 0.5*(by[ll] + by[llyp]);
-	bmeanm  = 0.5*(by[llzm] + by[llzm+pitch]);
+	  bmean = 0.5*(by[ll] + by[llyp]);
+	  bmeanm  = 0.5*(by[llzm] + by[llzm+pitch]);
+	  
+	  db2 = (bmean*bmean-bmeanm*bmeanm);
+	  
+	  vz_temp[ll] += dtOVERrhom*bz[ll]*.5*(bmean+bmeanm)/(MU0*ymed(j));
+	  /* Above: geometric source term +B_r * B_\theta/(MU0*rho*r) */
 
-	db2 = (bmean*bmean-bmeanm*bmeanm);
-
-	vz_temp[ll] += dtOVERrhom*bz[ll]*.5*(bmean+bmeanm)/(MU0*ymed(j));
-	/* Above: geometric source term +B_r * B_\theta/(MU0*rho*r) */
-
-	vz_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(ymed(j)*(zmed(k)-zmed(k-1))*MU0);
+	  vz_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(ymed(j)*(zmed(k)-zmed(k-1))*MU0);
 #endif //END !PASSIVEMHD
+	}
 #endif //END MHD
 #endif //END SPHERICAL
 #endif //END Z
