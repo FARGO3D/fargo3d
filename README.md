@@ -1,6 +1,6 @@
 # FARGO3D #
 
-#### A versatile HD/MHD code that runs on clusters of CPUs or GPUs, with special emphasis on protoplanetary disks. 
+#### A versatile MULTIFLUID HD/MHD code that runs on clusters of CPUs or GPUs, with special emphasis on protoplanetary disks. 
 
 
 ![example](https://bytebucket.org/fargo3d/fargo3d_develop/raw/31ab31ea6460ccf6e0bb48ece01d4b60305b4eb9/utils/images/fargo3d.jpg?token=2703b498c71814a39b625f15f9993ee69483b534)
