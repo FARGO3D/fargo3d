@@ -5,11 +5,36 @@
 
 ![example](https://bytebucket.org/fargo3d/fargo3d_develop/raw/31ab31ea6460ccf6e0bb48ece01d4b60305b4eb9/utils/images/fargo3d.jpg?token=2703b498c71814a39b625f15f9993ee69483b534)
 
+------------------------
 
 ##### Website: [fargo.in2p3.fr](http://fargo.in2p3.fr)
 
 ##### Documentation can be found [here](https://fargo3d.bitbucket.io/)
 
+##### Clone
+
+```
+git clone git@bitbucket.org:fargo3d/fargo3d.git
+```
+
+##### Fork & Sync:
+
+Follow the bitbucket [documentation](https://confluence.atlassian.com/bitbucket/forking-a-repository-221449527.html)
+
+##### Working with version 1.3
+
+Switch to the commit ``502c423`` to work with the version 1.3.
+
+```
+git checkout -b v1.3 502c423
+```
+
+##### Contributing to the code
+
+[Pull requests](https://www.atlassian.com/git/tutorials/making-a-pull-request) are available to the branch ``release/public``. 
+
+
+------------------------
 
 ### First run
 
@@ -40,6 +65,8 @@ make SETUP=fargo PARALLEL=0 GPU=1
 make SETUP=fargo PARALLEL=1 GPU=1
 mpirun -np 2 ./fargo3d in/fargo.par
 ```
+
+------------------------
 
 ### Description of subdirectories:
 
