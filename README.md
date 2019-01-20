@@ -24,10 +24,10 @@ Follow the bitbucket [documentation](https://confluence.atlassian.com/bitbucket/
 
 ##### Working with version 1.3
 
-Switch to the commit ``502c423`` to work with the version 1.3.
+Switch to the commit ``502c423``, tagged as ``1.3`` to work with version 1.3.
 
 ```
-git checkout -b v1.3 502c423
+git checkout -b v1.3 1.3
 ```
 
 ##### Contributing to the code
