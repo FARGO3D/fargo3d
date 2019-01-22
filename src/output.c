@@ -363,7 +363,7 @@ MPI_Offset ParallelIO(Field *field, int n, int mode, MPI_Offset file_offset, int
   MPI_File mpi_file;
   MPI_Status status;
 
-  sprintf(filename, "%s%s_%d.mpio", OUTPUTDIR, Fluids[FluidIndex]->name, n);
+  sprintf(filename, "%s%s_%d.mpiio", OUTPUTDIR, Fluids[FluidIndex]->name, n);
 
   //Setting memory space per rank
   mem_global_size[0] = Nz+2*NGHZ;

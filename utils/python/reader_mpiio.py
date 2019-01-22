@@ -2,7 +2,7 @@ from numpy import fromfile
 
 class Fields():
     def __init__(self, directory, fluid, n, dtype="float64"):
-        """Reading FARGO3D parallel outputs (.mpio) files.
+        """Reading FARGO3D parallel outputs (.mpiio) files.
         
         The outputgas.dat/outputdust.dat files are assumed to be in the
         same directory as the data files.
@@ -25,7 +25,7 @@ class Fields():
             directory = directory.strip() #We remove possible spaces
             if directory[-1] != "/": directory += "/"
         self.name      = fluid
-        self.filename  = fluid + "_" + str(n)+".mpio"
+        self.filename  = fluid + "_" + str(n)+".mpiio"
         self.directory = directory
         self.dtype     = dtype
         self.ifile     = open(directory+self.filename,"r")

@@ -9,10 +9,11 @@
 
 ##### Website: [fargo.in2p3.fr](http://fargo.in2p3.fr)
 
-##### Documentation can be found [here](https://fargo3d.bitbucket.io/)
+##### [Documentation](https://fargo3d.bitbucket.io/)
+
+------------------------
 
 ##### Clone
-
 
 HTTPS: ```git clone https://bitbucket.org/fargo3d/fargo3d.git```
 
@@ -20,7 +21,7 @@ SSH (bitbucket user required): ```git clone git@bitbucket.org:fargo3d/fargo3d.gi
 
 ##### Fork & Sync:
 
-Follow the bitbucket [documentation](https://confluence.atlassian.com/bitbucket/forking-a-repository-221449527.html)
+Follow the bitbucket documentation [here](https://confluence.atlassian.com/bitbucket/forking-a-repository-221449527.html)
 
 ##### Working with version 1.3
 
@@ -34,6 +35,7 @@ git checkout -b v1.3 1.3
 
 [Pull requests](https://www.atlassian.com/git/tutorials/making-a-pull-request) are available to the branch ``release/public``. 
 
+Bugs can be reported to the [issues section](https://bitbucket.org/fargo3d/fargo3d/issues) of the repository or to the [Google group](https://groups.google.com/forum/#!forum/fargo3d).
 
 ------------------------
 
