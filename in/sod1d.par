@@ -8,7 +8,7 @@ Nz			1000
 Zmin			0.0
 Zmax			1.0
 
-Ntot			1000
+Ntot			5
 Ninterm	 		1
 DT			0.05
 OutputDir		@outputs/sod1d

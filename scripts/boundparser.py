@@ -422,7 +422,7 @@ if __name__ == '__main__':
 
     if (FLUIDNUMBER == 0):
         print "PARSING BOUNDARIES..."
-        print "Note: This process is suppressed by declaring HARDBOUNDARIES in the .opt file."
+        print "Note: This process can be suppressed by declaring HARDBOUNDARIES in the .opt file."
     
     if SETUP == None:
         print "Check your setup.bound file..."

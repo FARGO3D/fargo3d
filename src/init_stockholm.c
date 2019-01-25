@@ -1,7 +1,7 @@
 #include "fargo3d.h"
 
 void _init_stockholm() {
-  
+
   INPUT(Density);
   OUTPUT2D(Density0);
 #ifdef ADIABATIC
@@ -20,7 +20,36 @@ void _init_stockholm() {
   INPUT(Vz);
   OUTPUT2D(Vz0);
 #endif
-  
+
+  boolean error_density = TRUE;
+  boolean error_vx      = TRUE;
+  boolean error_vy      = TRUE;
+  boolean error_vz      = TRUE;
+  boolean error_energy  = TRUE;
+
+  char outputname[MAXLINELENGTH];
+
+  if ((Restart == YES) || (Restart_Full == YES)) {
+    sprintf(outputname,"%s0_2d.dat",Density->name);
+    error_density = Read2D(Density0, outputname, OUTPUTDIR, GHOSTINC);
+#ifdef X
+    sprintf(outputname,"%s0_2d.dat",Vx->name);
+    error_vx = Read2D(Vx0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+#ifdef Y
+    sprintf(outputname,"%s0_2d.dat",Vy->name);
+    error_vy = Read2D(Vy0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+#ifdef Z
+    sprintf(outputname,"%s0_2d.dat",Vz->name);
+    error_vz = Read2D(Vz0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+#ifdef ADIABATIC
+    sprintf(outputname,"%s0_2d.dat",Energy->name);
+    error_energy = Read2D(Energy0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+  }
+
   int i,j,k;
   
   i = j = k = 0;
@@ -69,6 +98,26 @@ void _init_stockholm() {
 #ifdef Z
   }
 #endif
+
+  sprintf(outputname,"%s0_2d.dat",Density->name);
+  Write2D(Density0, outputname, OUTPUTDIR, GHOSTINC);
+#ifdef X
+  sprintf(outputname,"%s0_2d.dat",Vx->name);
+  Write2D(Vx0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+#ifdef Y
+  sprintf(outputname,"%s0_2d.dat",Vy->name);
+  Write2D(Vy0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+#ifdef Z
+  sprintf(outputname,"%s0_2d.dat",Vz->name);
+  Write2D(Vz0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+#ifdef ADIABATIC
+  sprintf(outputname,"%s0_2d.dat",Energy->name);
+  Write2D(Energy0, outputname, OUTPUTDIR, GHOSTINC);
+#endif
+
 }
 
 void init_stockholm() {
@@ -78,4 +127,5 @@ void init_stockholm() {
   if (init) MULTIFLUID(_init_stockholm());
   
   init = FALSE;
+
 }

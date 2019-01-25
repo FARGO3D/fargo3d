@@ -1,3 +1,4 @@
+### Run only this parameter file if FARGO3D has been built with the setup 'fargo_multifluid'
 Setup			fargo_multifluid
 
 ### Disk parameters

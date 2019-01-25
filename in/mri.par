@@ -4,7 +4,7 @@ SetUp			mri
 
 AspectRatio     	0.1            Thickness over Radius in the disc
 Sigma0			6.0e-4	       Surface Density at r=1
-SigmaSlope		0.5	       Slope of surface
+SigmaSlope		0.5	       Slope of surface density
 FlaringIndex		0.0
 
 ### Numerical method parameters

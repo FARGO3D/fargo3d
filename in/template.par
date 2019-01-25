@@ -1,14 +1,24 @@
 #Legacy file of former FARGO code: this file has same content as 'fargo.par'
-### Run only this parameter file is FARGO3D was build using the setup 'fargo'
+### Parameter file for the setup 'fargo'
 Setup			fargo		
 
 ### Disk parameters
 
 AspectRatio     	0.05            Thickness over Radius in the disc
 Sigma0			6.3661977237e-4	Surface Density at r=1
-Nu			0.0		Uniform kinematic viscosity
-SigmaSlope		0.0		Slope of the surface density
-FlaringIndex		0.0
+Nu			1.0e-5		Uniform kinematic viscosity
+SigmaSlope		0.0		Slope for the surface density
+FlaringIndex		0.0		Slope for the aspect-ratio
+
+# Radial range for damping (in period-ratios). Values smaller than one
+# prevent damping.
+
+DampingZone 1.15
+
+# Characteristic time for damping, in units of the inverse local
+# orbital frequency. Higher values means lower damping
+
+TauDamp 0.3
 
 ### Planet parameters
 
@@ -19,7 +29,6 @@ Eccentricity		0.0
 ExcludeHill		no
 IndirectTerm		Yes
 
-
 ### Mesh parameters
 
 Nx			384		Azimuthal number of zones
@@ -28,17 +37,17 @@ Xmin			-3.14159265358979323844
 Xmax			3.14159265358979323844
 Ymin			0.4		Inner boundary radius
 Ymax			2.5		Outer boundary radius
-OmegaFrame     		1.0005
-Frame			G
+OmegaFrame     		1.0005		Angular velocity for the frame of reference (If Frame is F).
+Frame			G		Method for moving the frame of reference
 
 ### Output control parameters
 
-Ntot			1000		Total number of time steps
-Ninterm	 		20		Time steps between outputs
-DT			0.314159265359	Time step length. 2PI = 1 orbit
+DT			0.314159265359	Physical time between fine-grain outputs
+Ninterm	 		20		Number of DTs between scalar fields outputs
+Ntot			1000		Total number of DTs
+
 OutputDir		@outputs/fargo
 
-#Plotting parameters
+### Plotting parameters
 
-Log			yes
-
+PlotLog			yes

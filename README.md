@@ -3,8 +3,7 @@
 #### A versatile MULTIFLUID HD/MHD code that runs on clusters of CPUs or GPUs, with special emphasis on protoplanetary disks. 
 
 
-![example](https://bytebucket.org/fargo3d/fargo3d_develop/raw/31ab31ea6460ccf6e0bb48ece01d4b60305b4eb9/utils/images/fargo3d.jpg?token=2703b498c71814a39b625f15f9993ee69483b534)
-
+![example](https://bytebucket.org/fargo3d/public/raw/81b497fb327e916d1c2ad650fe1177b1bbbcc1de/utils/images/fargo3d.jpg)
 ------------------------
 
 ##### Website: [fargo.in2p3.fr](http://fargo.in2p3.fr)
@@ -15,20 +14,26 @@
 
 ##### Clone
 
-HTTPS: ```git clone https://bitbucket.org/fargo3d/fargo3d.git```
+HTTPS: ```git clone https://bitbucket.org/fargo3d/public.git```
 
-SSH (bitbucket user required): ```git clone git@bitbucket.org:fargo3d/fargo3d.git```
+SSH (bitbucket user required): ```git clone git@bitbucket.org:fargo3d/public.git```
 
 ##### Fork & Sync:
 
 Follow the bitbucket documentation [here](https://confluence.atlassian.com/bitbucket/forking-a-repository-221449527.html)
 
-##### Working with version 1.3
+##### Working with different versions
 
-Switch to the commit ``502c423``, tagged as ``1.3`` to work with version 1.3.
+Version 2.0: Switch to the commit tagged as ``2.0`` to work with version 2.0.
 
 ```
-git checkout -b v1.3 1.3
+git checkout -b branch2.0 2.0
+```
+
+Version 1.3: Switch to the commit tagged as ``1.3`` to work with version 1.3.
+
+```
+git checkout -b branch1.3 1.3
 ```
 
 ##### Contributing to the code
@@ -36,8 +41,6 @@ git checkout -b v1.3 1.3
 [Pull requests](https://www.atlassian.com/git/tutorials/making-a-pull-request) are available to the branch ``release/public``. 
 
 Bugs can be reported to the [issues section](https://bitbucket.org/fargo3d/fargo3d/issues) of the repository or to the [Google group](https://groups.google.com/forum/#!forum/fargo3d).
-
-------------------------
 
 ### First run
 

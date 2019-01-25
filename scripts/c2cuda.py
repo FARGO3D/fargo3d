@@ -95,7 +95,7 @@ def opt_reader():
         
 def literal(lines, option, verbose = False):
 
-    founded = False
+    found = False
     output = []
 
     begin = '//<'   + option + '>'
@@ -108,7 +108,7 @@ def literal(lines, option, verbose = False):
     for line in lines:
         line = line[:-1] # Avoiding \n
         if line == begin:
-            founded = True
+            found = True
             continue
 
         if line == end:
@@ -119,7 +119,7 @@ def literal(lines, option, verbose = False):
                 print '---------------------------------\n'
             return output
 
-        if founded:
+        if found:
             output.append(line)
             if verbose:
                 print line[:-1], 'is a/an ' + option + ' line.'
