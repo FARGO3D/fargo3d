@@ -82,7 +82,7 @@ def analyze_data():
             ny.append(int(match.group(3)))
             nz.append(int(match.group(4)))
             time.append(float(match.group(5)))
-    index, = np.where(np.array(time) == np.min(time))
+    index, = np.where(np.array(time) == np.min(time))[0]
     return nx[index], ny[index], nz[index]
 
 def test_function():
@@ -92,7 +92,7 @@ def test_function():
               FILENAME + 'u -p'+SILENT)
 
     os.system("mv "+FILENAME+'u '+BINDIR+'/')
-    os.system("make GPU=1 MPICUDA=0 PARALLEL=0 DEBUG=0 FULLDEBUG=0 FARGO_DISPLAY=0 SETUP="+SETUPNAME+SILENT)
+    os.system("make GPU=1 MPICUDA=0 PARALLEL=0 DEBUG=0 FULLDEBUG=0 FARGO_DISPLAY=0 PROFILING=1 SETUP="+SETUPNAME+SILENT)
     os.system("rm "+BINDIR+'/'+FILENAME[:-2]+"_gpu.o")
     os.system("rm -f "+BINDIR+'/'+FILENAME+'u ')
     os.system("./fargo3d -f "+SETUPDIR+'/'+SETUPNAME+'/'+SETUPNAME+'.par > '+ FILENAME[:-2]+'_blocks.temp 2>&1')
