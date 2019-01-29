@@ -40,7 +40,7 @@ git checkout -b branch1.3 1.3
 
 [Pull requests](https://www.atlassian.com/git/tutorials/making-a-pull-request) are available to the branch ``release/public``. 
 
-Bugs can be reported to the [issues section](https://bitbucket.org/fargo3d/fargo3d/issues) of the repository or to the [Google group](https://groups.google.com/forum/#!forum/fargo3d).
+Bugs can be reported to the [issues section](https://bitbucket.org/fargo3d/public/issues) of the repository or to the [Google group](https://groups.google.com/forum/#!forum/fargo3d).
 
 ### First run
 
