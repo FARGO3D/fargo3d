@@ -1,11 +1,12 @@
+from __future__ import print_function
 import sys
 import os
 here = os.path.realpath("."); path = sys.path.insert(0,here+"/scripts")
 try:
     import test as T
 except ImportError:
-    print "\nError!!! test module can not be imported." + \
-        "Be sure tht you're executig the test from the main directory, using make for that.\n"
+    print("\nError!!! test module can not be imported." +
+          "Be sure tht you're executig the test from the main directory, using make for that.\n")
 
 
 flags = "SETUP=otvortex PARALLEL=0 FARGO_DISPLAY=NONE GPU=0"
@@ -101,14 +102,10 @@ OTTest.run()
 flag3 = OTTest.get_status()
 
 if flag1 and flag2 and flag3:
-    print 
-    print "======================================================"
-    print "Test of permutations of Orzsag-Tang Vortex was passed."
-    print "======================================================"
-    print 
+    print("\n======================================================")
+    print("Test of permutations of Orzsag-Tang Vortex was passed.")
+    print("======================================================\n")
 else:
-    print 
-    print "==================================================="
-    print "Test of Orzsag-Tang Vortex With one GPU was failed."
-    print "==================================================="
-    print
+    print("\n===================================================")
+    print("Test of Orzsag-Tang Vortex With one GPU was failed.")
+    print("===================================================\n")

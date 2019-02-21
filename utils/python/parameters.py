@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 class Parameters():
     """
     Class for reading the simulation parameters.
@@ -10,7 +12,7 @@ class Parameters():
         try:
             params = open(directory+"variables.par",'r') #Opening the parfile
         except IOError:                  # Error checker.
-            print  "Check your directory."
+            print("Check your directory.")
             return
         lines = params.readlines()     # Reading the parfile
         params.close()                 # Closing the parfile
@@ -28,4 +30,3 @@ class Parameters():
         self._params = par             # A control atribute, actually not used, good for debbuging
         for name in par:               # Iterating over the dictionary
             exec("self."+name.lower()+"="+par[name]) #Making the atributes at runtime
-

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import shutil
 import sys
@@ -24,7 +25,7 @@ try:
     setupdir = "../setups/"+setup
     shutil.os.chdir(setupdir)
 except IndexError:
-    print "Usage: python single2multi.py setupname"
+    print("Usage: python single2multi.py setupname")
     exit()
     
 def backup():

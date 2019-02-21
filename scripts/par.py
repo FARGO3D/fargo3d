@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import os
 import sys
@@ -80,7 +81,7 @@ def make_varc(varc, parameters, partype, mand, init=False, end=False):
     for parname in parameters:
         need = "NO"
         if mand != None:
-            if mand.has_key(parname):
+            if parname in mand:
                 need = "YES"
         parpoint = "(char*)" + "&" + parname
         new_line = "  init_var(" + '"' + parname + '"' + ", " + parpoint + \
@@ -114,7 +115,7 @@ if __name__ == "__main__":
         mandatories = get_mandatories(mandname)
     except IOError:
         mandatories = None
-        print "You have not defined mandatory variables..."
+        print("You have not defined mandatory variables...")
         
     real, integer, boolean, string = get_pardata(parname) #SETUP.par
     def_real, def_integer, def_boolean, def_string = get_pardata(def_parname) #Default par

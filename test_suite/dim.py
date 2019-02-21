@@ -1,12 +1,13 @@
+from __future__ import print_function
 import sys
 import os
 here = os.path.realpath("."); path = sys.path.insert(0,here+"/scripts")
 try:
     import test as T
 except ImportError:
-    print "\nError!!! test module cannot be imported." + \
-        "Be sure that you are executing the test from the main directory\n" +\
-        "using 'make testmpi'.\n"
+    print("\nError!!! test module cannot be imported." +
+          "Be sure that you are executing the test from the main directory\n" +
+          "using 'make testmpi'.\n")
 
 
 ##### IMPORTANT NOTE ############
@@ -23,8 +24,8 @@ cmd = os.popen('grep STRICTSYM setups/mri/mri.opt   | grep -c "#"')
 c = cmd.read()
 cmd.close()
 if (int(c) > 0):
-    print "\033[1m\033[31mPLEASE READ THE IMPORTANT NOTE IN FILE "+__file__+"\033[0m"
-    print "Take action and retry"
+    print("\033[1m\033[31mPLEASE READ THE IMPORTANT NOTE IN FILE "+__file__+"\033[0m")
+    print("Take action and retry")
     exit ()
 
 description1 = """

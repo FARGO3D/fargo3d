@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import copy
 import sys
@@ -104,7 +105,6 @@ class Setup():
                 f.boundaries['zmax'] = field['zmax']
             except:
                 pass
-                #print "Skipping Z direction..."
             fields.append(f)
         self.fields = fields
 
@@ -287,9 +287,9 @@ class Boundary():
                     try:
                         bound = boundary['staggered']
                     except KeyError:
-                        print "Be careful!", field.name.upper(), "is staggered in", field.centered[-1],\
-                            "but you are trying to use a centered condition for it. Please review the "\
-                            "definition of", boundary['name'].upper(), "if you want to use this condition."
+                        print("Be careful!", field.name.upper(), "is staggered in", field.centered[-1],
+                              "but you are trying to use a centered condition for it. Please review the "
+                              "definition of", boundary['name'].upper(), "if you want to use this condition.")
                         exit()                        
                     groups = re.match("\|(.*)\|(.*)\|(\w*)\|",bound)
                     active = groups.group(1).replace(groups.group(3),field.variable+"[lacts]")
@@ -304,17 +304,17 @@ class Boundary():
                     try:
                         bound = boundary['centered']
                     except KeyError:
-                        print "Be careful!", field.name.upper(), "is centered in", field.centered[-1],\
-                            "but you are trying to use a staggered condition for it. Please review the "\
-                            "definition of", boundary['name'].upper(), "if you want to use this condition."
+                        print("Be careful!", field.name.upper(), "is centered in", field.centered[-1],
+                              "but you are trying to use a staggered condition for it. Please review the "
+                              "definition of", boundary['name'].upper(), "if you want to use this condition.")
                         exit()
                     groups = re.match("\|(.*)\|(\w*)\|",bound)
                     active = groups.group(1).replace(groups.group(2),field.variable+"[lact]")  
                     output += active + ";\n"
         if bound == False:
-            print field.boundaries[self.side].upper(),"boundary for",\
-                field.name.upper(), "applied on",self.side.upper(), \
-                "does not exist! Please, verify if it is defined in boundaries.txt"
+            print(field.boundaries[self.side].upper(),"boundary for",
+                  field.name.upper(), "applied on",self.side.upper(),
+                  "does not exist! Please, verify if it is defined in boundaries.txt")
             exit()
         return output
 
@@ -421,15 +421,15 @@ if __name__ == '__main__':
     SETUP, FLUIDNUMBER, BOUNDARIES, CENTERING = process_arguments(sys.argv[1:4])
 
     if (FLUIDNUMBER == 0):
-        print "PARSING BOUNDARIES..."
-        print "Note: This process can be suppressed by declaring HARDBOUNDARIES in the .opt file."
+        print("PARSING BOUNDARIES...")
+        print("Note: This process can be suppressed by declaring HARDBOUNDARIES in the .opt file.")
     
     if SETUP == None:
-        print "Check your setup.bound file..."
+        print("Check your setup.bound file...")
     if BOUNDARIES == None:
-        print "Check your boundaries.txt file..."
+        print("Check your boundaries.txt file...")
     if SETUP == None:
-        print "Check your centering.txt file..."
+        print("Check your centering.txt file...")
     if SETUP == None or BOUNDARIES == None or CENTERING == None:
         exit()
 
@@ -441,13 +441,13 @@ if __name__ == '__main__':
         write_mute("y",FLUIDNUMBER,copy.deepcopy(template))
         write_mute("z",FLUIDNUMBER,copy.deepcopy(template))
         if (FLUIDNUMBER == 0):
-            print "================================="
-            print "Warning: Some file is missing..." 
-            "\nCheck the files: \n" + SETUP + "\n" \
-                + BOUNDARIES + "\n" + CENTERING + \
-                "\nThis version was compiled with"
-            "periodic boundaries."
-            print "================================="
+            print("=================================")
+            print("Warning: Some file is missing..."
+                  "\nCheck the files: \n" + SETUP + "\n"
+                  + BOUNDARIES + "\n" + CENTERING +
+                  "\nThis version was compiled with"
+                  "periodic boundaries.")
+            print("=================================")
         exit()
 
     try:
@@ -460,7 +460,7 @@ if __name__ == '__main__':
     except KeyError:
         write_mute("y", FLUIDNUMBER, copy.deepcopy(template))
         if (FLUIDNUMBER == 0):
-            print "Warning: Y boundaries are not defined."
+            print("Warning: Y boundaries are not defined.")
 
     try:
         down  = Boundary("zmin", FLUIDNUMBER,
@@ -472,4 +472,4 @@ if __name__ == '__main__':
     except KeyError:
         write_mute("z", FLUIDNUMBER, copy.deepcopy(template))
         if (FLUIDNUMBER == 0):
-            print "Warning: Z boundaries are not defined."
+            print("Warning: Z boundaries are not defined.")

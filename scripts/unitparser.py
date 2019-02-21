@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import copy
 import sys
@@ -36,8 +37,9 @@ realvar = var[0]
 try:
     rescale = open(BINDIR+"/rescale.c","w")
 except IOError:
-    print "Could not open rescale.c in "+BINDIR
+    print("Could not open rescale.c in "+BINDIR)
     exit()
+    
 output = """
 #include "fargo3d.h"
 
@@ -45,16 +47,16 @@ void rescale () {
 """
 rescale.write(output)
 for key in realvar:
-    if fieldsetup.has_key(key):
+    if key in fieldsetup:
         rescale.write(fieldsetup[key])
     else:
-        if fieldstd.has_key(key):
+        if key in fieldstd:
             rescale.write(fieldstd[key])
         else:
             if ((key != 'XMIN') and (key != 'XMAX') \
                 and (key != 'YMIN') and (key != 'YMAX') \
                 and (key != 'ZMIN') and (key != 'ZMAX')):
-                print "Warning ! Scaling rule not found for "+key+". Is it dimensionless ?"
+                print("Warning ! Scaling rule not found for "+key+". Is it dimensionless ?")
 rescale.write("}\n")
 rescale.close()
 

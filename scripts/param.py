@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re  # Import Regex module
 import time
 import os
@@ -9,7 +10,7 @@ try:
     VAR = var.readlines()
     var.close()
 except:
-    print "(param.py) Error: var.c cannot be opened"
+    print("(param.py) Error: var.c cannot be opened")
     exit()
 
 param = open('param.h', 'w')

@@ -1,11 +1,12 @@
+from __future__ import print_function
 import sys
 import os
 here = os.path.realpath("."); path = sys.path.insert(0,here+"/scripts")
 try:
     import test as T
 except ImportError:
-    print "\nError!!! test module can not be imported. Be sure tht you're executig the test from the main directory, using make for that.\n"
-
+    print("\nError!!! test module can not be imported. Be sure tht you're executig the test from the main directory, using make for that.\n")
+    
 description1 = """Testing a restart with the p3diso setup.
 Initial run is on one processor only.\n"""
 description2 = """Restarting the simulation with 4 processors.\n"""

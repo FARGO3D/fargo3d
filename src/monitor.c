@@ -247,5 +247,5 @@ void MonitorGlobal (int bitchoice) {
     bitchoice >>= 1;
     r <<= 1;
   }
-  MonCounter++;
+  if (FluidIndex == NFLUIDS-1) MonCounter++;
 }

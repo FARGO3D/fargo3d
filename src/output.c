@@ -485,9 +485,6 @@ MPI_Offset ParallelIO(Field *field, int n, int mode, MPI_Offset file_offset, int
     file_offset += (NZ+1);
     
     }
-#ifdef DEBUG
-  debugprint(__LINE__,__FILE__,"Offset after r/w domain %d\n", file_offset);
-#endif
   }
 
   //We append more fields on the same file
@@ -509,10 +506,6 @@ MPI_Offset ParallelIO(Field *field, int n, int mode, MPI_Offset file_offset, int
   file_offset += (NX+2*NGHX)*(NY+2*NGHY)*(NZ+2*NGHZ);
 #endif
   
-#ifdef DEBUG
-  debugprint(__LINE__,__FILE__,"Offset after r/w %s: %d\n",field->name, file_offset);
-#endif
-
   MPI_File_close(&mpi_file);
   return file_offset;
 

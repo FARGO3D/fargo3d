@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import os
 
@@ -8,7 +9,7 @@ try:
     GLOBAL =  global_file.readlines()
     global_file.close()
 except:
-    print "(global.py) Error: global.h cannot be opened"
+    print("(global.py) Error: global.h cannot be opened")
     exit()
 globalex = open('global_ex.h', 'w')
 warning = """ /* This file was created automatically during compilation

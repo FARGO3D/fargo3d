@@ -1,11 +1,16 @@
+from __future__ import print_function
 import numpy as np
 import inspect
+import sys
 try:
     import matplotlib.pyplot as plt
 except ImportError:
-    print "Matplotlib not found"
+    print("Matplotlib not found")
 import os
 import re
+
+# raw_input is not defined in python 3
+if sys.version[0]=="3": raw_input = input
 
 def color(name):
     colors = {}
@@ -36,7 +41,7 @@ class Array():
         elif not(array is None):
             self.data = array
         else:
-            print "You must include filename or array as argument!"
+            print("You must include filename or array as argument!")
             
         prop = {}
         prop['name'] = name
@@ -54,20 +59,20 @@ class Array():
 
     def get_properties(self, compact = True):
         if not compact:
-            print "\n",self.prop['name']
+            print("\n",self.prop['name'])
             for key in self.prop:
                 if key != "name":
-                    print "\t" + key + ": {:3.6g}".format(self.prop[key]),
+                    print("\t" + key + ": {:3.6g}".format(self.prop[key]),end='')
 
 class Comparison():
     def __init__(self, file1, file2, dtype="float64", plot=False, compact=True):
 
         title = color('byellow') + "Comparing %s & %s:" % (file1,file2) + color('reset')
-        print title
+        print(title)
         under = ""
         for i in range(len(title))[13:]:
             under += "="
-        print under
+        print(under)
         
         self.success = True
 
@@ -84,41 +89,41 @@ class Comparison():
                               (self.file1.data-self.file2.data)/self.file1.data, 
                               name="(File1-File2)/File1", compact=compact) 
 
-        print "\n"
+        print("\n")
         
         if self.diff.prop['skip'] == False:
             if self.diff.data.any():
-                print "File1 and File2 differ.";
+                print("File1 and File2 differ.")
                 identical = False
             else:
-                print "File1 and File2 are identical.";
+                print("File1 and File2 are identical.")
                 identical = True
             if self.file1.prop['std']<1e-16 and self.file2.prop['std']<1e-16:
-                print "Files differences are at the machine accuracy (1e-16)"
+                print("Files differences are at the machine accuracy (1e-16)")
                 identical = True
         else:
-            print "There were NaNs in the difference."
+            print("There were NaNs in the difference.")
             identical = False
 
         if self.ratio.prop['skip'] == False:
             mratio = self.ratio.prop['std']/self.ratio.prop['mean']
             if (mratio < 2e-12):
-                print "File2/File1 has a Flat Ratio to within ",mratio
+                print("File2/File1 has a Flat Ratio to within ",mratio)
                 flat = True
             else:
-                print "File2/File1 is not a Flat Ratio: relative deviation = ",mratio
+                print("File2/File1 is not a Flat Ratio: relative deviation = ",mratio)
                 self.success = self.success & False
                 flat = False
         else:
-            print "There were NaNs in the ratio."
+            print("There were NaNs in the ratio.")
             flat = False
 
         self.success = identical | flat
 
         if self.success:
-            print "\n" + color('bgreen') + "TEST PASSED" + color('reset')+".\n"
+            print("\n" + color('bgreen') + "TEST PASSED" + color('reset')+".\n")
         else:
-            print "\n" + color('bred') + "TEST FAILED" + color('reset')+".\n"
+            print("\n" + color('bred') + "TEST FAILED" + color('reset')+".\n")
 
         if plot == True:
             self.all = [self.file1,self.file2,self.diff,self.ratio,self.relative]
@@ -256,85 +261,81 @@ class GenericTest():
 
         os.system("clear")
         title = "\nTEST: " + color('bgreen') + self.testname + color('reset')
-        print title
+        print(title)
         under = ""
         for i in range(len(title))[13:-1]:
             under += "="
-        print under + "\n"
+        print(under + "\n")
 
-        print "Making the directory for the test... ("  + self.testname + ")"
+        print("Making the directory for the test... ("  + self.testname + ")")
         self.build_dir()
         if self.keep:
-            print "Keeping flags state..."
+            print("Keeping flags state...\n")
             self.keep_old_status()
-            print
 
-        print color('bblue')+self.description1+color('reset')
-        print "Building the first instance for the test..."
+        print(color('bblue')+self.description1+color('reset'))
+        print("Building the first instance for the test...")
         self.compile(self.flags1)
-        print "Processing parfile for the first instance"
+        print("Processing parfile for the first instance")
         if self.parameters != None:
             self.process_parfile(1,self.parameters)
         else:
             self.process_parfile(1,self.parameters1)
-        print "Executing the first instance..."
+        print("Executing the first instance...\n")
         self.launch(self.launch1,1)
-        print
 
         if self.command1 != None:
-            print "Executing:", color('bblue')+self.command1+color('reset'), "\n"
+            print("Executing:", color('bblue')+self.command1+color('reset'), "\n")
             os.system(self.command1)
 
-        print color('bblue')+self.description2+color('reset')
-        print "Building the second instance for the test..."
+        print(color('bblue')+self.description2+color('reset'))
+        print("Building the second instance for the test...")
         self.compile(self.flags2)
-        print "Processing parfile for the second instance"
+        print("Processing parfile for the second instance")
         if self.parameters != None:
             self.process_parfile(2,self.parameters)
         else:
             self.process_parfile(2,self.parameters2)
-        print "Executing the second instance..."
+        print("Executing the second instance...\n")
         self.launch(self.launch2,2)
-        print 
         
         if self.command2 != None:
-            print "Executing:", color('bblue')+self.command2+color('reset'), "\n"
+            print("Executing:", color('bblue')+self.command2+color('reset'), "\n")
             os.system(self.command2)
         
-        print "Starting the comparison..."
+        print("Starting the comparison...")
         status, reldev = self.compare()
         self.status =status
 
         if self.restore:
-            print "Restoring flags state..."
+            print("Restoring flags state...\n")
             self.restore_old_status()
-            print
         if self.clean == True:
-            print "Cleaning " +  self.testname + "..."
+            print("Cleaning " +  self.testname + "...")
             self._clean()
         if self.log == True:
             logfile = open('tests.log', 'a')
             logfile.write (inspect.stack()[1][1]+' ('+self.testname+') \t==>\t ')
         if status:
-            print color('bgreen')
-            print "%%%%%%%%%%%%%%%%%%%"
-            print "%   TEST PASSED   %"
-            print "%%%%%%%%%%%%%%%%%%%"
-            print  color('reset')
+            print(color('bgreen'))
+            print("%%%%%%%%%%%%%%%%%%%")
+            print("%   TEST PASSED   %")
+            print("%%%%%%%%%%%%%%%%%%%")
+            print( color('reset'))
             if self.log:
                 logfile.write ('PASSED ('+str(reldev)+')\n')
         else:
-            print color('bred')
-            print "%%%%%%%%%%%%%%%%%%%"
-            print "%   TEST FAILED   %"
-            print "%%%%%%%%%%%%%%%%%%%"
-            print  color('reset')
+            print(color('bred'))
+            print("%%%%%%%%%%%%%%%%%%%")
+            print("%   TEST FAILED   %")
+            print("%%%%%%%%%%%%%%%%%%%")
+            print( color('reset'))
             if self.log:
                 logfile.write ('FAILED ('+str(reldev)+')\n')
         if self.log == True:
             logfile.close()
 
-        print "Test done."
+        print("Test done.")
 
     def get_status(self):
         return self.status
@@ -371,14 +372,14 @@ class GenericTest():
         if ThereAreFiles:
             return status, C.ratio.prop['std']/C.ratio.prop['mean']
         else:
-            print color('bred')
+            print(color('bred'))
             if elements1 == []:
-                print "There was a problem with the first" + \
-                    "part of the test."
+                print("There was a problem with the first" + 
+                      "part of the test.")
             if elements2 == []:
-                print "There was a problem with the second" + \
-                    "part of the test."
-                print "Check your test.\n" + color('reset')
+                print("There was a problem with the second" +
+                      "part of the test.")
+                print("Check your test.\n" + color('reset'))
             return False, -1
 
     def _clean(self):
@@ -387,21 +388,21 @@ class GenericTest():
         
     def build_dir(self):
         if os.system("mkdir "+ self.testname + self.verbosity):
-            print color("bred") + "Warning!!! " + color("reset") + \
-                "Directory " + self.testname + " already exist."
+            print(color("bred") + "Warning!!! " + color("reset") +
+                  "Directory " + self.testname + " already exist.")
             while(1):
-                print "Do you want to clean it? (N/y)"
+                print("Do you want to clean it? (N/y)")
                 proceed = raw_input().lower()
                 if proceed == "y" or proceed == "yes":
-                    print "Cleaning " + self.testname + "..."
+                    print("Cleaning " + self.testname + "...")
                     os.system("/bin/rm -fr " + self.testname + "/*" + self.verbosity)
                     return
                 elif proceed == "n" or proceed == "no":
-                    print "Please, move your " + self.testname + " directory or change" \
-                        " the name of the test."
+                    print("Please, move your " + self.testname + " directory or change" 
+                          " the name of the test.")
                     exit()
                 else:
-                    print "Do you want to clean it? (N/y)"
+                    print("Do you want to clean it? (N/y)")
                     proceed = raw_input().lower()
 
     def process_parfile(self,number,parameters):

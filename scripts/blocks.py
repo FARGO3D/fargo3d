@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import getopt
 import sys
@@ -12,9 +13,8 @@ C2CUDA     = "scripts/c2cuda.py"
 
     
 def usage():
-    print '\n(blocks.py) Usage: -s --setup  --> SETUP NAME'
-    print '                   -f --force  --> Force new profiling of functions that already exist in the .blocks file.'
-    print
+    print('\n(blocks.py) Usage: -s --setup  --> SETUP NAME')
+    print('                   -f --force  --> Force new profiling of functions that already exist in the .blocks file.\n')
     exit()
 
 def opt_reader():
@@ -24,7 +24,7 @@ def opt_reader():
                                            ['setup=',
                                             'force'])
     except getopt.GetoptError, err:
-        print str(err)
+        print(str(err))
         usage()
 
     if(options == []):

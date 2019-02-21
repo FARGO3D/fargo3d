@@ -1,10 +1,11 @@
+from __future__ import print_function
 import sys
 import os
 here = os.path.realpath("."); path = sys.path.insert(0,here+"/scripts")
 try:
     import test as T
 except ImportError:
-    print "\nError!!! test module can not be imported. Be sure that you're executing the test from the main directory, using make for that.\n"
+    print("\nError!!! test module can not be imported. Be sure that you're executing the test from the main directory, using make for that.\n")
 
 description1 = """Running otvortex on the CPU.\n"""
 description2 = """Running otvortex on the GPU.\n"""

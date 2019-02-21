@@ -5,32 +5,33 @@ C2CUDA parser developped for the FARGO3D code (http://fargo.in2p3.fr)
 Pablo Benitez Llambay, 2012-2014
 """
 
+from __future__ import print_function
 import re
 import sys
 import getopt
 import os
 
 def verb(ifile, ofile):
-    print '\nVERBOSE MODE ACTIVATED'
-    print '=======================\n'
-    print '\nInput file: ', ifile
-    print 'Output file:',  ofile
+    print('\nVERBOSE MODE ACTIVATED')
+    print('=======================\n')
+    print('\nInput file: ', ifile)
+    print('Output file:',  ofile)
 
 def read_file(input_file):
     try:
         ifile = open(input_file,'r')
     except IOError:
-        print '\nI/O error in c2cuda.py! Please, verify your input/output files.\n'
+        print('\nI/O error in c2cuda.py! Please, verify your input/output files.\n')
         exit()
     return ifile.readlines()
 
 def usage():
-    print '\nUsage: -i --input=  --> input_file'
-    print '       -o --output= --> output file'
-    print '       -v --verbose --> verbose mode'
-    print '       -f --formatted --> formatted with astyle (external dependence)'
-    print '       -p --profiling --> for block-dim studies.\n'
-    print '       -s --setup --> setup name.\n'
+    print('\nUsage: -i --input=  --> input_file')
+    print('       -o --output= --> output file')
+    print('       -v --verbose --> verbose mode')
+    print('       -f --formatted --> formatted with astyle (external dependence)')
+    print('       -p --profiling --> for block-dim studies.\n')
+    print('       -s --setup --> setup name.\n')
 
     exit()
 
@@ -48,8 +49,7 @@ def opt_reader():
                                             'formated',
                                             'profiling',
                                             'setup='])
-    except getopt.GetoptError, err:
-        print str(err)
+    except getopt.GetoptError:
         usage()
         
     if(options == []):
@@ -102,8 +102,8 @@ def literal(lines, option, verbose = False):
     end   = '//<\\' + option + '>'
     
     if verbose:
-        print '\n---------------------------------'
-        print 'Looking for ', option, ' lines.\n'
+        print('\n---------------------------------')
+        print('Looking for ', option, ' lines.\n')
 
     for line in lines:
         line = line[:-1] # Avoiding \n
@@ -114,21 +114,21 @@ def literal(lines, option, verbose = False):
         if line == end:
             if verbose:
                 if output == []:
-                    print option, ' is empty...'
-                print '\nAll ' + option +  ' lines were stored.'
-                print '---------------------------------\n'
+                    print(option, ' is empty...')
+                print('\nAll ' + option +  ' lines were stored.')
+                print('---------------------------------\n')
             return output
 
         if found:
             output.append(line)
             if verbose:
-                print line[:-1], 'is a/an ' + option + ' line.'
+                print(line[:-1], 'is a/an ' + option + ' line.')
 
 def main_func(lines, verbose=False, test=False):
 
     if verbose:
-        print '\n---------------------------------'
-        print 'Searching cpu main function...\n'
+        print('\n---------------------------------')
+        print('Searching cpu main function...\n')
     
     function = re.compile(r"""
                (\w+)         #function type "1"
@@ -139,10 +139,8 @@ def main_func(lines, verbose=False, test=False):
                """, re.VERBOSE)
 
     if test:
-        print
-        print 'TEST OF MAIN_FUNC'
-        print '================='
-        print
+        print('\nTEST OF MAIN_FUNC')
+        print('=================\n')
         
         test_lines = ['void function_cpu (real dt, float b, string str_1) {',
                       'void function_cpu (real dt, float b){',
@@ -159,8 +157,8 @@ def main_func(lines, verbose=False, test=False):
                 func_var  = re.sub(',(\s+|\s?)',', ',s.group(4))
                 parsed_line = func_type + ' ' + func_name
                 parsed_line += '_gpu' + '(' + func_var + ') {\n'
-                print line, " was parsed as "
-                print parsed_line
+                print(line, " was parsed as ")
+                print(parsed_line)
 
         exit()
     for line in lines:
@@ -172,10 +170,10 @@ def main_func(lines, verbose=False, test=False):
             parsed_line = func_type + ' ' + func_name
             parsed_line += '_gpu' + '(' + func_var + ') {\n'
             if(verbose):
-                print line[:-1], " was parsed as "
-                print parsed_line
-                print "Function", func_name, "was found."
-                print '---------------------------------'
+                print(line[:-1], " was parsed as ")
+                print(parsed_line)
+                print("Function", func_name, "was found.")
+                print('---------------------------------')
             return parsed_line
 
 def gathering_data(lines,verbose):
@@ -441,7 +439,7 @@ def output(data):
         out += element + '\n'
 
     out += data['gpu_func'] #Writing the launcher
-    print out
+    print(out)
 
 def make_topology(var_loop, externals):
 
@@ -629,7 +627,7 @@ printf ("{:s}\\t%d\\t%d\\t%d\\t%f\\n", block.x, block.y, block.z, time);
     output += '\n}'
     
     if(len(output_file)==0):
-        print output
+        print(output)
     else:
         out = open(output_file,'w')
         out.write(output)
@@ -646,12 +644,12 @@ def main():
     output_file = options['output']
     
     if input_file == output_file:
-        print "\nWARNING!!! You would overwrite your input file!!!"
-        print "            This is not allowed...\n"
+        print("\nWARNING!!! You would overwrite your input file!!!")
+        print("            This is not allowed...\n")
         exit()
 
     if(output_file[-3:] != '.cu'):
-        print '\nWARNING!!! Your output file must be a CUDA file (.cu extension)!!!\n'
+        print('\nWARNING!!! Your output file must be a CUDA file (.cu extension)!!!\n')
         exit()
 
     if verbose:
@@ -687,8 +685,6 @@ def main():
              'undefs':undefs, 'last_block':data['last_block']}
 
     output = make_output(final, output_file, formated=options['formated'])
-
-    #    print output_file, 'was created from', input_file
 
 if __name__=='__main__':
     main()

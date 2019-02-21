@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import getopt
 import sys
@@ -12,9 +13,9 @@ C2CUDA     = "scripts/c2cuda.py"
 
     
 def usage():
-    print '\n(blocks.py) Usage: -s --setup=  --> SETUP NAME'
-    print '         -g --filename= --> CPU/GPU FILE NAME'
-    print '         -f --force --> Force new profiling of functions that already exist in the .blocks file.'
+    print('\n(blocks.py) Usage: -s --setup=  --> SETUP NAME')
+    print('         -g --filename= --> CPU/GPU FILE NAME')
+    print('         -f --force --> Force new profiling of functions that already exist in the .blocks file.')
     exit()
 
 def opt_reader():
@@ -24,8 +25,7 @@ def opt_reader():
                                            ['setup=',
                                             'filename=',
                                             'force'])
-    except getopt.GetoptError, err:
-        print str(err)
+    except getopt.GetoptError:
         usage()
 
     if(options == []):
@@ -54,7 +54,7 @@ def append_blocks(x,y,z):
     try:
         blocks = open(SETUPDIR+'/'+SETUPNAME+'/'+SETUPNAME+".blocks",'a+')
     except IOError:
-        print "(blocks.py): Error opening "+SETUPNAME+".blocks"
+        print("(blocks.py): Error opening "+SETUPNAME+".blocks")
     
     found = False
     for line in blocks.readlines():
@@ -63,9 +63,9 @@ def append_blocks(x,y,z):
             found = True
     if not found:
         blocks.write(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}\n'.format(x,y,z))
-        print FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t appended"
+        print(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t appended")
     else:
-        print FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t not appended"
+        print(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t not appended")
 
     blocks.close()
         
@@ -100,7 +100,7 @@ def test_function():
     try:
         blocks = analyze_data()
     except:
-        print FILENAME[:-2]+" has been skipped."
+        print(FILENAME[:-2]+" has been skipped.")
         skip = True
         pass
     os.system("rm -f "+FILENAME[:-2]+"_blocks.temp")

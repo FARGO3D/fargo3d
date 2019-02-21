@@ -1,11 +1,12 @@
 # Test used for backward compatibility nightly built
+from __future__ import print_function
 import sys
 import os
 here = os.path.realpath("."); path = sys.path.insert(0,here+"/scripts")
 try:
     import test as T
 except ImportError:
-    print "\nError!!! test module can not be imported. Be sure that you're executing the test from the main directory, using make for that.\n"
+    print("\nError!!! test module can not be imported. Be sure that you're executing the test from the main directory, using make for that.\n")
 
 description1 = """Testing a restart with the mri setup
 Initial run is on 3 processors.\n"""

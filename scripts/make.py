@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import re
 import sys
 import os
@@ -35,7 +36,6 @@ def get_last(filename=STDDIR+".lastflags"):
     try:
         lines = open(filename,'r').readlines()
     except IOError:
-#        print "Using the default flags..."
         return 0
     for line in lines:
         try:
@@ -52,7 +52,7 @@ def get_variable(parameters):
             split = parameter.split("=")
             params[split[0]] = split[1]
         except IndexError:
-            print "Skipping", parameter
+            print("Skipping", parameter)
     return params
 
 def complete_parameters(base,params):
@@ -60,7 +60,7 @@ def complete_parameters(base,params):
         return base
     else:
         for key in base.keys():
-            if params.has_key(key):
+            if key in params:
                 continue
             else:
                 params[key] = base[key]
@@ -68,7 +68,7 @@ def complete_parameters(base,params):
 
 def check_coherence(base,params):
     for key in params.keys():
-            if base.has_key(key):
+            if key in base:
                 continue
             else:
                 params.pop(key)
@@ -135,7 +135,7 @@ def nfluid_check(parameters):
         if re.search('-DNFLUIDS\s*=',line):
             count += 1
     if(count < 3):
-        print msg
+        print(msg)
         exit()
     return None
 

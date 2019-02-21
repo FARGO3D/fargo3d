@@ -1,7 +1,7 @@
 //System includes
 #ifdef GPU
 #include <cuda.h>
-#include <driver_functions.h> //for some CUDA structs
+#include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #endif
 
