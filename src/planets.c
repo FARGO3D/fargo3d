@@ -164,7 +164,7 @@ OrbitalElements SV2OE (StateVector v, real m) {
   o.E = E;
 
   //V: true anomaly
-  if (e != 0.0) {
+  if (e > 1.e-14) {
     V = acos ((a*(1.0-e*e)/d-1.0)/e);
   } else {
     V = 0.0;

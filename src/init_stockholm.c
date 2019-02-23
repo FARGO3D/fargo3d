@@ -80,18 +80,23 @@ void _init_stockholm() {
     for (j=0; j<Ny+2*NGHY; j++) {
 #endif
 #ifdef ADIABATIC
-      e0[l2D]   = e[l];
+      if (error_energy)
+	e0[l2D]   = e[l];
 #endif
 #ifdef X
-      vx0[l2D]  = vx[l];
+      if (error_vx)
+	vx0[l2D]  = vx[l];
 #endif
 #ifdef Y
-      vy0[l2D]  = vy[l];
+      if (error_vy)
+	vy0[l2D]  = vy[l];
 #endif
 #ifdef Z
-      vz0[l2D]  = vz[l];
+      if (error_vz)
+	vz0[l2D]  = vz[l];
 #endif
-      rho0[l2D] = rho[l];
+      if (error_density)
+	rho0[l2D] = rho[l];
 #ifdef Y
     }
 #endif
