@@ -72,8 +72,8 @@ void ChangeArch() {
 
   mon_dens = mon_dens_cpu;
   mon_momx = mon_momx_cpu;
-  mon_momy = mon_momx_cpu;
-  mon_momz = mon_momx_cpu;
+  mon_momy = mon_momy_cpu;
+  mon_momz = mon_momz_cpu;
   mon_torq = mon_torq_cpu;
   mon_reynolds = mon_reynolds_cpu;
   mon_maxwell  = mon_maxwell_cpu;
