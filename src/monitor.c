@@ -85,6 +85,9 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
   int j, k;
   FILE *Out;
 
+  if(MAX1D < NZ) masterprint("Error in monitor.c --- MAX1D < NZ --- increase the value of MAX1D in define.h\n");
+  if(MAX1D < NY) masterprint("Error in monitor.c --- MAX1D < NY --- increase the value of MAX1D in define.h\n");
+  
   if (plnb < 0)
     sprintf (planet_number, "%s", "");
   else
@@ -145,13 +148,13 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
       centered = YES;
     INPUT2D (Reduction2D);
 
-    for (j = 0; j < NY; j++) {
-      Profile[j] = 0.0;
-      Coord[j] = 0.0;
+    for (k = 0; k < NZ; k++) {
+      Profile[k] = 0.0;
+      Coord[k] = 0.0;
     }
     
     for (k = NGHZ; k < Nz+NGHZ; k++) {
-      Coord[k+z0cell-NGHZ] = (centered ? Zmed(j) : Zmin(j));
+      Coord[k+z0cell-NGHZ] = (centered ? Zmed(k) : Zmin(k));
 
       for (j = NGHY; j < Ny+NGHY; j++) {
 	Profile[k+z0cell-NGHZ] += Reduction2D->field_cpu[l2D];
@@ -174,7 +177,7 @@ void MonitorFunction (int idx, int r, char *CurrentFineGrainDir, int plnb) {
     }
     
     if (r & MONITORZ_RAW) {
-      sprintf (filename, "%smonitor/%s_1d_Z_raw%s.dat", OUTPUTDIR, mon_name[idx], planet_number);
+      sprintf (filename, "%smonitor/%s/%s_1d_Z_raw%s.dat", OUTPUTDIR, Fluids[FluidIndex]->name,mon_name[idx], planet_number);
       Out = fopen_prs (filename, "a");
       if (CPU_Rank == 0) {
 	fwrite (GProfile, sizeof (real), NZ, Out);

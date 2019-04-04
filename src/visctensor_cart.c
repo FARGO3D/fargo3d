@@ -44,23 +44,23 @@ void visctensor_cart_cpu(){
   real* rho = Density->field_cpu;
 #ifdef X
 #ifdef COLLISIONPREDICTOR
-  real* vx = Vx->field_cpu;
-#else
   real* vx = Vx_half->field_cpu;
+#else
+  real* vx = Vx->field_cpu;
 #endif
 #endif
 #ifdef Y
 #ifdef COLLISIONPREDICTOR
-  real* vy = Vy->field_cpu;
-#else
   real* vy = Vy_half->field_cpu;
+#else
+  real* vy = Vy->field_cpu;
 #endif
 #endif
 #ifdef Z
 #ifdef COLLISIONPREDICTOR
-  real* vz = Vz->field_cpu;
-#else
   real* vz = Vz_half->field_cpu;
+#else
+  real* vz = Vz->field_cpu;
 #endif
 #endif
 #ifdef X

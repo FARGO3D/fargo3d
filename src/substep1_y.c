@@ -158,7 +158,7 @@ void SubStep1_y_cpu (real dt) {
 
 #ifdef DRAGFORCE
 	if (Fluidtype == GAS) {
-	  vy_temp[ll] -= 2*ASPECTRATIO*ASPECTRATIO*OMEGAFRAME*R0*dt;
+	  vy_temp[ll] += 2*ASPECTRATIO*ASPECTRATIO*OMEGAFRAME*R0*dt;
 	}
 #endif
 	
