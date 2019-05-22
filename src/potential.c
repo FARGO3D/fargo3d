@@ -132,6 +132,14 @@ void Potential_cpu() {
 	pot[l] = 0.0; // No default star
 #endif
 
+
+
+#ifdef GASINDIRECTTERM
+	if (indirect_term == YES) {
+		pot[l] -= indirectx*XC + indirecty*YC + indirectz*ZC; /* Indirect term due to gas */
+	}
+#endif
+
 	for(n=0; n<nb; n++) {
 	  mp = mplanet[n]*taper;
 	  
@@ -159,9 +167,6 @@ void Potential_cpu() {
 	    pot[l] += G*mp*(XC*xplanet[n]+YC*yplanet[n]+ZC*zplanet[n])/(planetdistance*
 										planetdistance*
 										planetdistance);
-#ifdef GASINDIRECTTERM
-	    pot[l] -= indirectx*XC + indirecty*YC + indirectz*ZC; /* Indirect term due to gas */
-#endif
 	  }
 #endif
 #ifdef NODEFAULTSTAR
