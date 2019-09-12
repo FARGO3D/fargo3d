@@ -333,7 +333,9 @@ MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    \
 	   redefoptions.o setuphook1.o				\
            fill_ghostsx.o cfl_fluids_min.o colrate.o 		\
 	   collisions.o resetfield.o totaldens.o		\
-	   floor.o ShearingPeriodicBC.o summary.o
+	   floor.o ShearingPeriodicBC.o summary.o		\
+	   dust_diffusion_main.o dust_diffusion_core.o		\
+	   dust_diffusion_coefficients.o copy_field.o
 #-----------------------#Cuda objects---------------------------------
 GPU_OBJ  =  reduction_sum_device.o reduction_min_device.o	\
 	   	lowtasks_gpu.o 
@@ -371,7 +373,8 @@ GPU_OBJBLOCKS =  CompPresIso_gpu.o CompPresAd_gpu.o 		\
 	   fargo_ppa_steep_gpu.o setuphook1_gpu.o		\
            fill_ghostsx_gpu.o collisions_gpu.o                  \
            totaldens_gpu.o floor_gpu.o		                \
-	   resetfield_gpu.o                                     
+	   resetfield_gpu.o dust_diffusion_core_gpu.o		\
+	   dust_diffusion_coefficients_gpu.o
 
 #</CUDA OBJECTS>
 #---------------------------------------------------------------------

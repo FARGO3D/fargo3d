@@ -615,6 +615,15 @@ void CreateFields() {
   LapPPA  = CreateField("LapPPA", 0,0,0,0);
 #endif
 
+#ifdef DUSTDIFFUSION
+  Sdiffyczc = CREATEFIELDALIAS("Sdiffyczc",Mpx,0);
+  Sdiffyfzc = CREATEFIELDALIAS("Sdiffyfzc",Mmx,0);
+#ifdef Z
+  Sdiffyczf = CREATEFIELDALIAS("Sdiffyczf",Mmy,0);
+  Sdiffyfzf = CREATEFIELDALIAS("Sdiffyfzf",Mpy,0);
+#endif
+#endif
+  
 #ifdef MHD
   Bx      = CreateField("bx", BX,1,0,0);
   By      = CreateField("by", BY,0,1,0);

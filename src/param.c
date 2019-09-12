@@ -267,7 +267,6 @@ void var_assign(){
   }
 #endif
   
-
 #ifndef ALPHAVISCOSITY
   if (ALPHA != 0.0) {
     mastererr ("ERROR - You have defined a non-vanishing value for\n");
@@ -290,6 +289,14 @@ void var_assign(){
   mastererr ("ERROR - You cannot activate the COLLISIONPREDICTOR without the DRAGFORCE\n");
   prs_exit (1);
 #endif
+
+
+#if defined(DUSTDIFFUSION) && defined(ALPHAVISCOSITY) && !defined(Y)
+  mastererr("ERROR - Direction Y (-DY in the .opt file) must be activated\n");
+  mastererr("\tfor the dust diffusion module with Alpha Viscosity.\n");
+  prs_exit (1);
+#endif
+
 
 
   if (NGHX > NX) {

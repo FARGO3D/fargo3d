@@ -86,6 +86,13 @@ void ChangeArch() {
 
   SetupHook1 = SetupHook1_cpu;
 
+  //DUST DIFFUSION---------------------------------------
+  DustDiffusion_Core         = DustDiffusion_Core_cpu;
+  DustDiffusion_Coefficients = DustDiffusion_Coefficients_cpu;
+  //-----------------------------------------------------
+
+  copy_field = copy_field_cpu;
+
   //MHD------------------------------------------------
   ComputeSlopes = ComputeSlopes_cpu;
   _ComputeStar = _ComputeStar_cpu;
@@ -227,6 +234,12 @@ void ChangeArch() {
 	  printf("Copy velocities runs on the GPU\n");
 	}
       }
+      if (strcmp(name, "copyfield") == 0) {
+	if(strval[0] == 'g'){
+	  copy_field = copy_field_gpu;
+	  printf("Copy field runs on the GPU\n");
+	}
+      }
       if (strcmp(name, "reduction") == 0) {
 	if(strval[0] == 'g'){
 	  reduction_SUM = reduction_SUM_gpu;
@@ -362,6 +375,13 @@ void ChangeArch() {
 	  mon_maxwell  = mon_maxwell_gpu;
 	  mon_bxflux   = mon_bxflux_gpu;
 	  printf("Monitoring runs on the GPU\n");
+	}
+      }
+      if (strcmp(name, "dustdiffusion") == 0) {
+	if(strval[0] == 'g'){
+	  DustDiffusion_Core         = DustDiffusion_Core_gpu;
+	  DustDiffusion_Coefficients = DustDiffusion_Coefficients_gpu;
+	  printf("Dust diffusion runs on the GPU\n");
 	}
       }
       if (strcmp(name, "communications") == 0) {

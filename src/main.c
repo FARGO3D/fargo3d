@@ -393,6 +393,10 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
       FARGO_SAFE(Collisions(dt, 1)); // 1 --> V_temp is used.
 #endif
 
+#ifdef DUSTDIFFUSION
+      FARGO_SAFE(DustDiffusion_Main(dt));
+#endif
+      
       MULTIFLUID(Transport(dt));
 
       PhysicalTime+=dt;

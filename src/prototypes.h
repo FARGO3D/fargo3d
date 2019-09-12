@@ -339,6 +339,13 @@ ex void ComputeResidual_cpu(real);
 ex void AdvectSHIFT_cpu(Field*, FieldInt2D*);
 ex void ChangeFrame_cpu(int, Field*, Field2D*);
 
+ex void copy_field_cpu(Field*,Field*);
+
+//Dust Diffusion module Prototypes
+ex void DustDiffusion_Main(real);
+ex void DustDiffusion_Core_cpu(real);
+ex void DustDiffusion_Coefficients_cpu();
+
 //mhd.c Prototypes
 ex void ComputeSlopes_cpu(int, int, int, Field *, Field *);
 ex void _ComputeStar_cpu(real, int, int, int, int,  int, int, int,
@@ -516,6 +523,11 @@ ex void CheckMuteY_gpu(void);
 ex void CheckMuteZ_gpu(void);
 ex void SetupHook1_gpu (void);
 
+ex void copy_field_gpu(Field*,Field*);
+
+//DIFFUSION-----------------------------------------------
+ex void DustDiffusion_Core_gpu(real);
+ex void DustDiffusion_Coefficients_gpu();
 
 //MHD-----------------------------------------------------
 
