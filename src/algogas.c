@@ -69,6 +69,9 @@ void Sources(real dt) {
   
 #ifdef POTENTIAL
   FARGO_SAFE(compute_potential(dt));
+  if (Corotating) {
+    FARGO_SAFE(CorrectVtheta(Domega));
+  }
 #endif
   
 #if ((defined(SHEARINGSHEET2D) || defined(SHEARINGBOX3D)) && !defined(SHEARINGBC))

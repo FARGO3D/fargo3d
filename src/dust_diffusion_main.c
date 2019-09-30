@@ -23,5 +23,6 @@ void DustDiffusion_Main(real dt) {
 	     if(Fluidtype == DUST) {
 	       FARGO_SAFE(DustDiffusion_Core(dt));        // Updated density is stored in Pressure field.
 	       FARGO_SAFE(copy_field(Density,Pressure));  // We update dust densities from the Pressure field.
+	       FARGO_SAFE(FillGhosts(DENS));  // We update dust densities from the Pressure field.
 	     });
 }

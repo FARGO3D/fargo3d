@@ -9,7 +9,7 @@
 
 void compute_potential(real dt) {
 
-  real OmegaNew, domega;
+  real omeganew;
   int i;
   int subcycling = 5;
   static int alreadycalculated = -1;
@@ -40,10 +40,9 @@ void compute_potential(real dt) {
   alreadycalculated = Timestepcount;
   
   if (Corotating) {
-    OmegaNew = GetPsysInfo(GET)/dt;
-    domega = OmegaNew-OMEGAFRAME;
-    FARGO_SAFE(CorrectVtheta(domega));
-    OMEGAFRAME = OmegaNew;
+    omeganew = GetPsysInfo(GET)/dt;
+    Domega = omeganew-OMEGAFRAME;
+    OMEGAFRAME = omeganew;
   }
   RotatePsys(OMEGAFRAME*dt);
   }

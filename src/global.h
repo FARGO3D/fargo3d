@@ -57,6 +57,8 @@ int     StretchNumber = 0;
 int     BinaryStar1 = 0;
 int     BinaryStar2 = 0;
 
+real Domega;
+
 real InnerBorder;
 real OuterBorder;
 
