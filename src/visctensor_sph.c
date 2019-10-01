@@ -146,7 +146,7 @@ void visctensor_sph_cpu(){
 	viscositym = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lym])/(rho[l]+rho[lym])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 #endif
 #else
-	viscositym = viscosity = NU;
+	viscosityzmym =  viscosityzm = viscositym = viscosity = NU;
 #endif
 //Evaluate centered divergence.
 	div_v = 0.0;
