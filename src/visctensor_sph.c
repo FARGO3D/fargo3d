@@ -137,15 +137,15 @@ void visctensor_sph_cpu(){
 //<#>
 #ifdef ALPHAVISCOSITY
 #ifdef ISOTHERMAL
-	viscosityzm   = ALPHA*0.25*(energy[l]+energy[lzm])*(energy[l]+energy[lzm])*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
-	viscosityzmym = ALPHA*0.0625*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 	viscosity     = ALPHA*energy[l]*energy[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
-	viscositym    = ALPHA*0.25*(energy[l]+energy[lym])*(energy[l]+energy[lym])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
+	viscositym    = ALPHA*0.0625*(energy[l]+energy[lxm]+energy[lym]+energy[lxm-pitch])*(energy[l]+energy[lxm]+energy[lym]+energy[lxm-pitch])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
+	viscosityzm   = ALPHA*0.0625*(energy[l]+energy[lzm]+energy[lxm]+energy[lxm-stride])*(energy[l]+energy[lzm]+energy[lxm]+energy[lxm-stride])*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
+	viscosityzmym = ALPHA*0.0625*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 #else
-	viscosity     = ALPHA*GAMMA*(GAMMA-1.0)*energy[l]/rho[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
-	viscositym    = ALPHA*GAMMA*(GAMMA-1.0)*(e[l]+e[lxm]+e[lym]+e[lxm-pitch])/(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
-	viscosityzm   = ALPHA*GAMMA*(GAMMA-1.0)*(e[l]+e[lzm]+e[lxm]+e[lxm-stride])/(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
-	viscosityzmym = ALPHA*GAMMA*(GAMMA-1.0)*(e[l]+e[lym]+e[lzm]+e[lym-stride])/(rho[l]+rho[lym]+rho[lzm]+rho[lym-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
+	viscosity     = ALPHA*GAMMA*(GAMMA-1.0)*energy[l]/rho[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));	
+	viscositym    = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lxm]+energy[lym]+energy[lxm-pitch])/(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
+	viscosityzm   = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lzm]+energy[lxm]+energy[lxm-stride])/(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
+	viscosityzmym = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lym]+energy[lzm]+energy[lym-stride])/(rho[l]+rho[lym]+rho[lzm]+rho[lym-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 #endif
 #else
 	viscosityzmym =  viscosityzm = viscositym = viscosity = NU;
