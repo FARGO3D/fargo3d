@@ -25,28 +25,8 @@ void FillGhosts (int var) {
 #endif
 
 }
+     
 
-void Fill_Resistivity_Profiles () {
-
-  OUTPUT2D(Eta_profile_xi);
-  OUTPUT2D(Eta_profile_xizi);
-  OUTPUT2D(Eta_profile_zi);
-
-  int j,k;
-  if (Resistivity_Profiles_Filled) return;
-  real* eta_profile_xi = Eta_profile_xi->field_cpu;
-  real* eta_profile_xizi = Eta_profile_xizi->field_cpu;
-  real* eta_profile_zi = Eta_profile_zi->field_cpu;
-
-  for (k=0; k<Nz+2*NGHZ; k++) {
-    for (j=0; j<Ny+2*NGHY; j++) {
-      eta_profile_xi[l2D] = Resistivity (Ymin(j),Zmed(k));
-      eta_profile_xizi[l2D] = Resistivity (Ymin(j),Zmin(k));
-      eta_profile_zi[l2D] = Resistivity (Ymed(j),Zmin(k));
-    }
-  }
-  Resistivity_Profiles_Filled = YES;
-}
 void Sources(real dt) {
      
   SetupHook1 (); //Setup specific hook. Defaults to empty function.

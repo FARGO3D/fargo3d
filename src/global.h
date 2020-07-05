@@ -131,9 +131,6 @@ Field2D *Vxhyr;
 Field2D *Vxhz;
 Field2D *Vxhzr;
 Field2D *Reduction2D;
-Field2D *Eta_profile_xi;
-Field2D *Eta_profile_xizi;
-Field2D *Eta_profile_zi;
 
 FieldInt2D *Nxhy;
 FieldInt2D *Nxhz;
@@ -159,6 +156,19 @@ Field *Slope_v2;
 Field *Emfx; 
 Field *Emfy;
 Field *Emfz;
+
+Field *EmfxH;
+Field *EmfyH;
+Field *EmfzH;
+Field *BxH;
+Field *ByH;
+Field *BzH;
+Field *Jx;
+Field *Jy;
+Field *Jz;
+Field *EtaOhm;
+Field *EtaHall;
+Field *EtaAD;
 
 Field *Divergence;
 //#endif
@@ -348,6 +358,25 @@ void (*_UpdateMagneticField)(real,int,int,int,int,int,int,int,int,int,Field*,Fie
 void (*_LorentzForce)(real,int,int,int,int,int,int,int,int,int,int,int,Field*,Field*,Field*,Field*,Field*);
 void (*_Resist)(int,int,int,int,int,int,int,int,int,Field*,Field*,Field*,Field2D*);
 void (*EMF_Upstream_Integrate)(real);
+
+void (*ComputeJx)();
+void (*ComputeJy)();
+void (*ComputeJz)();
+
+void (*_OhmicDiffusion_emf)(int,int,int,int,int,int,int,int,int,Field*,Field*,Field*);
+void (*OhmicDiffusion_coeff)();
+void (*HallEffect_emfx)();
+void (*HallEffect_emfy)();
+void (*HallEffect_emfz)();
+void (*_HallEffect_UpdateB)(real,int,int,int,int,int,int,int,int,int,int,int,Field*,Field*,Field*);
+void (*HallEffect_UpdateEmfs)();
+void (*HallEffect_coeff)();
+void (*AmbipolarDiffusion_emfx)();
+void (*AmbipolarDiffusion_emfy)();
+void (*AmbipolarDiffusion_emfz)();
+void (*AmbipolarDiffusion_coeff)();
+//.............................................
+
 void (*StockholmBoundary)(real);
 void (*visctensor_cart)();
 void (*addviscosity_cart)(real);

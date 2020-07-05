@@ -11,7 +11,7 @@ FlaringIndex		0.0
 
 OmegaFrame     		0.19245
 Frame			F
-Eta			1.0e-4
+OhmicDiffusionCoeff	1.0e-4
 Beta			50.0
 Noise			5.0
 

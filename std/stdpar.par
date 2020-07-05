@@ -31,7 +31,6 @@ AspectRatio		0.05
 Sigma0			1.0
 FlaringIndex		0.0
 Nu			0.0
-Eta			0.0
 Cs			1.0
 Frame			fixed
 OmegaFrame		0.0
@@ -47,7 +46,10 @@ Alpha			0.0
 PlanetConfig		NONE
 PeriodicZ		No
 PeriodicY		No
-PlanetHeating		No
+
+OhmicDiffusionCoeff	0.0
+HallEffectCoeff		0.0
+AmbipolarDiffusionCoeff	0.0
 
 Resonance		0.5
 

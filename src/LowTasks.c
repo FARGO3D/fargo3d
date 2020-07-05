@@ -577,9 +577,6 @@ void CreateFields() {
   Vxhyr            = CreateField2D ("Vxhyr"   , YZ);
   Vxhz             = CreateField2D ("Vxhz"    , YZ);
   Vxhzr            = CreateField2D ("Vxhzr"   , YZ);
-  Eta_profile_xi   = CreateField2D ("Eta_xi"  , YZ);
-  Eta_profile_xizi = CreateField2D ("Eta_xizi", YZ);
-  Eta_profile_zi   = CreateField2D ("Eta_zi"  , YZ);
 
   Nshift = CreateFieldInt2D ("Nshift");
   Nxhy   = CreateFieldInt2D ("Nxhy");
@@ -642,6 +639,28 @@ void CreateFields() {
   Emfy    = CREATEFIELDALIAS("Emfy", Slope , EMFY);
   Emfz    = CREATEFIELDALIAS("Emfz", DivRho, EMFZ); // Legal ?? we cannot alise DivRho it seems...
 
+#if (defined(HALLEFFECT) || defined(AMBIPOLARDIFFUSION))
+  Jx      = CreateField("Jx"     ,0,0,0,0);
+  Jy      = CreateField("Jy"     ,0,0,0,0);
+  Jz      = CreateField("Jz"     ,0,0,0,0);
+#endif
+
+#ifdef OHMICDIFFUSION
+  EtaOhm = CreateField("EtaOhm",0,0,0,0);
+#endif
+#ifdef HALLEFFECT
+  EmfxH   = CreateField("EmfxH"  ,0,0,0,0);
+  EmfyH   = CreateField("EmfyH"  ,0,0,0,0);
+  EmfzH   = CreateField("EmfzH"  ,0,0,0,0);
+  BxH     = CreateField("BxH"    ,0,0,0,0);
+  ByH     = CreateField("ByH"    ,0,0,0,0);
+  BzH     = CreateField("BzH"    ,0,0,0,0);
+  EtaHall = CreateField("EtaHall",0,0,0,0);
+#endif
+#ifdef AMBIPOLARDIFFUSION
+  EtaAD = CreateField("EtaAD",0,0,0,0);
+#endif
+  
   //Claim ownership of storage area
   *(Emfx->owner) = Emfx;
   *(Emfy->owner) = Emfy;

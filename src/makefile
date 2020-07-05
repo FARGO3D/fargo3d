@@ -105,7 +105,7 @@ ifndef CUDA
 CUDA           = /usr/local/cuda
 endif
 ifndef PYTHON_INCLUDE
-PYTHON_INCLUDE = /usr/include/python2.7
+PYTHON_INCLUDE = /usr/include/python3.8
 endif
 #---------------------------------------------------------------------
 #LINUX PLATFORM (GENERIC, default)
@@ -320,7 +320,7 @@ MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    \
 	   fargo_ppa_a.o fargo_ppa_b.o fargo_ppa_c.o            \
 	   fargo_ppa_d.o fargo_ppa_d_2d.o fargo_ppa_steep.o	\
 	   vanleerx_ppa.o dh_boundary.o cpvel.o         	\
-	   integrate_emf.o monitor.o resist.o resistivity.o	\
+	   integrate_emf.o monitor.o				\
 	   viscosity.o init_stockholm.o visctensor_cart.o	\
 	   addviscosity_cart.o addviscosity_cyl.o		\
 	   addviscosity_sph.o visctensor_sph.o			\
@@ -335,7 +335,23 @@ MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    \
 	   collisions.o resetfield.o totaldens.o		\
 	   floor.o ShearingPeriodicBC.o summary.o		\
 	   dust_diffusion_main.o dust_diffusion_core.o		\
-	   dust_diffusion_coefficients.o copy_field.o
+	   dust_diffusion_coefficients.o copy_field.o           \
+	   nimhd_hall_effect.o 					\
+	   nimhd_hall_effect_emfx.o				\
+	   nimhd_hall_effect_emfy.o 				\
+           nimhd_hall_effect_emfz.o 				\
+	   nimhd_hall_effect_updateB.o				\
+	   nimhd_hall_effect_update_emfs.o                      \
+	   nimhd_hall_effect_coeff.o				\
+	   nimhd_ambipolar_diffusion.o				\
+	   nimhd_ambipolar_diffusion_emfx.o			\
+	   nimhd_ambipolar_diffusion_emfy.o			\
+	   nimhd_ambipolar_diffusion_emfz.o			\
+	   nimhd_ambipolar_diffusion_coeff.o			\
+	   nimhd_ohmic_diffusion.o				\
+	   nimhd_ohmic_diffusion_coeff.o			\
+	   compute_jx.o compute_jy.o compute_jz.o		\
+
 #-----------------------#Cuda objects---------------------------------
 GPU_OBJ  =  reduction_sum_device.o reduction_min_device.o	\
 	   	lowtasks_gpu.o 
@@ -361,7 +377,7 @@ GPU_OBJBLOCKS =  CompPresIso_gpu.o CompPresAd_gpu.o 		\
 	   lorentz_force_gpu.o CompPresPoly_gpu.o 		\
 	   fargo_ppa_a_gpu.o fargo_ppa_b_gpu.o			\
 	   fargo_ppa_c_gpu.o fargo_ppa_d_gpu.o			\
-	   fargo_ppa_d_2d_gpu.o resist_gpu.o 			\
+	   fargo_ppa_d_2d_gpu.o 				\
 	   integrate_emf_gpu.o visctensor_cart_gpu.o 		\
 	   addviscosity_cart_gpu.o addviscosity_cyl_gpu.o	\
 	   visctensor_cyl_gpu.o addviscosity_sph_gpu.o		\
@@ -374,8 +390,20 @@ GPU_OBJBLOCKS =  CompPresIso_gpu.o CompPresAd_gpu.o 		\
            fill_ghostsx_gpu.o collisions_gpu.o                  \
            totaldens_gpu.o floor_gpu.o		                \
 	   resetfield_gpu.o dust_diffusion_core_gpu.o		\
-	   dust_diffusion_coefficients_gpu.o
-
+	   dust_diffusion_coefficients_gpu.o                    \
+	   nimhd_hall_effect_emfx_gpu.o				\
+	   nimhd_hall_effect_emfy_gpu.o 			\
+           nimhd_hall_effect_emfz_gpu.o 			\
+	   nimhd_hall_effect_updateB_gpu.o			\
+	   nimhd_hall_effect_update_emfs_gpu.o                  \
+	   nimhd_hall_effect_coeff_gpu.o			\
+	   nimhd_ambipolar_diffusion_emfx_gpu.o			\
+	   nimhd_ambipolar_diffusion_emfy_gpu.o			\
+	   nimhd_ambipolar_diffusion_emfz_gpu.o			\
+	   nimhd_ambipolar_diffusion_coeff_gpu.o		\
+	   nimhd_ohmic_diffusion_gpu.o				\
+	   nimhd_ohmic_diffusion_coeff_gpu.o			\
+	   compute_jx_gpu.o compute_jy_gpu.o compute_jz_gpu.o
 #</CUDA OBJECTS>
 #---------------------------------------------------------------------
 
@@ -430,7 +458,7 @@ ifeq (MATPLOTLIB,${findstring MATPLOTLIB,${FARGO_DISPLAY}})
 	FARGO_OPT += -DMATPLOTLIB
 	INCLUDE   += -I${PYTHON_INCLUDE}
 	OBJECTS   +=  matplotlib.o
-	LIBS      += -lpython2.7
+	LIBS      += -lpython3.8
 endif
 # Debug mode if FARGO_DEBUG = 1, Note that this mode is only 
 # meant to execute gdb (or lldb, etc.) or valgrind.

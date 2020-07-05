@@ -296,6 +296,7 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
 #endif
   
   MULTIFLUID(FillGhosts(PrimitiveVariables()));
+
   
 #ifdef STOCKHOLM 
   FARGO_SAFE(init_stockholm()); //ALREADY IMPLEMENTED MULTIFLUID COMPATIBILITY
@@ -359,18 +360,24 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
 #endif
 
 #ifdef MHD
-  if (Resistivity_Profiles_Filled == NO) {
-    FARGO_SAFE(Fill_Resistivity_Profiles ());
-  }
+#ifdef OHMICDIFFUSION
+      FARGO_SAFE(OhmicDiffusion_coeff());
+#endif
+#ifdef AMBIPOLARDIFFUSION
+      FARGO_SAFE(AmbipolarDiffusion_coeff());
+#endif
+#ifdef HALLEFFECT
+      FARGO_SAFE(HallEffect_coeff());
+#endif
 #endif
 
       // CFL condition is applied below ----------------------------------------
       MULTIFLUID(cfl());
-
+      
       CflFluidsMin(); /*Fills StepTime with the " global min " of the
 			cfl, computed from each fluid.*/
       dt = StepTime; //cfl works with the 'StepTime' global variable.
-      
+
       dtemp+=dt;
       if(dtemp>DT)  dt = DT - (dtemp-dt); //updating dt
       //------------------------------------------------------------------------
@@ -383,6 +390,7 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
       MULTIFLUID(ComputeTotalDensity()); 
       //------------------------------------------------------------------------
 
+      
 #ifdef COLLISIONPREDICTOR
       FARGO_SAFE(Collisions(0.5*dt, 0)); // 0 --> V is used and we update v_half.
 #endif

@@ -18,7 +18,6 @@ void plot3d(char*, int, int);
 
 ex void Explode(void);
 
-
 ex void init_var(char*, char*, int, int, char*);
 ex void ReadVarFile(char*);
 ex void var_assign(void);
@@ -370,10 +369,36 @@ ex void _UpdateMagneticField_cpu(real,int,int,int,int,int,int,int,int,int,
 
 ex void ComputeMHD (real);
 ex void ComputeDivergence (Field *, Field *, Field *);
-ex real Resistivity (real, real);
 ex void Fill_Resistivity_Profiles (void);
+ex real Resistivity (real, real);
 ex void Resist (int, int, int);
 ex void _Resist_cpu (int, int, int, int, int , int, int, int, int, Field*, Field*, Field*, Field2D*);
+
+//AD and Hall prototypes
+ex void ComputeJx_cpu();
+ex void ComputeJy_cpu();
+ex void ComputeJz_cpu();
+//Hall effect prototypes
+ex void HallEffect(real);
+ex void HallEffect_emfx_cpu(void);
+ex void HallEffect_emfy_cpu(void);
+ex void HallEffect_emfz_cpu(void);
+ex void HallEffect_UpdateB(real, int, int, int);
+ex void _HallEffect_UpdateB_cpu(real,int,int,int,int,int,int,int,int,int,int,int,Field*,Field*,Field*);
+ex void HallEffect_UpdateEmfs_cpu();
+ex void HallEffect_coeff_cpu();
+//Ambipolar diffusion prototypes
+ex void AmbipolarDiffusion(void);
+ex void AmbipolarDiffusion_emfx_cpu(void);
+ex void AmbipolarDiffusion_emfy_cpu(void);
+ex void AmbipolarDiffusion_emfz_cpu(void);
+ex void AmbipolarDiffusion_coeff_cpu(void);
+//Ohmic diffusion prototypes
+ex void OhmicDiffusion(void);
+ex void OhmicDiffusion_emf(int,int,int);
+ex void _OhmicDiffusion_emf_cpu (int,int,int,int,int,int,int,int, int,Field*, Field*, Field*);
+
+ex void OhmicDiffusion_coeff_cpu(void);
 
 //timeinfo.c Prototypes
 ex void GiveTimeInfo (int);
@@ -552,6 +577,26 @@ ex void VanLeerX_PPA_d_2d_gpu(real, Field *, Field *, Field2D *);
 ex void _Resist_gpu (int, int, int, int, int , int, int, int, int, Field*, Field*, Field*, Field2D*);
 ex void EMF_Upstream_Integrate_gpu (real);
 
+//AD and Hall prototypes
+ex void ComputeJx_gpu();
+ex void ComputeJy_gpu();
+ex void ComputeJz_gpu();
+//Hall effect prototypes
+ex void HallEffect_emfx_gpu(void);
+ex void HallEffect_emfy_gpu(void);
+ex void HallEffect_emfz_gpu(void);
+ex void _HallEffect_UpdateB_gpu(real,int,int,int,int,int,int,int,int,int,int,int,Field*,Field*,Field*);
+ex void HallEffect_UpdateEmfs_gpu();
+ex void HallEffect_coeff_gpu();
+//Ambipolar diffusion prototypes
+ex void AmbipolarDiffusion_emfx_gpu(void);
+ex void AmbipolarDiffusion_emfy_gpu(void);
+ex void AmbipolarDiffusion_emfz_gpu(void);
+ex void AmbipolarDiffusion_coeff_gpu(void);
+//Ohmic diffusion prototypes
+ex void _OhmicDiffusion_emf_gpu (int,int,int,int,int,int,int,int,int,Field*,Field*,Field*);
+ex void OhmicDiffusion_coeff_gpu(void);
+
 ex void StockholmBoundary_gpu(real);
 
 ex void visctensor_cart_gpu(void);
@@ -561,7 +606,6 @@ ex void addviscosity_cyl_gpu(real);
 ex void visctensor_sph_gpu(void);
 ex void addviscosity_sph_gpu(real);
 
-ex void Reset_field_gpu(Field *);
 ex void ComputeTotalDensity_gpu(void);
 ex void Floor_gpu(void);
 

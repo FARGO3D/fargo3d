@@ -28,6 +28,17 @@ void cfl_cpu() {
   INPUT(By);
   INPUT(Bz);
 #endif
+#ifdef HALLEFFECT
+  INPUT(EtaHall);
+#endif
+#ifdef AMBIPOLARDIFFUSION
+  INPUT(EtaAD);
+#endif
+#ifdef OHMICDIFFUSION
+  INPUT(EtaOhm);
+#endif
+
+  
 //<\USER_DEFINED>
 
 //<EXTERNAL>
@@ -50,7 +61,15 @@ void cfl_cpu() {
   real* bz = Bz->field_cpu;
 #endif
 #ifdef MHD
-  real eta = ETA;
+#ifdef OHMICDIFFUSION
+  real* etao = EtaOhm->field_cpu;
+#endif
+#ifdef HALLEFFECT
+  real* etahall = EtaHall->field_cpu;
+#endif
+#ifdef AMBIPOLARDIFFUSION
+  real* etaad   = EtaAD->field_cpu;
+#endif
 #endif
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
@@ -88,6 +107,9 @@ void cfl_cpu() {
   real cfl7_c=0.0;
   real cfl7=0.0;
   real cfl8=0.0;
+  real cfl9=0.0;
+  real cfl10=0.0;
+  real b;
   real vxx, vxxp;
   real soundspeed;
   real soundspeed2;
@@ -214,13 +236,22 @@ void cfl_cpu() {
 	cfl7 = 4.0*viscosity*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
 
 #ifdef MHD
-	cfl8 = 4.0*eta*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
+#ifdef OHMICDIFFUSION
+	cfl8 = 4.0*etao[ll]*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
 #endif
-
+#ifdef HALLEFFECT
+	cfl9 = 6.0*fabs(etahall[ll])*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
+#endif
+#ifdef AMBIPOLARDIFFUSION
+	cfl10 = 4.0*etaad[ll]*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
+#endif
+#endif
+	  
 	dtime[ll] = CFL/sqrt(cfl1*cfl1 + cfl2*cfl2 + 
 			     cfl3*cfl3 + cfl4*cfl4 + 
 			     cfl5*cfl5 + cfl6*cfl6 + 
-			     cfl7*cfl7 + cfl8*cfl8 );
+			     cfl7*cfl7 + cfl8*cfl8 +
+			     cfl9*cfl9 + cfl10*cfl10 );
 
 //<\#>
 #ifdef X

@@ -136,7 +136,7 @@ void SubStep1_x_cpu (real dt) {
 	  
 #ifdef SPHERICAL
 	btmean = .5*(bmean+bmeanm);
-	vx_temp[ll] += dtOVERrhom*btmean*cos(zmed(k)))*bx[ll]/(MU0*ymed(j)*sin(zmed(k)));
+	vx_temp[ll] += dtOVERrhom*btmean*cos(zmed(k))*bx[ll]/(MU0*ymed(j)*sin(zmed(k)));
 #endif
       
 #endif

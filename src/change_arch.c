@@ -99,15 +99,37 @@ void ChangeArch() {
   _ComputeEmf  = _ComputeEmf_cpu;
   _UpdateMagneticField  = _UpdateMagneticField_cpu;
   _LorentzForce = _LorentzForce_cpu;
-  _Resist = _Resist_cpu;
   EMF_Upstream_Integrate = EMF_Upstream_Integrate_cpu;
-  //----------------------------------------------------
+  
+  // CURRENTS (HALL EFFECT + AMBIPOLAR DIFFUSION) ------
+  ComputeJx = ComputeJx_cpu;
+  ComputeJy = ComputeJy_cpu;
+  ComputeJz = ComputeJz_cpu;
+
+  // OHMIC DIFFUSION
+  _OhmicDiffusion_emf  = _OhmicDiffusion_emf_cpu;
+  OhmicDiffusion_coeff = OhmicDiffusion_coeff_cpu;
+
+  // HALL EFFECT
+  HallEffect_emfx       = HallEffect_emfx_cpu;
+  HallEffect_emfy       = HallEffect_emfy_cpu;
+  HallEffect_emfz       = HallEffect_emfz_cpu;
+  _HallEffect_UpdateB   = _HallEffect_UpdateB_cpu;
+  HallEffect_UpdateEmfs = HallEffect_UpdateEmfs_cpu;
+  HallEffect_coeff      = HallEffect_coeff_cpu;
+
+  // AMBIPOLAR DIFFUSION
+  AmbipolarDiffusion_emfx  = AmbipolarDiffusion_emfx_cpu;
+  AmbipolarDiffusion_emfy  = AmbipolarDiffusion_emfy_cpu;
+  AmbipolarDiffusion_emfz  = AmbipolarDiffusion_emfz_cpu;
+  AmbipolarDiffusion_coeff = AmbipolarDiffusion_coeff_cpu;
+  // ------------------------------------------------------
+  
   _collisions = _collisions_cpu;
   ComputeTotalDensity = ComputeTotalDensity_cpu;
   Floor = Floor_cpu; 
   Reset_field = Reset_field_cpu; 
   //-----------------------------------------------------
-
 
   VanLeerX_PPA_a    = VanLeerX_PPA_a_cpu;
   VanLeerX_PPA_b    = VanLeerX_PPA_b_cpu;
@@ -330,12 +352,73 @@ void ChangeArch() {
 	  printf("VanLeerPPA runs on the GPU\n");
 	}
       }
-      if (strcmp(name, "resistivity") == 0) {
-	if(strval[0] == 'g'){
-	  _Resist = _Resist_gpu;
-	  printf("Resistivity runs on the GPU\n");
-	}
+      if (strcmp(name, "computej") == 0) {
+        if(strval[0] == 'g'){
+          ComputeJx = ComputeJx_gpu;
+          ComputeJy = ComputeJy_gpu;
+          ComputeJz = ComputeJz_gpu;
+          printf("ComputeJx runs on the GPU\n");
+          printf("ComputeJy runs on the GPU\n");
+          printf("ComputeJz runs on the GPU\n");
+        }
       }
+      if (strcmp(name, "ohmicdiffusionemfs") == 0) {
+        if(strval[0] == 'g'){
+	  _OhmicDiffusion_emf = _OhmicDiffusion_emf_gpu;
+          printf("OhmicDiffusion_emf runs on the GPU\n");
+        }
+      }      
+      if (strcmp(name, "ohmicdiffusioncoeff") == 0) {
+        if(strval[0] == 'g'){
+          OhmicDiffusion_coeff = OhmicDiffusion_coeff_gpu;
+          printf("OhmicDiffusion_coeff runs on the GPU\n");
+        }
+      }
+
+      if (strcmp(name, "halleffectcoeff") == 0) {
+        if(strval[0] == 'g'){
+          HallEffect_coeff = HallEffect_coeff_gpu;
+          printf("HallEffect_coeff runs on the GPU\n");
+        }
+      }            
+      if (strcmp(name, "halleffectemfs") == 0) {
+        if(strval[0] == 'g'){
+          HallEffect_emfx = HallEffect_emfx_gpu;
+          HallEffect_emfy = HallEffect_emfy_gpu;
+          HallEffect_emfz = HallEffect_emfz_gpu;
+          printf("HallEffect_emfx runs on the GPU\n");
+          printf("HallEffect_emfy runs on the GPU\n");
+          printf("HallEffect_emfz runs on the GPU\n");
+        }
+      }
+      if (strcmp(name, "halleffectupdateb") == 0) {
+        if(strval[0] == 'g'){
+          _HallEffect_UpdateB  = _HallEffect_UpdateB_gpu;
+          printf("_HallEffect_UpdateB runs on the GPU\n");
+        }
+      }
+      if (strcmp(name, "halleffectupdateemfs") == 0) {
+        if(strval[0] == 'g'){
+          HallEffect_UpdateEmfs  = HallEffect_UpdateEmfs_gpu;
+          printf("HallEffect_UpdateEmfs runs on the GPU\n");
+        }
+      }
+      if (strcmp(name, "ambipolardiffusionemfs") == 0) {
+        if(strval[0] == 'g'){
+          AmbipolarDiffusion_emfx = AmbipolarDiffusion_emfx_gpu;
+          AmbipolarDiffusion_emfy = AmbipolarDiffusion_emfy_gpu;
+          AmbipolarDiffusion_emfz = AmbipolarDiffusion_emfz_gpu;
+          printf("AmbipolarDiffusion_emfx runs on the GPU\n");
+          printf("AmbipolarDiffusion_emfy runs on the GPU\n");
+          printf("AmbipolarDiffusion_emfz runs on the GPU\n");
+        }
+      }
+      if (strcmp(name, "ambipolardiffusioncoeff") == 0) {
+        if(strval[0] == 'g'){
+          AmbipolarDiffusion_coeff = AmbipolarDiffusion_coeff_gpu;
+          printf("AmbipolarDiffusion_coeff runs on the GPU\n");
+        }
+      }      
       if (strcmp(name, "fargomhd") == 0) {
 	if(strval[0] == 'g'){
 	  EMF_Upstream_Integrate = EMF_Upstream_Integrate_gpu;

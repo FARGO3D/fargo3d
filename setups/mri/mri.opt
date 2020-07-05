@@ -24,14 +24,13 @@ FARGO_OPT +=  -DISOTHERMAL
 #Including MHD
 FARGO_OPT += -DMHD
 FARGO_OPT += -DSTRICTSYM
+FARGO_OPT += -DOHMICDIFFUSION
 
 #Coordinate System.
-
 FARGO_OPT +=  -DCYLINDRICAL
 
 #Gravity
 FARGO_OPT += -DPOTENTIAL
-FARGO_OPT += -DOHMICDIFFUSION
                
 #Cuda blocks
 ifeq (${GPU}, 1)
