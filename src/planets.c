@@ -30,15 +30,15 @@ Force ComputeForce(real x, real y, real z,
      Baruteau & Masset 2008, ApJ, 678, 483 (arXiv:0801.4413) for
      details. */
 #ifdef BM08
-  ComputeVmed (Density);
-  ChangeFrame (-1, Density, VxMed);
+  ComputeVmed (Total_Density);
+  ChangeFrame (-1, Total_Density, VxMed);
 #endif
   /* The density is now the perturbed density */
   FARGO_SAFE(_ComputeForce(x, y, z, rsmoothing, mass)); /* Function/Kernel Launcher. */
   /* We restore the total density below by adding back the azimuthal
      average */
 #ifdef BM08
-  ChangeFrame (+1, Density, VxMed);
+  ChangeFrame (+1, Total_Density, VxMed);
 #endif
 
   

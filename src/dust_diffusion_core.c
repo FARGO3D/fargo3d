@@ -166,10 +166,10 @@ void DustDiffusion_Core_cpu(real dt) {
 	czp  = rhod[llzp]/(rhod[llzp] + rhog[llzp]);                                 // Cell centered
 	czm  = rhod[llzm]/(rhod[llzm] + rhog[llzm]);                                 // Cell centered
 #ifdef CARTESIAN
-	update += 1.0/(zmin(k+1)-zmin(k))*(d5*(czp-c)/(zmed(k+1)-zmed(k)) - (d6*(c-czm))/(zmed(k)-zmed(k+1)));
+	update += 1.0/(zmin(k+1)-zmin(k))*(d5*(czp-c)/(zmed(k+1)-zmed(k)) - (d6*(c-czm))/(zmed(k)-zmed(k-1)));
 #endif
 #ifdef CYLINDRICAL
-        update += 1.0/(zmin(k+1)-zmin(k))*(d5*(czp-c)/(zmed(k+1)-zmed(k)) - (d6*(c-czm))/(zmed(k)-zmed(k+1)));
+        update += 1.0/(zmin(k+1)-zmin(k))*(d5*(czp-c)/(zmed(k+1)-zmed(k)) - (d6*(c-czm))/(zmed(k)-zmed(k-1)));
 #endif
 #ifdef SPHERICAL
 	update += 1.0/ymed(j)/ymed(j)/sin(zmed(k))/(zmin(k+1)-zmin(k))*(sin(zmin(k+1))*d5*(czp-c)/(zmed(k+1)-zmed(k)) -
