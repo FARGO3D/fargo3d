@@ -25,7 +25,7 @@ try:
     setupdir = "../setups/"+setup
     shutil.os.chdir(setupdir)
 except IndexError:
-    print("Usage: python single2multi.py setupname")
+    print("Usage: python3/python2 single2multi.py setupname")
     exit()
     
 def backup():

@@ -13,6 +13,12 @@ GIT_VERSION := $(shell git describe --abbrev=8 --dirty --always --tags 2>/dev/nu
 ARCH_CREATE := $(shell mkdir -p $(ARCHDIR))
 SHORTARCH := $(shell echo $(ARCHDIR) | sed -e 's|../||')
 
+ifneq (, $(shell which python3))
+	PYTHON := $(shell which python3)
+else
+	PYTHON := $(shell which python2)
+endif
+
 #------------------------OPTIONS FILE---------------------------------
 
 BLACK=\033[0;30m
@@ -578,7 +584,7 @@ endif
 var.c: ${PARFILE} stdpar.par #$(VARFILE) default_variables.dat
 	@echo ""
 	@echo "Generating var.c file"
-	@python ${SCRIPTSDIR}/par.py $(PARFILE) ${STDDIR}/stdpar.par
+	@${PYTHON} ${SCRIPTSDIR}/par.py $(PARFILE) ${STDDIR}/stdpar.par
 
 ${SETUP}.units:
 	@touch ${SETUPSDIR}/${SETUP}/${SETUP}.units
@@ -586,7 +592,7 @@ ${SETUP}.units:
 rescale.c: ${PARFILE} ${SCRIPTSDIR}/unitparser.py ${STDDIR}/standard.units ${SETUP}.units
 	@echo ""
 	@echo "Generating rescale.c file"
-	@python ${SCRIPTSDIR}/unitparser.py ${SETUP}
+	@${PYTHON} ${SCRIPTSDIR}/unitparser.py ${SETUP}
 
 .PHONY: clean mrproper force
 gitversion: force
@@ -605,11 +611,11 @@ change_arch.o : change_arch.c ${SCRIPTSDIR}/bound_cpu.code ${SCRIPTSDIR}/bound_g
 
 ${SCRIPTSDIR}/bound_proto.code ${SCRIPTSDIR}/bound_cpu.code ${SCRIPTSDIR}/bound_gpu.code:
 	@echo "Generating bound_code files..."
-	@python ${SCRIPTSDIR}/bound_code.py ${SETUP} ${NFLUIDS}
+	@${PYTHON} ${SCRIPTSDIR}/bound_code.py ${SETUP} ${NFLUIDS}
 
 collisions.cu: collisions_template.cu ${GLOBAL}
 	@echo "PARSING collisions.cu"
-	@python ${SCRIPTSDIR}/collisions_gpu.py ${NFLUIDS}
+	@${PYTHON} ${SCRIPTSDIR}/collisions_gpu.py ${NFLUIDS}
 
 %_gpu.o : %.cu ${GLOBAL} #Rule: test_gpu.o is created from test.cu
 	@echo NVCC $< "==>" $*_gpu.o
@@ -618,7 +624,7 @@ collisions.cu: collisions_template.cu ${GLOBAL}
 
 %.cu: %.c
 	@echo C2CUDA $< "==>" $*.cu
-	@python ${SCRIPTSDIR}/c2cuda.py -i $< -o $*.cu -s ${SETUP}	
+	@${PYTHON} ${SCRIPTSDIR}/c2cuda.py -i $< -o $*.cu -s ${SETUP}	
 
 reduction_sum_device.o: reduction_sum_device.cu
 	@echo NVCC $< "==>" $*.o
@@ -647,7 +653,7 @@ zmax_bound_%.o: zmax_bound_%.c ${GLOBAL}
 	@${COMPILER} zmax_bound_$*.c -c ${INCLUDE} ${OPTIONS} ${FARGO_OPT}
 
 ymin_bound_%.c ymax_bound_%.c zmin_bound_%.c zmax_bound_%.c: boundaries.txt centering.txt ${SETUPSDIR}/${SETUP}/$(SETUP).bound.% ${GLOBAL} ${BOUNDARIES_DEP}
-	@-python ${SCRIPTSDIR}/boundparser.py $^
+	@-${PYTHON} ${SCRIPTSDIR}/boundparser.py $^
 
 endif
 

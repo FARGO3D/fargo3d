@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 C2CUDA parser developped for the FARGO3D code (http://fargo.in2p3.fr)
 Pablo Benitez Llambay, 2012-2014

@@ -10,6 +10,7 @@ SCRIPTSDIR = "scripts"
 SRCDIR     = "src"
 BINDIR     = "bin"
 C2CUDA     = "scripts/c2cuda.py"
+PYTHON_CMD = "python" + sys.version[0] + " "
 
     
 def usage():
@@ -72,7 +73,7 @@ def analyze_makefile():
 opt_reader()
 gpu_objects = analyze_makefile()
 for name in gpu_objects:
-    instruction = "python "+ SCRIPTSDIR + "/blocks_function.py -s "+ SETUPNAME + " -g " + name
+    instruction = PYTHON_CMD + SCRIPTSDIR + "/blocks_function.py -s "+ SETUPNAME + " -g " + name
     if FORCE:
         instruction += " -f"
     os.system(instruction)

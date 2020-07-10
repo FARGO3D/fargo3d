@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from __future__ import print_function
 import re
 import sys
@@ -19,6 +17,8 @@ except OSError:
 STDDIR     = "../std/"
 SCRIPTSDIR = "../scripts/"
 SRCDIR     = "../src/"
+
+PYTHON_CMD = "python" + sys.version[0] + " "
 
 def get_defaults(filename=STDDIR+"defaultflags"):
     params = {}
@@ -172,8 +172,8 @@ for key in final_params.keys():
     line += key + "=" + final_params[key] + " "
 os.system(line+">.tmp")
 
-os.system("python "+ SCRIPTSDIR +"param.py")
-os.system("python "+ SCRIPTSDIR +"global.py")
+os.system(PYTHON_CMD + SCRIPTSDIR +"param.py")
+os.system(PYTHON_CMD + SCRIPTSDIR +"global.py")
 
 line = make + " rescale.c "
 for key in final_params.keys():

@@ -10,7 +10,7 @@ SCRIPTSDIR = "scripts"
 SRCDIR     = "src"
 BINDIR     = "bin"
 C2CUDA     = "scripts/c2cuda.py"
-
+PYTHON_CMD = "python" + sys.version[0] + " "
     
 def usage():
     print('\n(blocks.py) Usage: -s --setup=  --> SETUP NAME')
@@ -86,7 +86,7 @@ def analyze_data():
     return nx[index], ny[index], nz[index]
 
 def test_function():
-    os.system("python "+ 
+    os.system(PYTHON_CMD+ 
               C2CUDA+' -i ' + 
               SRCDIR +'/'+FILENAME + ' -o ' + 
               FILENAME + 'u -p'+SILENT)
