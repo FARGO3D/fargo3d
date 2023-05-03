@@ -198,6 +198,7 @@ class Boundary():
             "  int lghs;\n" + \
             "  int lact;\n" + \
             "  int lacts;\n" + \
+            "  int lacts_null_mirror;\n" + \
             "  int lacts_null;\n"
         self.template.template[n] = internal_lines
         
@@ -294,9 +295,10 @@ class Boundary():
                     groups = re.match("\|(.*)\|(.*)\|(\w*)\|",bound)
                     active = groups.group(1).replace(groups.group(3),field.variable+"[lacts]")
                     ghosts = groups.group(2).replace(groups.group(3),field.variable+"[lacts]")
+                    ghostsm = groups.group(2).replace(groups.group(3),field.variable+"[lacts_null_mirror]")
                     output +=  active + ";\n"
                     if ((field.variable[0] != 'b') or (field.variable[1] != self.side[0])):
-                        output += "\t" + field.variable + "[lacts_null] = " + ghosts + ";\n"
+                        output += "\t" + field.variable + "[lacts_null] = " + ghostsm + ";\n"
                 else:
                     """
                     Boundaries of the form |a|a|
@@ -326,6 +328,7 @@ class Boundary():
             indices_lines += "\t" +"lact = i + (2*nghy-j-1)*pitch + k*stride;\n"
             indices_lines += "\t"+"lacts = i + (2*nghy-j)*pitch + k*stride;\n"
             indices_lines += "\t"+"lacts_null = i + nghy*pitch + k*stride;\n"
+            indices_lines += "\t"+"lacts_null_mirror = i + (nghy+1)*pitch + k*stride;\n"
             indices_lines += "\t" +"jgh = j;\n"
             indices_lines += "\t" +"jact = (2*nghy-j-1);\n\n"
         if self.side == 'ymax':
@@ -334,6 +337,7 @@ class Boundary():
             indices_lines += "\t" +"lact = i + (ny+nghy-1-j)*pitch + k*stride;\n"
             indices_lines += "\t" +"lacts = i + (ny+nghy-1-j)*pitch + k*stride;\n"
             indices_lines += "\t" +"lacts_null = i + (ny+nghy)*pitch + k*stride;\n"
+            indices_lines += "\t" +"lacts_null_mirror = i + (ny+nghy-1)*pitch + k*stride;\n"
             indices_lines += "\t" +"jgh = (ny+nghy+j);\n"
             indices_lines += "\t" +"jact = (ny+nghy-1-j);\n\n"
         if self.side == 'zmin':
@@ -342,6 +346,7 @@ class Boundary():
             indices_lines += "\t" +"lact = i + j*pitch + (2*nghz-k-1)*stride;\n"
             indices_lines += "\t"+"lacts = i + j*pitch + (2*nghz-k)*stride;\n"
             indices_lines += "\t"+"lacts_null = i + j*pitch + nghz*stride;\n"
+            indices_lines += "\t"+"lacts_null_mirror = i + j*pitch + (nghz+1)*stride;\n"
             indices_lines += "\t" +"kgh = k;\n"
             indices_lines += "\t" +"kact = (2*nghz-k-1);\n\n"
         if self.side == 'zmax':
@@ -350,6 +355,7 @@ class Boundary():
             indices_lines += "\t" +"lact = i + j*pitch + (nz+nghz-1-k)*stride;\n"
             indices_lines += "\t" +"lacts = i + j*pitch + (nz+nghz-1-k)*stride;\n"
             indices_lines += "\t" +"lacts_null = i + j*pitch + (nz+nghz)*stride;\n"
+            indices_lines += "\t" +"lacts_null_mirror = i + j*pitch + (nz+nghz-1)*stride;\n"
             indices_lines += "\t" +"kgh = (nz+nghz+k);\n"
             indices_lines += "\t" +"kact = (nz+nghz-1-k);\n\n"
         string = "%boundaries"

@@ -126,7 +126,7 @@ void addviscosity_sph_cpu(real dt) {
 #ifdef Z
 	vz[l] += 2.0*(tauzz[l]*sin(zmed(k))-tauzz[lzm]*sin(zmed(k-1)))/((zmed(k)-zmed(k-1))*ymed(j)*sin(zmin(k))*(rho[l]+rho[lzm]))*dt;
 #if defined(Z) && defined(X)
-	vz[l] += 2.0*(tauxz[lxp]-tauxz[l])/(zone_size_x(j,k)*(rho[l]+rho[lzm]))*dt;
+	vz[l] += 2.0*(tauxz[lxp]-tauxz[l])/(edge_size_x_middley_lowz(j,k)*(rho[l]+rho[lzm]))*dt;
 #endif
 #if defined(Z) && defined(Y)
 	vz[l] += 2.0*(ymin(j+1)*ymin(j+1)*ymin(j+1)*tauzy[lyp]-ymin(j)*ymin(j)*ymin(j)*tauzy[l])/((ymin(j+1)-ymin(j))*ymed(j)*ymed(j)*ymed(j)*(rho[l]+rho[lzm]))*dt;
