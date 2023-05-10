@@ -38,6 +38,7 @@ void UpdateX_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t) {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -66,7 +67,7 @@ void UpdateX_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t) {
 
 	qb[ll] += ((vx[ll]*qs[ll]*rho_s[ll] -	\
 		   vx[llxp]*qs[llxp]*rho_s[llxp])*	\
-		  SurfX(j,k)*dt*InvVol(j,k));
+		  SurfX(j,k)*dt*InvVol(i,j,k));
 //<\#>
 #ifdef X
       }

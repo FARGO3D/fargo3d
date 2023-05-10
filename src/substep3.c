@@ -61,6 +61,7 @@ void SubStep3_cpu (real dt) {
   
 //<CONSTANT>
 // real GAMMA(1);
+// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -100,12 +101,12 @@ void SubStep3_cpu (real dt) {
 	div_v += (vx[llxp]-vx[ll])*SurfX(j,k);
 #endif
 #ifdef Y
-	div_v += (vy[llyp]*SurfY(j+1,k)-vy[ll]*SurfY(j,k));
+	div_v += (vy[llyp]*SurfY(i,j+1,k)-vy[ll]*SurfY(i,j,k));
 #endif
 #ifdef Z
-	div_v += (vz[llzp]*SurfZ(j,k+1)-vz[ll]*SurfZ(j,k));
+	div_v += (vz[llzp]*SurfZ(i,j,k+1)-vz[ll]*SurfZ(i,j,k));
 #endif
-	term = 0.5 * dt * (GAMMA - 1.) * div_v * InvVol(j,k);
+	term = 0.5 * dt * (GAMMA - 1.) * div_v * InvVol(i,j,k);
 	e[ll] *= (1.0-term)/(1.0+term);
 //<\#>
 #ifdef X

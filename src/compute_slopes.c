@@ -34,7 +34,6 @@ void ComputeSlopes_cpu(int idx, int idy, int idz, Field *f, Field *s) {
   int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -50,6 +49,7 @@ void ComputeSlopes_cpu(int idx, int idy, int idz, Field *f, Field *s) {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -62,7 +62,7 @@ void ComputeSlopes_cpu(int idx, int idy, int idz, Field *f, Field *s) {
 //<#>
 	ll = l;
 
-	delta = (zone_size_x(j,k)*idx +		
+	delta = (zone_size_x(i,j,k)*idx +		
 		 zone_size_y(j,k)*idy +       
 		 zone_size_z(j,k)*idz);	
 	

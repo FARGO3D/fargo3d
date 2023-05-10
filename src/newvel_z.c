@@ -41,7 +41,11 @@ void NewVelocity_z_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
+// real Syk(Nz+2*NGHZ);
+// real InvVj(Ny+2*NGHY);
+// real Sxi(Nx);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -61,7 +65,7 @@ void NewVelocity_z_cpu () {
 #ifdef Z
 	ll = l;
 	llzm = lzm;
-	vz[ll] = (mmz[ll]+mpz[llzm])/(rho[ll]+rho[llzm]);
+	vz[ll] = (mmz[ll]*Vol(i,j,k)+mpz[llzm]*Vol(i,j,k-1))/(rho[ll]*Vol(i,j,k)+rho[llzm]*Vol(i,j,k-1));
 #ifdef SPHERICAL
 	vz[ll] /= ymed(j);
 #endif

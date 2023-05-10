@@ -20,10 +20,10 @@ void cfl_b(){
       for (j=NGHY; j<Ny+NGHY; j++) {
 #endif
 #ifdef CARTESIAN
-	shearlimit = CFL*Dx / fabs(vxmed[l2D]-vxmed[l2D+1]);
+	shearlimit = CFL*Mindx / fabs(vxmed[l2D]-vxmed[l2D+1]);
 #endif
 #if defined(CYLINDRICAL) || defined(SPHERICAL)
-	shearlimit = CFL*Dx / fabs(vxmed[l2D]/Ymed(j)-vxmed[l2D+1]/Ymed(j+1));
+	shearlimit = CFL*Mindx / fabs(vxmed[l2D]/Ymed(j)-vxmed[l2D+1]/Ymed(j+1));
 #endif
 	if (shearlimit < Min[FluidIndex]) {
 	  Min[FluidIndex] = shearlimit;

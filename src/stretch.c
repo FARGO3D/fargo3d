@@ -61,7 +61,7 @@ void StretchOutput (int n) {
 #ifdef Z	
   RestartStretch(Vz, n);
 #endif
-  RestartStretch(Energy, n);
+  if(Fluidtype != DUST) RestartStretch(Energy, n);
 #ifdef MHD
   RestartStretch(Bx, n);
   RestartStretch(By, n);

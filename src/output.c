@@ -75,9 +75,7 @@ void WritePlanetFile (int TimeStep, int n, boolean big) {
   fflush (stdout);
 }
 
-real GetfromPlanetFile (TimeStep, column, n)
-int TimeStep, column, n;
-{
+real GetfromPlanetFile (int TimeStep, int column, int n) {
   FILE *input;
   char name[256];
   char testline[256];
@@ -113,10 +111,7 @@ int TimeStep, column, n;
   return (real)value;
 }
 
-void RestartPlanetarySystem (timestep, sys)
-PlanetarySystem *sys;
-int timestep;
-{
+void RestartPlanetarySystem (int timestep, PlanetarySystem *sys){
   int k;
   for (k = 0; k < sys->nb; k++) {
     sys->x[k] = GetfromPlanetFile (timestep, 2, k);
@@ -633,7 +628,7 @@ void WriteOutputs(int type) {
   if (WRITEDENSITY)
     offset = ParallelIO(Density, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
   if (WRITEENERGY)
-    offset = ParallelIO(Energy, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+        if(Fluidtype != DUST) offset = ParallelIO(Energy, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
 #ifdef X
   if (WRITEVX)
     offset = ParallelIO(Vx, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
@@ -679,7 +674,7 @@ void WriteOutputs(int type) {
   if (WRITEDENSITY)
     __WriteField(Density, TimeStep);
   if (WRITEENERGY)
-    __WriteField(Energy, TimeStep);
+    if(Fluidtype != DUST) __WriteField(Energy, TimeStep);
 #ifdef MHD //MHD is 3D.
   if(Fluidtype == GAS){
     if (WRITEDIVERGENCE)

@@ -7,20 +7,19 @@
 #include "fargo3d.h"
 //<\INCLUDES>
 
-void mon_dens_cpu () {
+void RamSlopes_cpu(Field *Q){
 
 //<USER_DEFINED>
-  INPUT(Density);
+  INPUT(Q);
   OUTPUT(Slope);
 //<\USER_DEFINED>
-
-
+    
 //<EXTERNAL>
-  real* dens = Density->field_cpu;
-  real* interm = Slope->field_cpu;
+  real* slope = Slope->field_cpu;
+  real* q = Q->field_cpu;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = Nx+2*NGHX;
+  int size_x = XIP; 
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
 //<\EXTERNAL>
@@ -30,12 +29,17 @@ void mon_dens_cpu () {
   int j;
   int k;
   int ll;
+  int llxm;
+  int llxp;
+  real dqm;
+  real dqp;
+  real dxmed;
+  real dxmedp;
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
-// real Syk(Nz+2*NGHZ);
-// real InvVj(Ny+2*NGHY);
+  // real Sxi(Nx+2*NGHX);
+  // real xmin(Nx+2*NGHX+1);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -49,11 +53,24 @@ void mon_dens_cpu () {
     for (j=0; j<size_y; j++) {
 #endif
 #ifdef X
-      for (i=0; i<size_x; i++ ) {
+      for (i=XIM; i<size_x; i++) {	
 #endif
 //<#>
 	ll = l;
-	interm[ll] = dens[ll]*Vol(i,j,k);
+	llxm = lxm;
+	llxp = lxp;
+
+	dxmed  = 0.5*( Sxi(i) + Sxi(ixm) );
+	dxmedp = 0.5*( Sxi(ixp) + Sxi(i) );
+
+	dqm = (q[ll]-q[llxm])/dxmed;
+	dqp = (q[llxp]-q[ll])/dxmedp;
+	if(dqp*dqm<=0.0)  slope[ll] = 0.0;
+#ifndef DONOR
+	else  slope[ll] = (2.*dqp*dqm)/(dqm+dqp);
+#else
+	else  slope[ll] = 0.0;
+#endif
 //<\#>
 #ifdef X
       }
@@ -64,5 +81,6 @@ void mon_dens_cpu () {
 #ifdef Z
   }
 #endif
+
 //<\MAIN_LOOP>
 }

@@ -40,6 +40,12 @@ void TransportZ(Field *Q, Field *Qs, real dt) {
     FARGO_SAFE(UpdateDensityZ (dt, Q));
 }
 
+void XadvectRAM(Field* F, real dt){
+  RamSlopes(F);
+  if (toupper(*SPACING) == 'L') AdvectRAMlin(dt,F);
+  else AdvectRAM(dt,F);
+}
+
 void X_advection (Field *Vx_t, real dt) {
 #ifdef X
   __VanLeerX(Density, DensStar, Vx_t, dt);
@@ -73,76 +79,107 @@ void transport(real dt){
 #endif
 
 #ifdef Z
-  FARGO_SAFE(VanLeerZ_a(Density));
-  FARGO_SAFE(VanLeerZ_b(dt, Density, DensStar));
+  if(NZ>1){
+    FARGO_SAFE(VanLeerZ_a(Density));
+    FARGO_SAFE(VanLeerZ_b(dt, Density, DensStar));
 #ifdef X
-  TransportZ(Mpx, Qs, dt);
-  TransportZ(Mmx, Qs, dt);
+    TransportZ(Mpx, Qs, dt);
+    TransportZ(Mmx, Qs, dt);
 #endif
 #ifdef Y
-  TransportZ(Mpy, Qs, dt);
-  TransportZ(Mmy, Qs, dt);
+    TransportZ(Mpy, Qs, dt);
+    TransportZ(Mmy, Qs, dt);
 #endif
 #ifdef Z
-  TransportZ(Mpz, Qs, dt);
-  TransportZ(Mmz, Qs, dt);
+    TransportZ(Mpz, Qs, dt);
+    TransportZ(Mmz, Qs, dt);
 #endif
 #ifdef ADIABATIC
-  TransportZ(Energy, Qs, dt);
+    TransportZ(Energy, Qs, dt);
 #endif
-  TransportZ(Density, Qs, dt);
+    TransportZ(Density, Qs, dt);
+  }
 #endif
-
+  
+  
 #ifdef Y
-  FARGO_SAFE(VanLeerY_a(Density));
-  FARGO_SAFE(VanLeerY_b(dt, Density, DensStar));
-
+  if(NY>1){
+    FARGO_SAFE(VanLeerY_a(Density));
+    FARGO_SAFE(VanLeerY_b(dt, Density, DensStar));
+    
 #ifdef X  
-  TransportY(Mpx, Qs, dt);
-  TransportY(Mmx, Qs, dt);
+    TransportY(Mpx, Qs, dt);
+    TransportY(Mmx, Qs, dt);
 #endif
 #ifdef Y
-  TransportY(Mpy, Qs, dt);
-  TransportY(Mmy, Qs, dt);
+    TransportY(Mpy, Qs, dt);
+    TransportY(Mmy, Qs, dt);
 #endif
 #ifdef Z
-  TransportY(Mpz, Qs, dt);
-  TransportY(Mmz, Qs, dt);
+    TransportY(Mpz, Qs, dt);
+    TransportY(Mmz, Qs, dt);
 #endif
 #ifdef ADIABATIC
-  TransportY(Energy, Qs, dt);
+    TransportY(Energy, Qs, dt);
 #endif
-  TransportY(Density, Qs, dt);
+    TransportY(Density, Qs, dt);
+  }
 #endif
-
+  
 #ifdef X
+  if(NX>1){
 #ifdef STANDARD
-  __VanLeerX = VanLeerX;
-  X_advection (Vx_temp, dt);
-#else // FARGO algorithm below
-  FARGO_SAFE(ComputeResidual(dt));
-  __VanLeerX = VanLeerX;
-  X_advection (Vx, dt); // Vx => variable residual
-  //__VanLeerX= VanLeerX;
-  __VanLeerX= VanLeerX_PPA;
-  X_advection (Vx_temp, dt); // Vx_temp => fixed residual @ given r. This one only is done with PPA
-  __VanLeerX = VanLeerX;
-  AdvectSHIFT(Mpx, Nshift);
-  AdvectSHIFT(Mmx, Nshift);
+    __VanLeerX = VanLeerX;
+    X_advection (Vx_temp, dt);
+#else // FARGO and RAM algorithm below
+    
+    FARGO_SAFE(ComputeResidual(dt));
+    __VanLeerX = VanLeerX;
+    X_advection (Vx, dt); // Vx => variable residual
+    
+#ifndef RAM 
+    //__VanLeerX= VanLeerX;
+    __VanLeerX= VanLeerX_PPA;
+    X_advection (Vx_temp, dt); // Vx_temp => fixed residual @ given r. This one only is done with PPA
+    __VanLeerX = VanLeerX;
+    AdvectSHIFT(Mpx, Nshift);
+    AdvectSHIFT(Mmx, Nshift);
 #ifdef Y
-  AdvectSHIFT(Mpy, Nshift);
-  AdvectSHIFT(Mmy, Nshift);
+    AdvectSHIFT(Mpy, Nshift);
+    AdvectSHIFT(Mmy, Nshift);
 #endif
 #ifdef Z
-  AdvectSHIFT(Mpz, Nshift);
-  AdvectSHIFT(Mmz, Nshift);
+    AdvectSHIFT(Mpz, Nshift);
+    AdvectSHIFT(Mmz, Nshift);
 #endif
 #ifdef ADIABATIC
-  AdvectSHIFT(Energy, Nshift);
+    AdvectSHIFT(Energy, Nshift);
 #endif
-  AdvectSHIFT(Density, Nshift);
+    AdvectSHIFT(Density, Nshift);
+    
+#else //RAM algorithm below
+    FARGO_SAFE(RamComputeUstar(dt));
+    
+    XadvectRAM(Mpx,dt);
+    XadvectRAM(Mmx,dt);
+    
+#ifdef Y
+    XadvectRAM(Mpy,dt);
+    XadvectRAM(Mmy,dt);
 #endif
+#ifdef Z
+    XadvectRAM(Mpz, dt);
+    XadvectRAM(Mmz, dt);
 #endif
+#ifdef ADIABATIC
+    XadvectRAM(Energy, dt);
+#endif
+    XadvectRAM(Density,dt);
+
+#endif //RAM
+#endif //no STD                                                                                                                                                                                            
+#endif //X 
+  }
   
   FARGO_SAFE(NewVelocity_x());
   FARGO_SAFE(NewVelocity_y());

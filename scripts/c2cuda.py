@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 C2CUDA parser developped for the FARGO3D code (http://fargo.in2p3.fr)
 Pablo Benitez Llambay, 2012-2014
@@ -540,7 +542,9 @@ def make_output(f,output_file, formated=False):
                    '#define Sxk_d &Sxk_d\n'+ \
                    '#define Syk_d &Syk_d\n'+ \
                    '#define Szk_d &Szk_d\n'+ \
-                   '#define InvVj_d &InvVj_d\n')
+                   '#define Sxi_d &Sxi_d\n'+ \
+                   '#define InvVj_d &InvVj_d\n'+ \
+                   '#define InvDiffXmed_d &InvDiffXmed_d\n')
     output += '#endif\n'
 
     output += '\n'+ f['cte_cpy'] + '\n'

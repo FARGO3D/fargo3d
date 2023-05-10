@@ -122,7 +122,6 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
   int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
   int nx = Nx+2*NGHX;
 //<\EXTERNAL>
 
@@ -155,6 +154,7 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
   /* Propagation index first */
 
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -183,11 +183,11 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
 	rho_mean2 = 0.5*(rho[ll]+rho[lpropm]);
 	rho_mean  = 0.5*(rho_mean1+rho_mean2);
 
-	delta1 = (zone_size_x(j,k)*idx1 +
+	delta1 = (zone_size_x(i,j,k)*idx1 +
 		  zone_size_y(j,k)*idy1 +
 		  zone_size_z(j,k)*idz1);
 
-	delta2 = (zone_size_x(j,k)*idx2 +
+	delta2 = (zone_size_x(i,j,k)*idx2 +
 		  zone_size_y(j,k)*idy2 +
 		  zone_size_z(j,k)*idz2);
 	

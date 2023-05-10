@@ -65,7 +65,6 @@ void addviscosity_sph_cpu(real dt) {
   int size_x = XIP;
   int size_y = Ny+2*NGHY-2;
   int size_z = Nz+2*NGHZ-2;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -75,6 +74,8 @@ void addviscosity_sph_cpu(real dt) {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+1);
+// real InvDiffXmed(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -96,7 +97,7 @@ void addviscosity_sph_cpu(real dt) {
 //<#>
 
 #ifdef X
-	vx[l] += 2.0*(tauxx[l]-tauxx[lxm])/(zone_size_x(j,k)*(rho[l]+rho[lxm]))*dt;
+	vx[l] += 2.0*(tauxx[l]-tauxx[lxm])*Inv_zone_size_xmed(i,j,k)/((rho[l]+rho[lxm]))*dt;
 #if defined(Y) && defined(X)
 	vx[l] += 2.0*(ymin(j+1)*ymin(j+1)*tauyx[lyp]-ymin(j)*ymin(j)*tauyx[l])/((ymin(j+1)-ymin(j))*ymed(j)*ymed(j)*(rho[lxm]+rho[l]))*dt;
 	vx[l] += (tauyx[lyp]+tauyx[l])/((rho[lxm]+rho[l])*ymed(j))*dt;
@@ -110,7 +111,7 @@ void addviscosity_sph_cpu(real dt) {
 #ifdef Y
 	vy[l] += 2.0*(ymed(j)*ymed(j)*tauyy[l]-ymed(j-1)*ymed(j-1)*tauyy[lym])/((ymed(j)-ymed(j-1))*(rho[l]+rho[lym])*ymin(j)*ymin(j))*dt;
 #if defined(Y) && defined(X)
-	vy[l] += 2.0*(tauyx[lxp]-tauyx[l])/(dx*ymin(j)*sin(zmed(k))*(rho[l]+rho[lym]))*dt;
+  vy[l] += 2.0*(tauyx[lxp]-tauyx[l])/( (xmin(i+1)-xmin(i))*ymin(j)*sin(zmed(k))*(rho[l]+rho[lym]))*dt;
 #endif
 #if defined(X)
 	vy[l] -= (tauxx[l]+tauxx[lym])/(ymin(j)*(rho[l]+rho[lym]))*dt;
@@ -126,7 +127,7 @@ void addviscosity_sph_cpu(real dt) {
 #ifdef Z
 	vz[l] += 2.0*(tauzz[l]*sin(zmed(k))-tauzz[lzm]*sin(zmed(k-1)))/((zmed(k)-zmed(k-1))*ymed(j)*sin(zmin(k))*(rho[l]+rho[lzm]))*dt;
 #if defined(Z) && defined(X)
-	vz[l] += 2.0*(tauxz[lxp]-tauxz[l])/(edge_size_x_middley_lowz(j,k)*(rho[l]+rho[lzm]))*dt;
+	vz[l] += 2.0*(tauxz[lxp]-tauxz[l])/(edge_size_x_middley_lowz(i,j,k)*(rho[l]+rho[lzm]))*dt;
 #endif
 #if defined(Z) && defined(Y)
 	vz[l] += 2.0*(ymin(j+1)*ymin(j+1)*ymin(j+1)*tauzy[lyp]-ymin(j)*ymin(j)*ymin(j)*tauzy[l])/((ymin(j+1)-ymin(j))*ymed(j)*ymed(j)*ymed(j)*(rho[l]+rho[lzm]))*dt;

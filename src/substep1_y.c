@@ -120,7 +120,6 @@ void SubStep1_y_cpu (real dt) {
 // real zmin(Nz+2*NGHZ+1);
 // real OMEGAFRAME(1);
 // real OORTA(1);
-// real VERTICALDAMPING(1);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -145,12 +144,12 @@ void SubStep1_y_cpu (real dt) {
 #ifdef Z
 	llzp = lzp;
 #endif //ENDIF Z
-	dtOVERrhom = 2.0*dt/(rho[ll]+rho[llym]);
+	dtOVERrhom = 2.0*dt/(rho[ll]*(ymin(j+1)-ymin(j))+rho[llym]*(ymin(j)-ymin(j-1)))*(ymed(j)-ymed(j-1));
 
+	vy_temp[ll] = vy[ll];
+	if(fluidtype != DUST) vy_temp[ll]-=  dtOVERrhom*(p[ll]-p[llym])/(ymed(j)-ymed(j-1));
+	
 #ifdef CARTESIAN
-	vy_temp[ll] = vy[ll] - 
-	  dtOVERrhom*(p[ll]-p[llym])/(ymed(j)-ymed(j-1));
-
 #ifdef SHEARINGBOX
 
 	vm = 0.25*(vx_half[ll]+vx_half[llxp]+vx_half[llym]+vx_half[llxp-pitch]);	
@@ -187,10 +186,7 @@ void SubStep1_y_cpu (real dt) {
 #ifdef CYLINDRICAL
 	vphi = .25*(vx_half[ll] + vx_half[llxp] + vx_half[llym] + vx_half[llxp-pitch]);
 	vphi += ymin(j)*OMEGAFRAME;
- 	vy_temp[ll] = vy[ll] -
-	  dtOVERrhom*(p[ll]-p[llym])/(ymed(j)-ymed(j-1));
 	vy_temp[ll] += vphi*vphi/ymin(j)*dt;
-	vy_temp[ll] /= (1.+VERTICALDAMPING*dt);
 	
 #ifdef MHD
 	if(fluidtype==GAS) {
@@ -217,8 +213,6 @@ void SubStep1_y_cpu (real dt) {
 #ifdef SPHERICAL
 	vphi =  .25*(vx_half[ll] + vx_half[llxp] + vx_half[llym] + vx_half[llxp-pitch]);
 	vphi += ymin(j)*sin(zmed(k))*OMEGAFRAME;
- 	vy_temp[ll] = vy[ll] - 
-	  dtOVERrhom*(p[ll]-p[llym])/(ymed(j)-ymed(j-1));
 	vzz = .25*(vz_half[ll] + vz_half[llzp]  + vz_half[llym] + vz_half[llzp-pitch]);
 	vy_temp[ll] += (vphi*vphi + vzz*vzz)/ymin(j)*dt;
 #ifdef MHD

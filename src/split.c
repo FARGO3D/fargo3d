@@ -163,8 +163,8 @@ void split(Grid *g) {
   Zmed = (real *)malloc(sizeof(real)*(Nz+2*NGHZ));
 
   InvDiffXmed = (real *)malloc(sizeof(real)*(Nx+2*NGHX));
-  InvDiffYmed = (real *)malloc(sizeof(real)*(Ny+2*NGHY));
-  InvDiffZmed = (real *)malloc(sizeof(real)*(Nz+2*NGHZ));
+ 
+  Sxi  = (real *)malloc(sizeof(real)*(Nx+2*NGHX));
 
   Sxj  = (real *)malloc(sizeof(real)*(Ny+2*NGHY));
   Syj  = (real *)malloc(sizeof(real)*(Ny+2*NGHY));
@@ -189,6 +189,9 @@ void split(Grid *g) {
   DevMalloc(&Xmin_d,sizeof(real)*(Nx+2*NGHX+1));
   DevMalloc(&Ymin_d,sizeof(real)*(Ny+2*NGHY+1));
   DevMalloc(&Zmin_d,sizeof(real)*(Nz+2*NGHZ+1));
+
+  DevMalloc(&Sxi_d,sizeof(real)*(Nx+2*NGHX));
+  DevMalloc(&InvDiffXmed_d,sizeof(real)*(Nx+2*NGHX));
 
   DevMalloc(&Sxj_d,sizeof(real)*(Ny+2*NGHY));
   DevMalloc(&Syj_d,sizeof(real)*(Ny+2*NGHY));

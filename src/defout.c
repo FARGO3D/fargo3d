@@ -17,9 +17,7 @@ void ReadDefaultOut () {
   masterprint ("The default output directory root is %s\n", DefaultOut);
 }
 
-void SubsDef (target, def)
-  char *target, *def;
-{
+void SubsDef (char *target, char *def){
   char c='@';
   char new_target[MAXLINELENGTH];
   char *loc, *follow;

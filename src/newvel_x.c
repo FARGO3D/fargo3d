@@ -44,9 +44,13 @@ void NewVelocity_x_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 // real OMEGAFRAME(1);
+// real Syk(Nz+2*NGHZ);
+// real InvVj(Ny+2*NGHY);
+// real Sxi(Nx);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -68,17 +72,17 @@ void NewVelocity_x_cpu () {
 	llxm = lxm;
 
 #ifdef CARTESIAN
-	vx[ll] = (mmx[ll]+mpx[llxm])/(rho[ll]+rho[llxm]);
+	vx[ll] = (mmx[ll]*Vol(i,j,k) + mpx[llxm]*Vol(ixm,j,k) )/(rho[ll]*Vol(i,j,k)+rho[llxm]*Vol(ixm,j,k));
 #ifdef SHEARINGBOX
 	vx[ll] -= 2.0*OMEGAFRAME*ymed(j);
 #endif
 #endif
 #ifdef CYLINDRICAL
-	vx[ll] = (mmx[ll]+mpx[llxm])/((rho[ll]+rho[llxm])*ymed(j))-OMEGAFRAME*ymed(j);
+	vx[ll] = (mmx[ll]*Vol(i,j,k) + mpx[llxm]*Vol(ixm,j,k) )/((rho[ll]*Vol(i,j,k)+rho[llxm]*Vol(ixm,j,k))*ymed(j))-OMEGAFRAME*ymed(j);
 #endif
 #ifdef SPHERICAL
 	rcyl = ymed(j) * sin(zmed(k));
-	vx[ll] = (mmx[ll]+mpx[llxm])/((rho[ll]+rho[llxm])*rcyl)-OMEGAFRAME*rcyl;
+	vx[ll] = (mmx[ll]*Vol(i,j,k) + mpx[llxm]*Vol(ixm,j,k) )/((rho[ll]*Vol(i,j,k)+rho[llxm]*Vol(ixm,j,k))*rcyl)-OMEGAFRAME*rcyl;
 #endif
 #endif
 //<\#>

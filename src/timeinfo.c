@@ -12,10 +12,7 @@ static clock_t  First, Preceeding, Current, FirstUser, CurrentUser, PreceedingUs
 static long     Ticks;
 extern int begin_i;
 
-void InitSpecificTime (process_name, title)
-     TimeProcess *process_name;
-     char *title;
-{
+void InitSpecificTime (TimeProcess *process_name, char *title){
 #ifdef PROFILING
   struct tms buffer;
   clock_t wcticks;
@@ -27,9 +24,7 @@ void InitSpecificTime (process_name, title)
 #endif
 }
 
-real GiveSpecificTime (process_name)
-     TimeProcess process_name;
-{
+real GiveSpecificTime (TimeProcess process_name){
   real t=0.0;
 #ifdef PROFILING
   struct tms buffer;
@@ -51,9 +46,7 @@ real GiveSpecificTime (process_name)
   return t;
 }
 
-void GiveTimeInfo (number)
-     int number;
-{
+void GiveTimeInfo (int number){
   struct tms buffer;
   real total, last, mean, totalu;
   static boolean FirstStep = YES;

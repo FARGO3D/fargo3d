@@ -92,7 +92,6 @@ void visctensor_sph_cpu(){
   int size_x = XIP; 
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -110,15 +109,18 @@ void visctensor_sph_cpu(){
 // real NU(1);
 // real GAMMA(1);
 // real ALPHA(1);
+// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
 // real Sxk(Nz+2*NGHZ);
 // real Syk(Nz+2*NGHZ);
 // real Szk(Nz+2*NGHZ);
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 // real InvVj(Ny+2*NGHY);
+// real InvDiffXmed(Nx);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -157,16 +159,16 @@ void visctensor_sph_cpu(){
 	div_v += (vx[lxp]-vx[l])*SurfX(j,k);
 #endif
 #ifdef Y
-	div_v += (vy[lyp]*SurfY(j+1,k)-vy[l]*SurfY(j,k));
+	div_v += (vy[lyp]*SurfY(i,j+1,k)-vy[l]*SurfY(i,j,k));
 #endif
 #ifdef Z
-	div_v += (vz[lzp]*SurfZ(j,k+1)-vz[l]*SurfZ(j,k));
+	div_v += (vz[lzp]*SurfZ(i,j,k+1)-vz[l]*SurfZ(i,j,k));
 #endif
-	div_v *= 2.0/3.0*InvVol(j,k);
+	div_v *= 2.0/3.0*InvVol(i,j,k);
 
 	// Computing taus. Diagonal terms are zone centered
 #if defined(X)
-	tauxx[l] = viscosity*rho[l]*(2.0*(vx[lxp]-vx[l])/zone_size_x(j,k) - div_v);
+	tauxx[l] = viscosity*rho[l]*(2.0*(vx[lxp]-vx[l])/zone_size_x(i,j,k) - div_v);
 #endif
 #if defined(Y) && defined(X)
 	tauxx[l] += viscosity*rho[l]*(vy[lyp]+vy[l])/ymed(j);
@@ -185,11 +187,11 @@ void visctensor_sph_cpu(){
 #endif
 
 #if defined(X) && defined(Z)
-	tauxz[l] = viscosityzm*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]/sin(zmed(k))-vx[lzm]/sin(zmed(k-1)))*sin(zmin(k))/(ymed(j)*(zmed(k)-zmed(k-1))) + (vz[l]-vz[lxm])/(dx*sin(zmin(k))*ymed(j))); //centered on lower, left "radial" edge in y
+	tauxz[l] = viscosityzm*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]/sin(zmed(k))-vx[lzm]/sin(zmed(k-1)))*sin(zmin(k))/(ymed(j)*(zmed(k)-zmed(k-1))) + ((vz[l]-vz[lxm])*InvDiffXmed(i)/(sin(zmin(k))*ymed(j)))); //centered on lower, left "radial" edge in y
 #endif
 	
 #if defined(Y) && defined(X)
-	tauyx[l] = viscositym*.25*(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*((vy[l]-vy[lxm])/(dx*ymin(j)*sin(zmed(k))) + (vx[l]-vx[lym])/(ymed(j)-ymed(j-1))-.5*(vx[l]+vx[lym])/ymin(j)); //centered on left, inner vertical edge in z
+	tauyx[l] = viscositym*.25*(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*((vy[l]-vy[lxm])*InvDiffXmed(i)/(ymin(j)*sin(zmed(k))) + (vx[l]-vx[lym])/(ymed(j)-ymed(j-1))-.5*(vx[l]+vx[lym])/ymin(j)); //centered on left, inner vertical edge in z
 #endif
 	
 #if defined(Z) && defined(Y)

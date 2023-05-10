@@ -6,37 +6,42 @@
 //<INCLUDES>
 #include "fargo3d.h"
 //<\INCLUDES>
-
-void ComputeResidual_cpu(real dt) {
-
+   
+void RamComputeUstar_cpu(real dt) {
+  
 //<USER_DEFINED>
-  INPUT(Vx_temp);
   INPUT2D(VxMed);
-  OUTPUT(Vx);
-  OUTPUT(Vx_temp);
-  OUTPUT2DINT(Nshift);
+  OUTPUT(UStarmin);
+  OUTPUT(PhiStarmin);
 //<\USER_DEFINED>
 
 //<EXTERNAL>
-  real* vx    = Vx_temp->field_cpu;
-  real* vxr   = Vx->field_cpu;
-  real* vxmed = VxMed->field_cpu;
-  int* nshift = Nshift->field_cpu;
+  real* vxmed      = VxMed->field_cpu;
+  real* ustarmin   = UStarmin->field_cpu;
+  real* phistarmin = PhiStarmin->field_cpu;
   int pitch   = Pitch_cpu;
   int stride  = Stride_cpu;
   int size_x  = Nx+2*NGHX;
   int size_y  = Ny+2*NGHY;
   int size_z  = Nz+2*NGHZ;
   int pitch2d = Pitch2D;
-  int pitch2d_int = Pitch_Int_gpu;
+  real xmc0   = Xmc0;
+  real xmc1   = Xmc1;
+  real xmc2   = Xmc2;
+  real xmc3   = Xmc3;
+  real xmc4   = Xmc4;
+  real xma    = XMA;
+  real xmb    = XMB;
+  real xmc    = XMC;
+  real x_mesh_I = X_mesh_I;
+  real _xmin = XMIN;
+  real _xmax = XMAX;
 //<\EXTERNAL>
 
 //<INTERNAL>
   int i;
   int j;
   int k;
-  real ntilde;
-  real nround;
   int ll;
   int ll2D;
 //<\INTERNAL>
@@ -44,7 +49,6 @@ void ComputeResidual_cpu(real dt) {
 //<CONSTANT>
 // real xmin(Nx+2*NGHX+1);
 // real ymin(Ny+2*NGHY+1);
-// real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -64,16 +68,22 @@ void ComputeResidual_cpu(real dt) {
 	ll = l;
 	ll2D = l2D;
 
-#ifndef RAM
-	ntilde = vxmed[ll2D]*dt/zone_size_x(i,j,k);
-	nround = floor(ntilde+0.5);
-	if(i == 0) 
-	  nshift[l2D_int] = (int)nround;
-	vxr[ll] = vx[ll]-vxmed[ll2D];
-	vx[ll] = (ntilde-nround)*zone_size_x(i,j,k)/dt;
+#ifdef CARTESIAN
+	phistarmin[ll] = xmin(i) - vxmed[ll2D]*dt;
 #else
-	vxr[ll] = vx[ll]-vxmed[ll2D];
+	phistarmin[ll] = xmin(i) - vxmed[ll2D]*dt/ymed(j);                
 #endif
+
+	// Periodicity
+	while(phistarmin[ll] < _xmin) {
+	  phistarmin[ll] += (_xmax-_xmin);
+	}
+	while(phistarmin[ll] > _xmax) {
+	  phistarmin[ll] -= (_xmax-_xmin);
+	}
+
+	ustarmin[ll] = UX(phistarmin[ll]);
+
 //<\#>
 #ifdef X
       }

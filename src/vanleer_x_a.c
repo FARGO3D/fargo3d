@@ -22,7 +22,6 @@ void VanLeerX_a_cpu(Field *Q){
   int size_x = XIP; 
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -60,12 +59,12 @@ void VanLeerX_a_cpu(Field *Q){
 	llxm = lxm;
 	llxp = lxp;
 	
-	dqm = (q[ll]-q[llxm]);
-	dqp = (q[llxp]-q[ll]);
+	dqm = (q[ll]-q[llxm])/zone_size_x(i,j,k);
+	dqp = (q[llxp]-q[ll])/zone_size_x(ixp,j,k);
+
 	if(dqp*dqm<=0.0)  slope[ll] = 0.0;
 #ifndef DONOR
-	else  slope[ll] = (2.*dqp*dqm) /
-		((dqm+dqp)*(zone_size_x(j,k)));
+	else  slope[ll] = (2.*dqp*dqm) /(dqm+dqp);
 #else
 	else  slope[ll] = 0.0;
 #endif

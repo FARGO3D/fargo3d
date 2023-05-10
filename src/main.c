@@ -287,6 +287,19 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
     WriteDim ();
   }
 
+#if !defined(STANDARD) && !defined(RAM)
+if (*SPACING=='N'){
+  mastererr ("Warning: Mesh must be unifrom in x-direction to use FARGO advection.\n");
+  mastererr ("Warning: If SPACING is set to 'N', use -DSTANDARD or -DRAM in .opt file.\n");
+  prs_exit (1);
+}
+#endif
+#if defined(MHD) && defined(RAM)
+  mastererr ("Warning: Current version of MHD module does not include RAM.\n");
+  mastererr ("Warning: If SPACING is set to 'N', use -DSTANDARD in .opt file.\n");
+  prs_exit (1);
+#endif
+
   GetHostsList ();
   DumpToFargo3drc(argc, argv);
 

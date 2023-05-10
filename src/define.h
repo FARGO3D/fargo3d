@@ -95,6 +95,9 @@
 #define VXTEMP 2048L
 #define VYTEMP 4096L
 #define VZTEMP 8192L
+#define ENERGYRAD 16384L
+#define DIFFCOEF 32768L
+#define QPLUS 65536L
 
 /////////////////////////////////////////////////////
 //Definitions relative to Fine Grain Monitoring 
@@ -197,7 +200,7 @@
 #define zmed(i) Zmed[(i)]
 
 #define alpha(i) Alpha[(i)]
-
+  
 #else // #ifdef __GPU
 
 #ifndef BIGMEM
@@ -211,10 +214,6 @@
 #define zmed(i) (0.5*(zmin_s[(i+1)]+zmin_s[(i)]))
 #endif
 
-#define invDiffXmed(i) invDiffXmed[(i)]
-#define invDiffYmed(i) invDiffYmed[(i)]
-#define invDiffZmed(i) invDiffZmed[(i)]
-
 #define Xmin(i) Xmin[(i)]
 #define Ymin(i) Ymin[(i)]
 #define Zmin(i) Zmin[(i)]
@@ -224,52 +223,49 @@
 
 #define alpha(i) Alpha[(i)]
 
-
-#define InvDiffXmed(i) InvDiffXmed[(i)]
-#define InvDiffYmed(i) InvDiffYmed[(i)]
-#define InvDiffZmed(i) InvDiffZmed[(i)]
-
-
 #ifndef __GPU
 
-#define InvVol(j,k) (InvVj(j)/Syk(k))
-#define Vol(j,k) Syk(k)/InvVj(j)
+#define InvVol(i,j,k) InvVj(j)/(Syk(k)*Sxi(i))
+#define Vol(i,j,k) Syk(k)*Sxi(i)/InvVj(j)
 
 #define InvVj(i) InvVj[(i)]
 #define invVj(i) invVj[(i)]
 
 #define SurfX(j,k) Sxj(j)*Sxk(k)
-#define SurfY(j,k) Syj(j)*Syk(k)
-#define SurfZ(j,k) Szj(j)*Szk(k)
+#define SurfY(i,j,k) Syj(j)*Syk(k)*Sxi(i)
+#define SurfZ(i,j,k) Szj(j)*Szk(k)*Sxi(i)
 
 #else //#ifdef __GPU
 
-#define InvVol(j,k) (InvVj_s[(j)]/Syk_s[(k)])
-#define Vol(j,k) Syk_s[(k)]/InvVj_s[(j)]
+#define InvVol(i,j,k) InvVj_s[(j)]/Syk_s[(k)]/Sxi_s[(i)]
+#define Vol(i,j,k) Syk_s[(k)]*Sxi_s[(i)]/InvVj_s[(j)]
 
 //#define InvVj(i) InvVj_s[(i)]
 
 #define SurfX(j,k) Sxj_s[(j)]*Sxk_s[(k)]
-#define SurfY(j,k) Syj_s[(j)]*Syk_s[(k)]
-#define SurfZ(j,k) Szj_s[(j)]*Szk_s[(k)]
+#define SurfY(i,j,k) Syj_s[(j)]*Syk_s[(k)]*Sxi_s[(i)]
+#define SurfZ(i,j,k) Szj_s[(j)]*Szk_s[(k)]*Sxi_s[(i)]
 
 #endif
 
 #ifndef __GPU
 #ifdef CARTESIAN
-#define zone_size_x(j,k) Dx
+#define zone_size_x(i,j,k) Sxi(i)
+#define Inv_zone_size_xmed(i,j,k)  InvDiffXmed(i)
 #define zone_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define zone_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
 #ifdef CYLINDRICAL
-#define zone_size_x(j,k) (Dx*Ymed(j))
+#define zone_size_x(i,j,k) (Sxi(i)*Ymed(j))
+#define Inv_zone_size_xmed(i,j,k)  (InvDiffXmed(i)/Ymed(j))
 #define zone_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define zone_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
 #ifdef SPHERICAL
-#define zone_size_x(j,k) (Dx*Ymed(j)*sin(Zmed(k)))
+#define zone_size_x(i,j,k) (Sxi(i)*Ymed(j)*sin(Zmed(k)))
+#define Inv_zone_size_xmed(i,j,k)  (InvDiffXmed(i)/Ymed(j)/sin(Zmed(k)))
 #define zone_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define zone_size_z(j,k) ((Zmin(k+1)-Zmin(k))*Ymed(j))
 #endif
@@ -277,19 +273,22 @@
 #else // ifdef GPU
 
 #ifdef CARTESIAN
-#define zone_size_x(j,k) (dx)
+#define zone_size_x(i,j,k) (xmin(i+1)-xmin(i))
+#define Inv_zone_size_xmed(i,j,k)  InvDiffXmed_s[(i)]
 #define zone_size_y(j,k) (ymin(j+1)-ymin(j))
 #define zone_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
 #ifdef CYLINDRICAL
-#define zone_size_x(j,k) (dx*ymed(j))
+#define zone_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j))
+#define Inv_zone_size_xmed(i,j,k) (InvDiffXmed_s[(i)]/ymed(j))
 #define zone_size_y(j,k) (ymin(j+1)-ymin(j))
 #define zone_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
 #ifdef SPHERICAL
-#define zone_size_x(j,k) (dx*ymed(j)*sin(zmed(k)))
+#define zone_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j)*sin(zmed(k)))
+#define Inv_zone_size_xmed(i,j,k)  (InvDiffXmed_s[(i)]/ymed(j)/sin(zmed(k)))
 #define zone_size_y(j,k) (ymin(j+1)-ymin(j))
 #define zone_size_z(j,k) ((zmin(k+1)-zmin(k))*ymed(j))
 #endif
@@ -299,25 +298,25 @@
 #ifndef __GPU
 
 #ifdef CARTESIAN
-#define edge_size_x(j,k) Dx
-#define edge_size_x_middlez_lowy(j,k) Dx //Used by FARGO-MHD
-#define edge_size_x_middley_lowz(j,k) Dx //Used by FARGO-MHD
+#define edge_size_x(i,j,k) Sxi(i)
+#define edge_size_x_middlez_lowy(i,j,k) Sxi(i) //Used by FARGO-MHD
+#define edge_size_x_middley_lowz(i,j,k) Sxi(i) //Used by FARGO-MHD
 #define edge_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define edge_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
 #ifdef CYLINDRICAL
-#define edge_size_x(j,k) (Dx*Ymin(j))
-#define edge_size_x_middlez_lowy(j,k) (Dx*Ymin(j))
-#define edge_size_x_middley_lowz(j,k) (Dx*Ymed(j))
+#define edge_size_x(i,j,k) (Sxi(i)*Ymin(j))
+#define edge_size_x_middlez_lowy(i,j,k) (Sxi(i)*Ymin(j))
+#define edge_size_x_middley_lowz(i,j,k) (Sxi(i)*Ymed(j))
 #define edge_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define edge_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
 #ifdef SPHERICAL
-#define edge_size_x(j,k) (Dx*Ymin(j)*sin(Zmin(k)))
-#define edge_size_x_middlez_lowy(j,k) (Dx*Ymin(j)*sin(Zmed(k)))
-#define edge_size_x_middley_lowz(j,k) (Dx*Ymed(j)*sin(Zmin(k)))
+#define edge_size_x(i,j,k) (Sxi(i)*Ymin(j)*sin(Zmin(k)))
+#define edge_size_x_middlez_lowy(i,j,k) (Sxi(i)*Ymin(j)*sin(Zmed(k)))
+#define edge_size_x_middley_lowz(i,j,k) (Sxi(i)*Ymed(j)*sin(Zmin(k)))
 #define edge_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define edge_size_z(j,k) ((Zmin(k+1)-Zmin(k))*Ymin(j))
 #endif
@@ -325,25 +324,25 @@
 #else //ifdef __GPU
 
 #ifdef CARTESIAN
-#define edge_size_x(j,k) dx
-#define edge_size_x_middlez_lowy(j,k) dx //Used by FARGO-MHD
-#define edge_size_x_middley_lowz(j,k) dx //Used by FARGO-MHD
+#define edge_size_x(i,j,k) (xmin(i+1)-xmin(i))
+#define edge_size_x_middlez_lowy(i,j,k) (xmin(i+1)-xmin(i)) //Used by FARGO-MHD
+#define edge_size_x_middley_lowz(i,j,k) (xmin(i+1)-xmin(i)) //Used by FARGO-MHD
 #define edge_size_y(j,k) (ymin(j+1)-ymin(j))
 #define edge_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
 #ifdef CYLINDRICAL
-#define edge_size_x(j,k) (dx*ymin(j))
-#define edge_size_x_middlez_lowy(j,k) (dx*ymin(j))
-#define edge_size_x_middley_lowz(j,k) (dx*ymed(j))
+#define edge_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j))
+#define edge_size_x_middlez_lowy(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j))
+#define edge_size_x_middley_lowz(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j))
 #define edge_size_y(j,k) (ymin(j+1)-ymin(j))
 #define edge_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
 #ifdef SPHERICAL
-#define edge_size_x(j,k) (dx*ymin(j)*sin(zmin(k)))
-#define edge_size_x_middlez_lowy(j,k) (dx*ymin(j)*sin(zmed(k)))
-#define edge_size_x_middley_lowz(j,k) (dx*ymed(j)*sin(zmin(k)))
+#define edge_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j)*sin(zmin(k)))
+#define edge_size_x_middlez_lowy(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j)*sin(zmed(k)))
+#define edge_size_x_middley_lowz(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j)*sin(zmin(k)))
 #define edge_size_y(j,k) (ymin(j+1)-ymin(j))
 #define edge_size_z(j,k) ((zmin(k+1)-zmin(k))*ymin(j))
 #endif
@@ -353,12 +352,14 @@
 
 #ifndef __GPU
 
+#define Sxi(i) Sxi[(i)]
 #define Sxj(i) Sxj[(i)]
 #define Sxk(i) Sxk[(i)]
 #define Syj(i) Syj[(i)]
 #define Syk(i) Syk[(i)]
 #define Szj(i) Szj[(i)]
 #define Szk(i) Szk[(i)]
+#define InvDiffXmed(i) InvDiffXmed[(i)]
 
 //#define sxj(i) sxj[(i)]
 //#define sxk(i) sxk[(i)]
@@ -376,8 +377,8 @@
 #define lxp ((l)+1)
 #define lxm ((l)-1)
 
-#define ixm ((i)+1)
-#define ixp ((i)-1)
+#define ixm ((i)-1)
+#define ixp ((i)+1)
 
 #ifdef Y
 #define lyp ((l)+Nx+2*NGHX)
@@ -565,6 +566,8 @@ a bug and obtain hints about its origin. */
 #define OUTPUT2D( field) Output2D_GPU(field, __LINE__, __FILE__);
 #define INPUT2DINT( field) Input2DInt_GPU(field, __LINE__, __FILE__);
 #define OUTPUT2DINT( field) Output2DInt_GPU(field, __LINE__, __FILE__);
+#define INPUTINT( field) InputInt_GPU(field, __LINE__, __FILE__);
+#define OUTPUTINT( field) OutputInt_GPU(field, __LINE__, __FILE__);
 #else
 #define INPUT( field) Input_CPU(field, __LINE__, __FILE__);
 #define OUTPUT( field) Output_CPU(field, __LINE__, __FILE__);
@@ -572,6 +575,8 @@ a bug and obtain hints about its origin. */
 #define OUTPUT2D( field) Output2D_CPU(field, __LINE__, __FILE__);
 #define INPUT2DINT( field) Input2DInt_CPU(field, __LINE__, __FILE__);
 #define OUTPUT2DINT( field) Output2DInt_CPU(field, __LINE__, __FILE__);
+#define INPUTINT( field) InputInt_CPU(field, __LINE__, __FILE__);
+#define OUTPUTINT( field) OutputInt_CPU(field, __LINE__, __FILE__);
 #endif
 
 #define DRAFT( field) Draft(field, __LINE__, __FILE__);
@@ -613,5 +618,21 @@ a bug and obtain hints about its origin. */
 #define SMALLVEL (1e-9*sqrt(G*MSTAR/R0))
 #define SMALLTIME (1e-10*sqrt(R0*R0*R0/(G*MSTAR)))
 
-#define CREATEFIELDALIAS(a,b,c) CreateFieldAlias (a,b,c)
-//#define CREATEFIELDALIAS(a,b,c) CreateField (a,c,0,0,0)
+//#define CREATEFIELDALIAS(a,b,c) CreateFieldAlias (a,b,c)
+#define CREATEFIELDALIAS(a,b,c) CreateField (a,c,0,0,0)
+
+
+//Mesh density function in x
+#define FX(x) (x/x_mesh_I)
+#define GX_P(x) (0.5*(2.0+xmc)*x/x_mesh_I - xmc*(xmb-xma)/(2.0*M_PI*x_mesh_I)*sin(M_PI*(xma+x)/(xma-xmb)))
+#define GX_M(x) (0.5*(2.0+xmc)*x/x_mesh_I - xmc*(xmb-xma)/(2.0*M_PI*x_mesh_I)*sin(M_PI*(x-xma)/(xma-xmb)))
+#define HX(x) ((1.0+xmc)*FX(x))
+
+#define UX(x) ({ real output;  \
+  if ( x <= -xmb              ) output = FX   (x) + xmc0 ; \
+  if ( x >  -xmb && x <= -xma ) output = GX_P (x) + xmc1 ; \
+  if ( x >  -xma && x <=  xma ) output = HX   (x) + xmc2 ; \
+  if ( x >   xma && x <=  xmb ) output = GX_M (x) + xmc3 ; \
+  if ( x >   xmb              ) output = FX   (x) + xmc4 ; \
+  output;})
+  

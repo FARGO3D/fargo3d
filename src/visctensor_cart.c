@@ -86,7 +86,6 @@ void visctensor_cart_cpu(){
   int size_x = XIP; 
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -98,15 +97,18 @@ void visctensor_cart_cpu(){
 
 //<CONSTANT>
 // real NU(1);
+// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
 // real Sxk(Nz+2*NGHZ);
 // real Syk(Nz+2*NGHZ);
 // real Szk(Nz+2*NGHZ);
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 // real InvVj(Ny+2*NGHY);
+// real InvDiffXmed(Nx);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -129,15 +131,15 @@ void visctensor_cart_cpu(){
 	div_v += (vx[lxp]-vx[l])*SurfX(j,k);
 #endif
 #ifdef Y
-	div_v += (vy[lyp]*SurfY(j+1,k)-vy[l]*SurfY(j,k));
+	div_v += (vy[lyp]*SurfY(i,j+1,k)-vy[l]*SurfY(i,j,k));
 #endif
 #ifdef Z
-	div_v += (vz[lzp]*SurfZ(j,k+1)-vz[l]*SurfZ(j,k));
+	div_v += (vz[lzp]*SurfZ(i,j,k+1)-vz[l]*SurfZ(i,j,k));
 #endif
-	div_v *= 2.0/3.0*InvVol(j,k);
+	div_v *= 2.0/3.0*InvVol(i,j,k);
 
 #ifdef X
-	tauxx[l] = NU*rho[l]*(2.0*(vx[lxp]-vx[l])/dx - div_v);
+	tauxx[l] = NU*rho[l]*(2.0*(vx[lxp]-vx[l])/(xmin(i+1)-xmin(i)) - div_v);
 #endif
 #ifdef Y
 	tauyy[l] = NU*rho[l]*(2.0*(vy[lyp]-vy[l])/(ymin(j+1)-ymin(j)) - div_v);
@@ -147,11 +149,11 @@ void visctensor_cart_cpu(){
 #endif
 
 #if defined(X) && defined(Z)
-	tauxz[l] = NU*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]-vx[lzm])/(zmed(k)-zmed(k-1)) + (vz[l]-vz[lxm])/dx); //centered on lower, left "radial" edge in y
+	tauxz[l] = NU*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]-vx[lzm])/(zmed(k)-zmed(k-1)) + (vz[l]-vz[lxm])*Inv_zone_size_xmed(i,j,k)); //centered on lower, left "radial" edge in y
 #endif
 
 #if defined(Y) && defined(X)
-	tauyx[l] = NU*.25*(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*((vy[l]-vy[lxm])/dx + (vx[l]-vx[lym])/(ymed(j)-ymed(j-1))); //centered on left, inner vertical edge in z
+	tauyx[l] = NU*.25*(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*((vy[l]-vy[lxm])*Inv_zone_size_xmed(i,j,k) + (vx[l]-vx[lym])/(ymed(j)-ymed(j-1))); //centered on left, inner vertical edge in z
 #endif
 
 #if defined(Z) && defined(Y)

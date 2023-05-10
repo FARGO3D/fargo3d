@@ -8,6 +8,7 @@ void LightGlobalDev(){
   DevMemcpyH2D(Ymin_d,Ymin,sizeof(real)*(Ny+2*NGHY+1));
   DevMemcpyH2D(Zmin_d,Zmin,sizeof(real)*(Nz+2*NGHZ+1));
 
+  DevMemcpyH2D(Sxi_d,Sxi,sizeof(real)*(Nx+2*NGHX));
   DevMemcpyH2D(Sxj_d,Sxj,sizeof(real)*(Ny+2*NGHY));
   DevMemcpyH2D(Syj_d,Syj,sizeof(real)*(Ny+2*NGHY));
   DevMemcpyH2D(Szj_d,Szj,sizeof(real)*(Ny+2*NGHY));
@@ -17,5 +18,6 @@ void LightGlobalDev(){
   DevMemcpyH2D(Szk_d,Szk,sizeof(real)*(Nz+2*NGHZ));
 
   DevMemcpyH2D(InvVj_d,InvVj,sizeof(real)*(Ny+2*NGHY));
+  DevMemcpyH2D(InvDiffXmed_d,InvDiffXmed,sizeof(real)*(Nx+2*NGHX));
 #endif
 }

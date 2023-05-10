@@ -1,7 +1,7 @@
 #include "fargo3d.h"
 
 void Compute_Staggered_2D_fields (real dt)  {
-  int j,k;
+  int i,j,k;
   real *vxhy, *vxhyr, *vxhz, *vxhzr, *vxmed;
   int *nxhy, *nxhz;
   vxhy  = Vxhy->field_cpu;
@@ -23,15 +23,15 @@ void Compute_Staggered_2D_fields (real dt)  {
   for (k = 0; k < Nz+2*NGHZ; k++) {
     for (j = 1; j < Ny+2*NGHY; j++) {
       vxhy[l2D] = .5*(vxmed[l2D-1]+vxmed[l2D]);
-      nxhy[l2D] = (int)(floor(vxhy[l2D]*dt/edge_size_x_middlez_lowy(j,k)+.5));
-      vxhyr[l2D] = vxhy[l2D] - (real)nxhy[l2D]*edge_size_x_middlez_lowy(j,k)/dt;
+      nxhy[l2D] = (int)(floor(vxhy[l2D]*dt/edge_size_x_middlez_lowy(i,j,k)+.5));
+      vxhyr[l2D] = vxhy[l2D] - (real)nxhy[l2D]*edge_size_x_middlez_lowy(i,j,k)/dt;
     }
   }
   for (k = 1; k < Nz+2*NGHZ; k++) {
     for (j = 0; j < Ny+2*NGHY; j++) {
       vxhz[l2D] = .5*(vxmed[l2D-Ny-2*NGHY]+vxmed[l2D]);
-      nxhz[l2D] = (int)(floor(vxhz[l2D]*dt/edge_size_x_middley_lowz(j,k)+.5));
-      vxhzr[l2D] = vxhz[l2D] - (real)nxhz[l2D]*edge_size_x_middley_lowz(j,k)/dt;
+      nxhz[l2D] = (int)(floor(vxhz[l2D]*dt/edge_size_x_middley_lowz(i,j,k)+.5));
+      vxhzr[l2D] = vxhz[l2D] - (real)nxhz[l2D]*edge_size_x_middley_lowz(i,j,k)/dt;
     }
   }
 }

@@ -119,10 +119,10 @@ void ComputeDivergence(Field *CompX, Field *CompY, Field *CompZ){
     for (j=0; j<Ny+2*NGHY-1; j++) {
       for (i=0; i<Nx; i++) {
 	d[l] = (bx[lxp]-bx[l])*SurfX(j,k);
-	d[l]+= by[lyp]*SurfY(j+1,k);
-	d[l]-= by[l]  *SurfY(j,k);
-	d[l]+= bz[lzp]*SurfZ(j,k+1);
-	d[l]-= bz[l]  *SurfZ(j,k);
+	d[l]+= by[lyp]*SurfY(i,j+1,k);
+	d[l]-= by[l]  *SurfY(i,j,k);
+	d[l]+= bz[lzp]*SurfZ(i,j,k+1);
+	d[l]-= bz[l]  *SurfZ(i,j,k);
       }
     }
   }

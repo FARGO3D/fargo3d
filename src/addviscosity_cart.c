@@ -65,7 +65,6 @@ void addviscosity_cart_cpu(real dt) {
   int size_x = XIP;
   int size_y = Ny+2*NGHY-2;
   int size_z = Nz+2*NGHZ-2;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -75,6 +74,8 @@ void addviscosity_cart_cpu(real dt) {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+1);
+// real InvDiffXmed(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -96,7 +97,7 @@ void addviscosity_cart_cpu(real dt) {
 //<#>
 
 #ifdef X
-	vx[l] += 2.0*(tauxx[l]-tauxx[lxm])/(dx*(rho[l]+rho[lxm]))*dt;
+  vx[l] += 2.0*(tauxx[l]-tauxx[lxm])/((rho[l]+rho[lxm]))*dt*Inv_zone_size_xmed(i,j,k);
 #if defined(Y) && defined(X)
 	vx[l] += 2.0*(tauyx[lyp]-tauyx[l])/((ymin(j+1)-ymin(j))*(rho[lxm]+rho[l]))*dt;
 #endif
@@ -108,7 +109,7 @@ void addviscosity_cart_cpu(real dt) {
 #ifdef Y
 	vy[l] += 2.0*(tauyy[l]-tauyy[lym])/((ymed(j)-ymed(j-1))*(rho[l]+rho[lym]))*dt;
 #if defined(Y) && defined(X)
-	vy[l] += 2.0*(tauyx[lxp]-tauyx[l])/(dx*(rho[l]+rho[lym]))*dt;
+  vy[l] += 2.0*(tauyx[lxp]-tauyx[l])/((xmin(i+1)-xmin(i))*(rho[l]+rho[lym]))*dt;
 #endif
 #if defined(Z) && defined(Y)
 	vy[l] += 2.0*(tauzy[lzp]-tauzy[l])/((zmin(k+1)-zmin(k))*(rho[l]+rho[lym]))*dt;
@@ -118,7 +119,7 @@ void addviscosity_cart_cpu(real dt) {
 #ifdef Z
 	vz[l] += 2.0*(tauzz[l]-tauzz[lzm])/((zmed(k)-zmed(k-1))*(rho[l]+rho[lzm]))*dt;
 #if defined(Z) && defined(X)
-	vz[l] += 2.0*(tauxz[lxp]-tauxz[l])/(dx*(rho[l]+rho[lzm]))*dt;
+  vz[l] += 2.0*(tauxz[lxp]-tauxz[l])/((xmin(i+1)-xmin(i))*(rho[l]+rho[lzm]))*dt;
 #endif
 #if defined(Z) && defined(Y)
 	vz[l] += 2.0*(tauzy[lyp]-tauzy[l])/((ymin(j+1)-ymin(j))*(rho[l]+rho[lzm]))*dt;

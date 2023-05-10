@@ -77,6 +77,14 @@ real StepTime;
 real localforce[12];
 real globalforce[12];
 
+// MESH DENSITY CONSTANTS
+real Xmc0;
+real Xmc1;
+real Xmc2;
+real Xmc3;
+real Xmc4;
+real X_mesh_I;
+				   
 //FIELDS VARIABLES
 
 Grid Gridd;
@@ -135,6 +143,9 @@ Field2D *Reduction2D;
 FieldInt2D *Nxhy;
 FieldInt2D *Nxhz;
 FieldInt2D *Nshift;
+
+Field *PhiStarmin;
+Field *UStarmin;
 
 //MHD FIELDS
 //#ifdef MHD
@@ -196,8 +207,6 @@ Buffer Bfcur; //|
 //Useful numbers
 
 //CPU GLOBAL LIGHT ARRAYS
-
-real Dx;
 real *Xmin;
 real *Ymin;
 real *Zmin;
@@ -205,8 +214,7 @@ real *Xmed;
 real *Ymed;
 real *Zmed;
 real *InvDiffXmed;
-real *InvDiffYmed;
-real *InvDiffZmed;
+real *Sxi;
 real *Sxj;
 real *Sxk;
 real *Syj;
@@ -219,10 +227,11 @@ real shift_buffer[MAX1D];
 //GPU GLOBAL LIGHT ARRAYS
 real *Alpha;
 real *Alpha_d;
-real *Dx_d;
 real *Xmin_d;
 real *Ymin_d;
 real *Zmin_d;
+real *Sxi_d;
+real *InvDiffXmed_d;
 real *Sxj_d;
 real *Sxk_d;
 real *Syj_d;
@@ -254,7 +263,7 @@ int ycells;
 int zcells;
 int y0cell;
 int z0cell;
-
+real Mindx;
 //For checknan
 Field *ListOfGrids = NULL;
 
@@ -322,7 +331,12 @@ void (*NewVelocity_x)();
 void (*NewVelocity_y)();
 void (*NewVelocity_z)();
 void (*AdvectSHIFT)(Field*,FieldInt2D*);
+void (*AdvectRAM)(real,Field*);
+void (*AdvectRAMlin)(real,Field*);
+void (*RamComputeUstar)(real);
+void (*RamSlopes)(Field*);
 void (*ComputeResidual)(real);
+void (*ComputeVweight)(Field*,Field*);
 void (*ChangeFrame)(int,Field*,Field2D*);
 void (*Potential)();
 void (*CorrectVtheta)(real);
@@ -343,7 +357,7 @@ void (*mon_torq)();
 void (*mon_reynolds)();
 void (*mon_maxwell)();
 void (*mon_bxflux)();
-void (*comm)();
+void (*comm)(int);
 void (*Reset_field)(Field*);
 void (*ComputeTotalDensity)();
 void (*copy_field)(Field*,Field*);
@@ -393,7 +407,7 @@ void (*SetupHook1)();
 void (*_collisions)(real,int,int,int,int);
 void (*Floor)();
 
-void (*__WriteField)();
+void (*__WriteField)(Field*, int);
 void (*__Restart)(Field*,int);
 
 void (*boundary_ymin[NFLUIDS])();

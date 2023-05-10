@@ -75,7 +75,7 @@ void mon_torq_cpu () {
 #endif
 //<#>
 	ll = l;
-	cellmass = Vol(j,k)*dens[ll];
+	cellmass = Vol(i,j,k)*dens[ll];
 #ifdef CARTESIAN
 	dx = xmed(i)-Xplanet;
 	dy = ymed(j)-Yplanet;

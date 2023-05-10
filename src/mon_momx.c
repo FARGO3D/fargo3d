@@ -36,6 +36,7 @@ void mon_momx_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real Sxi(Nx);
 // real Syk(Nz+2*NGHZ);
 // real InvVj(Ny+2*NGHY);
 // real ymin(Ny+2*NGHY+1);
@@ -59,19 +60,19 @@ void mon_momx_cpu () {
 //<#>
 	ll = l;
 #ifdef CARTESIAN
-	mom[ll] = dens[ll]*.5*(vx[ll]+vx[lxp])*Vol(j,k);
+	mom[ll] = dens[ll]*.5*(vx[ll]+vx[lxp])*Vol(i,j,k);
 #ifdef SHEARINGBOX //SHEARINGBOX is an option for the CARTESIAN geometry
-	mom[ll] += 2.0*OMEGAFRAME*ymed(j)*dens[ll]*Vol(j,k);
+	mom[ll] += 2.0*OMEGAFRAME*ymed(j)*dens[ll]*Vol(i,j,k);
 #endif
 #endif
 
 #ifdef CYLINDRICAL
-	mom[ll] = (.5*(vx[ll]+vx[lxp])+ymed(j)*OMEGAFRAME)*ymed(j)*dens[ll]*Vol(j,k);
+	mom[ll] = (.5*(vx[ll]+vx[lxp])+ymed(j)*OMEGAFRAME)*ymed(j)*dens[ll]*Vol(i,j,k);
 #endif
 
 #ifdef SPHERICAL
 	rcyl = ymed(j) * sin(zmed(k));
-	mom[ll] = (.5*(vx[ll]+vx[lxp]) + rcyl*OMEGAFRAME)*rcyl*dens[ll]*Vol(j,k);
+	mom[ll] = (.5*(vx[ll]+vx[lxp]) + rcyl*OMEGAFRAME)*rcyl*dens[ll]*Vol(i,j,k);
 #endif
 //<\#>
 #ifdef X

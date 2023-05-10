@@ -65,7 +65,6 @@ void _OhmicDiffusion_emf_cpu (int idx, int idy, int idz, int idx1, int idy1, int
   real* b2 = B2->field_cpu;
   real* emf = Emf->field_cpu;
   real* eta = EtaOhm->field_cpu;
-  real dx = Dx;
   int pitch  = Pitch_cpu;
   int pitch2d = Pitch2D;
   int stride = Stride_cpu;
@@ -86,6 +85,7 @@ void _OhmicDiffusion_emf_cpu (int idx, int idy, int idz, int idx1, int idy1, int
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -101,8 +101,8 @@ void _OhmicDiffusion_emf_cpu (int idx, int idy, int idz, int idx1, int idy1, int
 	/* Ideally it should not be the zone size but the distance
 	   between zone centers. The different is very minute here and
 	   does not matter */
-	diff1 = zone_size_x(j,k)*idx1+zone_size_y(j,k)*idy1+zone_size_z(j,k)*idz1;
-	diff2 = zone_size_x(j,k)*idx2+zone_size_y(j,k)*idy2+zone_size_z(j,k)*idz2;
+	diff1 = zone_size_x(i,j,k)*idx1+zone_size_y(j,k)*idy1+zone_size_z(j,k)*idz1;
+	diff2 = zone_size_x(i,j,k)*idx2+zone_size_y(j,k)*idy2+zone_size_z(j,k)*idz2;
 
 	//Warning: staggering of eta can be improved. 
 	

@@ -124,7 +124,7 @@ real ComputeInnerMass(real r) {
     for (j=NGHY; j<Ny+NGHY; j++) {
       for (i=NGHX; i<Nx+NGHX; i++) {
 	if(Ymed(j)<r) {
-	  mass+=rho[l]*Vol(j,k);
+	  mass+=rho[l]*Vol(i,j,k);
 	}
       }	
     }

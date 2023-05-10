@@ -60,7 +60,6 @@ void _UpdateMagneticField_cpu(real dt,int idx,int idy,int idz,int idx1,int idy1,
   int size_x = XIP; 
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
 //<\EXTERNAL>
   
 //<INTERNAL>
@@ -74,6 +73,7 @@ void _UpdateMagneticField_cpu(real dt,int idx,int idy,int idz,int idx1,int idy1,
 //<\INTERNAL>
  
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 // real Sxj(Ny+2*NGHY);
@@ -82,6 +82,7 @@ void _UpdateMagneticField_cpu(real dt,int idx,int idy,int idz,int idx1,int idy1,
 // real Sxk(Nz+2*NGHZ);
 // real Syk(Nz+2*NGHZ);
 // real Szk(Nz+2*NGHZ);
+// real Sxi(Nx);
 //<\CONSTANT>
 
 
@@ -97,21 +98,21 @@ void _UpdateMagneticField_cpu(real dt,int idx,int idy,int idz,int idx1,int idy1,
 	lp1 = lxp*idx1 + lyp*idy1 + lzp*idz1; 
 	lp2 = lxp*idx2 + lyp*idy2 + lzp*idz2; 
 	surf =SurfX(j,k)*idx; 
-	surf+=SurfY(j,k)*idy; 
-	surf+=SurfZ(j,k)*idz; 
-	dp1m = (edge_size_x(j,k)*idx2 +
+	surf+=SurfY(i,j,k)*idy; 
+	surf+=SurfZ(i,j,k)*idz; 
+	dp1m = (edge_size_x(i,j,k)*idx2 +
  		edge_size_y(j,k)*idy2 +
 		edge_size_z(j,k)*idz2); 
 	
-	dp1p = (edge_size_x(j+idy1,k+idz1)*idx2 + 
+	dp1p = (edge_size_x(i,j+idy1,k+idz1)*idx2 + 
 		edge_size_y(j+idy1,k+idz1)*idy2 + 
 		edge_size_z(j+idy1,k+idz1)*idz2); 
 	
-	dp2m = (edge_size_x(j,k)*idx1 + 
+	dp2m = (edge_size_x(i,j,k)*idx1 + 
 		edge_size_y(j,k)*idy1 + 
 		edge_size_z(j,k)*idz1); 
 	
-	dp2p = (edge_size_x(j+idy2,k+idz2)*idx1 + 
+	dp2p = (edge_size_x(i,j+idy2,k+idz2)*idx1 + 
 		edge_size_y(j+idy2,k+idz2)*idy1 + 
 		edge_size_z(j+idy2,k+idz2)*idz1); 
 	

@@ -38,6 +38,7 @@ void UpdateY_cpu(real dt, Field *Q, Field *Qs) {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -64,9 +65,9 @@ void UpdateY_cpu(real dt, Field *Q, Field *Qs) {
 	ll = l;
 	llyp = lyp;
 
-	qb[ll] += (vy[ll]*qs[ll]*rho_s[ll]*SurfY(j,k) -	\
+	qb[ll] += (vy[ll]*qs[ll]*rho_s[ll]*SurfY(i,j,k) -	\
 		  vy[llyp]*qs[llyp]*rho_s[llyp]		\
-		  *SurfY(j+1,k)) * dt * InvVol(j,k);
+		  *SurfY(i,j+1,k)) * dt * InvVol(i,j,k);
 //<\#>
 #ifdef X
       }

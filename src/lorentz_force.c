@@ -96,7 +96,6 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
   int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
   real nx = Nx;
 //<\EXTERNAL>
     
@@ -124,6 +123,7 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 // real Sxj(Ny+2*NGHY);
@@ -150,11 +150,11 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
 	lmperp1plus = lm+stride1;
 	lmperp2plus = lm+stride2;
 
-	delta1 = (zone_size_x(j,k)*idx1	+ \
+	delta1 = (zone_size_x(i,j,k)*idx1	+ \
 		  zone_size_y(j,k)*idy1 + \
 		  zone_size_z(j,k)*idz1);
 	
-	delta2 = (zone_size_x(j,k)*idx2 + \
+	delta2 = (zone_size_x(i,j,k)*idx2 + \
 		  zone_size_y(j,k)*idy2 + \
 		  zone_size_z(j,k)*idz2);
 	

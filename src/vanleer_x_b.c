@@ -26,7 +26,6 @@ void VanLeerX_b_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
   int size_x = Nx+2*NGHX;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -61,9 +60,9 @@ void VanLeerX_b_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
 	llxm = lxm;
 
 	if(vx[ll]>0.0)
-	  qs[ll] = q[llxm] + 0.5*(zone_size_x(j,k)-vx[ll]*dt)*slope[llxm];
+	  qs[ll] = q[llxm] + 0.5*(zone_size_x(ixm,j,k)-vx[ll]*dt)*slope[llxm];
 	else
-	  qs[ll] = q[ll] - 0.5*(zone_size_x(j,k)+vx[ll]*dt)*slope[ll];
+	  qs[ll] = q[ll] - 0.5*(zone_size_x(i,j,k)+vx[ll]*dt)*slope[ll];
 //<\#>
 #ifdef X
       }

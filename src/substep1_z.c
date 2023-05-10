@@ -89,11 +89,10 @@ void SubStep1_z_cpu (real dt) {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real xmin(Nx+1);
+// real xmin(Nx+2*NGHX+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 // real OMEGAFRAME(1);
-// real VERTICALDAMPING(1);
 //<\CONSTANT>
 
 
@@ -121,12 +120,11 @@ void SubStep1_z_cpu (real dt) {
 #endif //END Y
 	llzm = lzm;
 
-	dtOVERrhom = 2.0*dt/(rho[ll]+rho[llzm]);
+	dtOVERrhom = 2.0*dt/(rho[ll]*(zmin(k+1)-zmin(k))+rho[llzm]*(zmin(k)-zmin(k-1)))*(zmed(k)-zmed(k-1));
 
 #ifdef CARTESIAN
- 	vz_temp[ll] = vz[ll] - 
-	  dtOVERrhom*(p[ll]-p[llzm])/(zmed(k)-zmed(k-1));
-	vz_temp[ll] /= (1.+VERTICALDAMPING*dt);
+	vz_temp[ll] = vz[ll];
+	if(fluidtype != DUST) vz_temp[ll] -= dtOVERrhom*(p[ll]-p[llzm])/(zmed(k)-zmed(k-1));
 
 #ifdef POTENTIAL
 	vz_temp[ll] -= (pot[ll]-pot[llzm]) * dt / (zmed(k)-zmed(k-1));
@@ -149,9 +147,8 @@ void SubStep1_z_cpu (real dt) {
 #endif //END CARTESIAN
 
 #ifdef CYLINDRICAL
- 	vz_temp[ll] = vz[ll] -
-	  dtOVERrhom*(p[ll]-p[llzm])/(zmed(k)-zmed(k-1));
-	vz_temp[ll] /= (1.+VERTICALDAMPING*dt);
+	vz_temp[ll] = vz[ll];
+	if(fluidtype != DUST) vz_temp[ll] -= dtOVERrhom*(p[ll]-p[llzm])/(zmed(k)-zmed(k-1));
 
 #ifdef POTENTIAL
 	vz_temp[ll] -= (pot[ll]-pot[llzm]) * dt / (zmed(k)-zmed(k-1));
@@ -176,12 +173,12 @@ void SubStep1_z_cpu (real dt) {
 #endif //END CYLINDRICAL
 	  
 #ifdef SPHERICAL
-	 vphi = .25*(vx_half[ll] + vx_half[llxp] + vx_half[llzm] + vx_half[llxp-stride]);
+	vphi = .25*(vx_half[ll] + vx_half[llxp] + vx_half[llzm] + vx_half[llxp-stride]);
 	vphi += ymed(j)*sin(zmin(k))*OMEGAFRAME;
- 	vz_temp[ll] = vz[ll] - 
-	  dtOVERrhom*(p[ll]-p[llzm])/(ymed(j)*(zmed(k)-zmed(k-1)));
+	vz_temp[ll] = vz[ll];
+	if(fluidtype != DUST) vz_temp[ll] -= dtOVERrhom*(p[ll]-p[llzm])/(zmed(k)-zmed(k-1));
+
 	vz_temp[ll] += vphi*vphi*cos(zmin(k))/(sin(zmin(k))*ymed(j))*dt;
-	vz_temp[ll] /= (1.+VERTICALDAMPING*dt);
 
 #ifdef POTENTIAL
 	vz_temp[ll] -= (pot[ll]-pot[llzm]) * dt / (ymed(j)*(zmed(k)-zmed(k-1)));

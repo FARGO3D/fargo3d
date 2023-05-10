@@ -85,7 +85,6 @@ void _HallEffect_UpdateB_cpu(real dt, int mutex, int mutez,int idx,int idy,int i
   int size_x = Nx;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
 //<\EXTERNAL>
   
 //<INTERNAL>
@@ -99,8 +98,10 @@ void _HallEffect_UpdateB_cpu(real dt, int mutex, int mutez,int idx,int idy,int i
 //<\INTERNAL>
  
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
+// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -123,23 +124,23 @@ void _HallEffect_UpdateB_cpu(real dt, int mutex, int mutez,int idx,int idy,int i
 	lp2 = lxp*idx2 + lyp*idy2 + lzp*idz2; 
 
 	surf=SurfX(j,k)*idx; 
-	surf+=SurfY(j,k)*idy;
-	surf+=SurfZ(j,k)*idx1;
+	surf+=SurfY(i,j,k)*idy;
+	surf+=SurfZ(i,j,k)*idx1;
        
-	dp1m = (edge_size_x(j,k)*idx2 +
+	dp1m = (edge_size_x(i,j,k)*idx2 +
  		edge_size_y(j,k)*idy2 +
 		edge_size_z(j,k)*idz2); 
 
 
-	dp1p = (edge_size_x(j+idy1,k+idz1)*idx2 + 
+	dp1p = (edge_size_x(i,j+idy1,k+idz1)*idx2 + 
 		edge_size_y(j+idy1,k+idz1)*idy2 + 
 		edge_size_z(j+idy1,k+idz1)*idz2); 
 	
-	dp2m = (edge_size_x(j,k)*idx1 + 
+	dp2m = (edge_size_x(i,j,k)*idx1 + 
 		edge_size_y(j,k)*idy1 + 
 		edge_size_z(j,k)*idz1); 
 	
-	dp2p = (edge_size_x(j+idy2,k+idz2)*idx1 + 
+	dp2p = (edge_size_x(i,j+idy2,k+idz2)*idx1 + 
 		edge_size_y(j+idy2,k+idz2)*idy1 + 
 		edge_size_z(j+idy2,k+idz2)*idz1); 
 	

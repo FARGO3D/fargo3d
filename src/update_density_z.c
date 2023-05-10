@@ -36,6 +36,7 @@ void UpdateDensityZ_cpu(real dt, Field *Q) {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -62,9 +63,9 @@ void UpdateDensityZ_cpu(real dt, Field *Q) {
 	ll = l;
 	llzp = lzp;
 
-	qb[ll] += (vz[ll]*rho_s[ll]*SurfZ(j,k) -	\
+	qb[ll] += (vz[ll]*rho_s[ll]*SurfZ(i,j,k) -	\
 		  vz[llzp]*rho_s[llzp]		\
-		  *SurfZ(j,k+1))*dt*InvVol(j,k);
+		  *SurfZ(i,j,k+1))*dt*InvVol(i,j,k);
 //<\#>
 #ifdef X
       }

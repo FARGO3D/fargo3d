@@ -33,7 +33,6 @@ void HallEffect_UpdateEmfs_cpu(){
   int size_x = Nx;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
 //<\EXTERNAL>
   
 //<INTERNAL>

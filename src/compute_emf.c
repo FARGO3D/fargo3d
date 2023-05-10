@@ -96,7 +96,6 @@ void _ComputeEmf_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, 
   int size_x = Nx+2*NGHX;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -117,6 +116,7 @@ void _ComputeEmf_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, 
 //<\INTERNAL>
   
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -132,11 +132,11 @@ void _ComputeEmf_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, 
 	l1 = lxm*idx1+lym*idy1+lzm*idz1;
 	l2 = lxm*idx2+lym*idy2+lzm*idz2;
 	
-	delta1 = (zone_size_x(j,k)*idx1 +
+	delta1 = (zone_size_x(i,j,k)*idx1 +
 		  zone_size_y(j,k)*idy1 +
 		  zone_size_z(j,k)*idz1);
 	
-	delta2 = (zone_size_x(j,k)*idx2 +
+	delta2 = (zone_size_x(i,j,k)*idx2 +
 		  zone_size_y(j,k)*idy2 +
 		  zone_size_z(j,k)*idz2);
 	

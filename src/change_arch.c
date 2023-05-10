@@ -48,9 +48,14 @@ void ChangeArch() {
   NewVelocity_y = NewVelocity_y_cpu;
   NewVelocity_z = NewVelocity_z_cpu;
   AdvectSHIFT   = AdvectSHIFT_cpu;
+  AdvectRAM     = AdvectRAM_cpu;
+  AdvectRAMlin  = AdvectRAMlin_cpu;
+  RamSlopes     = RamSlopes_cpu;
   reduction_SUM = reduction_SUM_cpu;
   reduction_MIN = reduction_MIN_cpu;
   ComputeResidual = ComputeResidual_cpu;
+  ComputeVweight  = ComputeVweight_cpu;
+  RamComputeUstar = RamComputeUstar_cpu;
   ChangeFrame = ChangeFrame_cpu;
   Potential   = Potential_cpu;
   CorrectVtheta = CorrectVtheta_cpu;
@@ -275,10 +280,35 @@ void ChangeArch() {
 	  printf("AdvectShift runs on the GPU\n");
 	}
       }
+  if (strcmp(name, "advectram") == 0) {
+	if(strval[0] == 'g'){
+	  AdvectRAM = AdvectRAM_gpu;
+	  AdvectRAMlin = AdvectRAMlin_gpu;
+	  printf("AdvectRam runs on the GPU\n");
+	}
+  }
+  if (strcmp(name, "ramslopes") == 0) {
+	if(strval[0] == 'g'){
+	  RamSlopes = RamSlopes_gpu;
+	  printf("RamSlopes runs on the GPU\n");
+	}
+      }
+       if (strcmp(name, "ramcomputeustar") == 0) {
+	if(strval[0] == 'g'){
+	  RamComputeUstar = RamComputeUstar_gpu;
+	  printf("RamComputeUstar runs on the GPU\n");
+	}
+       }
       if (strcmp(name, "computeresidual") == 0) {
 	if(strval[0] == 'g'){
 	  ComputeResidual = ComputeResidual_gpu;
 	  printf("ComputeResidual runs on the GPU\n");
+	}
+      }
+   if (strcmp(name, "computevweight") == 0) {
+	if(strval[0] == 'g'){
+	  ComputeVweight = ComputeVweight_gpu;
+	  printf("Computevweight runs on the GPU\n");
 	}
       }
       if (strcmp(name, "changeframe") == 0) {

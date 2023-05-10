@@ -43,7 +43,6 @@ void SubStep1_x_cpu (real dt) {
   int size_x = XIP; 
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
   int fluidtype = Fluidtype;
 //<\EXTERNAL>
   
@@ -53,6 +52,7 @@ void SubStep1_x_cpu (real dt) {
   int k; //of the kernels
   int ll;
   real dtOVERrhom;
+  real dxmed;
 #ifdef X
   int llxm;
 #endif
@@ -77,8 +77,11 @@ void SubStep1_x_cpu (real dt) {
 //<\INTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+2*NGHX+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
+// real InvDiffXmed(Nx+2*NGHX);
+// real Sxi(Nx+2*NGHX);
 //<\CONSTANT>
 
 
@@ -105,11 +108,15 @@ void SubStep1_x_cpu (real dt) {
 #ifdef Z
 	llzp = lzp;
 #endif
-	dtOVERrhom=2.0*dt/(rho[ll]+rho[llxm]);
-	vx_temp[ll] = vx[ll] - 
-	  dtOVERrhom*(p[ll]-p[llxm])/zone_size_x(j,k);
+
+	dxmed = 0.5*( Sxi(i) + Sxi(ixm) );
+	dtOVERrhom = 2.*dt/( rho[ll]*Sxi(i) + rho[llxm]*Sxi(ixm) )*dxmed;
+
+	vx_temp[ll] = vx[ll];
+	if(fluidtype != DUST) vx_temp[ll] -=  dtOVERrhom*(p[ll]-p[llxm])*Inv_zone_size_xmed(i,j,k);
+	
 #ifdef POTENTIAL
-	vx_temp[ll] -= (pot[ll]-pot[llxm])*dt/zone_size_x(j,k);
+	vx_temp[ll] -= (pot[ll]-pot[llxm])*dt*Inv_zone_size_xmed(i,j,k);
 #endif
 
 #ifdef MHD
@@ -132,7 +139,7 @@ void SubStep1_x_cpu (real dt) {
 	  
 	  db2 = (bmean*bmean-bmeanm*bmeanm);
 	  
-	  vx_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(MU0*zone_size_x(j,k));
+	  vx_temp[ll] -= .5*dtOVERrhom*(db1 + db2)*Inv_zone_size_xmed(i,j,k)/MU0;
 	  
 #ifdef SPHERICAL
 	btmean = .5*(bmean+bmeanm);

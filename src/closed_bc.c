@@ -24,7 +24,6 @@ void CloseBoundaries_cpu(Field *Vy, Field *Vz){
   int size_x   = Nx;
   int size_y   = Ny+2*NGHY;
   int size_z   = Nz+2*NGHZ;
-  real dx      = Dx;
   int ncpuy    = Gridd.NJ;
   int ncpuz    = Gridd.NK;
   int jcpu     = J;

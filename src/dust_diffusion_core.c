@@ -18,7 +18,7 @@ void DustDiffusion_Core_cpu(real dt) {
 #endif
   INPUT(Density);
   INPUT(Fluids[0]->Density);
-  OUTPUT(Pressure);// we use the pressure field for temporal storage.
+  OUTPUT(Pressure);// we use the pressure field for temporal storage
 //<\USER_DEFINED>
 
   //Arrays Mmx, Mpx, Mmy and Mpy were filled with the dust diffusion coefficients in DustDiffusion_Coefficients()
@@ -33,12 +33,6 @@ void DustDiffusion_Core_cpu(real dt) {
   real* rhod  = Density->field_cpu;
   real* rhog  = Fluids[0]->Density->field_cpu;
   real* temp  = Pressure->field_cpu;
-#ifdef __GPU
-  real* alpha = Alpha_d;
-#else
-  real* alpha = Alpha;
-#endif
-  real dx    = Dx;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
   int size_x = Nx+2*NGHX;
@@ -77,12 +71,16 @@ void DustDiffusion_Core_cpu(real dt) {
   int llzp;
   int llzm;
 #endif
+  real dxmedm;
+  real dxmedp;
+  real dxmin;
 //<\INTERNAL>
 
 //<CONSTANT>
-// real xmin(Nx+1);
+// real xmin(Nx+2*NGHX+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
+// real InvDiffXmed(Nx+2*NGHX);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -117,6 +115,9 @@ void DustDiffusion_Core_cpu(real dt) {
 	c    = rhod[ll]/(rhod[ll] + rhog[ll]); //Cell centered
 	
 	// DUST DIFFUSION ALONG X-DIRECTION
+	dxmin  = xmin(i+1)-xmin(i);
+	dxmedp = InvDiffXmed(ixp);
+	dxmedm = InvDiffXmed(i);
 	
 #ifdef X
         d1   = 0.25*(rhod[ll] + rhog[ll] + rhod[llxp] + rhog[llxp])*(sdiff_yczc[llxp]+sdiff_yczc[ll]); //face centered in X
@@ -125,15 +126,15 @@ void DustDiffusion_Core_cpu(real dt) {
         cxm  = rhod[llxm]/(rhod[llxm] + rhog[llxm]);                                                   //Cell centered
 	
 #ifdef CARTESIAN
-	update += 1.0/(dx)*(d1*(cxp-c)/(dx) - (d2*(c-cxm))/(dx));
+	update += 1.0/(dxmin)*(d1*(cxp-c)/(dxmedp) - (d2*(c-cxm))/(dxmedm));
 #endif
 	
 #ifdef CYLINDRICAL
-        update += 1.0/ymed(j)/ymed(j)/(dx)*(d1*(cxp-c)/(dx) - (d2*(c-cxm))/(dx));
+        update += 1.0/ymed(j)/ymed(j)/(dxmin)*(d1*(cxp-c)/(dxmedp) - (d2*(c-cxm))/(dxmedm));
 #endif
 	
 #ifdef SPHERICAL
-        update += 1.0/ymed(j)/ymed(j)/sin(zmed(k))/sin(zmed(k))/(dx)*(d1*(cxp-c)/(dx) - (d2*(c-cxm))/(dx));
+        update += 1.0/ymed(j)/ymed(j)/sin(zmed(k))/sin(zmed(k))/(dxmin)*(d1*(cxp-c)/(dxmedp) - (d2*(c-cxm))/(dxmedm));
 #endif
 #endif //X
 	

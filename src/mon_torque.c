@@ -57,6 +57,7 @@ void mon_torq_cpu () {
 // real xmin(Nx+2*NGHX+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
+// real Sxi(Nx);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -74,7 +75,7 @@ void mon_torq_cpu () {
 #endif
 //<#>
 	ll = l;
-	cellmass = Vol(j,k)*dens[ll];
+	cellmass = Vol(i,j,k)*dens[ll];
 #ifdef CARTESIAN
 	dx = xmed(i)-Xplanet;
 	dy = ymed(j)-Yplanet;

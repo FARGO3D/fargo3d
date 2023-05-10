@@ -194,11 +194,7 @@ OrbitalElements SV2OE (StateVector v, real m) {
   return o;
 }
 
-void FindOrbitalElements (v,m,n)
-     StateVector v;
-     real m;
-     int n;
-{
+void FindOrbitalElements (StateVector v,real m,int n){
   FILE *output;
   char name[256];
   OrbitalElements o;
@@ -213,9 +209,7 @@ void FindOrbitalElements (v,m,n)
   fclose (output);
 }
 
-void SolveOrbits (sys)
-     PlanetarySystem *sys;
-{
+void SolveOrbits (PlanetarySystem *sys){
   int i, n;
   StateVector v;
   n = sys->nb;

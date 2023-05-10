@@ -41,7 +41,6 @@ void boundary_%side () {
   int nghz = NGHZ;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  real dx = Dx;
   %global;
 //<\EXTERNAL>
 

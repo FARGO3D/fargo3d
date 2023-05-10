@@ -58,11 +58,11 @@ void EMF_Upstream_Integrate_cpu (real dt) {
   int size_x = Nx+2*NGHX;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
-  real dx = Dx;
   int nx = Nx; 
 //<\EXTERNAL>
 
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -83,14 +83,14 @@ void EMF_Upstream_Integrate_cpu (real dt) {
 	    l_plus_m = ll+m;
 	    if (i+m >= nx+NGHX) l_plus_m -= nx;
 	    if (i+m <  NGHX)    l_plus_m += nx;
-	    emfz[ll] += -by[l_plus_m]*edge_size_x_middlez_lowy(j,k);
+	    emfz[ll] += -by[l_plus_m]*edge_size_x_middlez_lowy(i,j,k);
 	  }
 	} else {
 	  for (m=-1; m >= nxhy[ll2D_int]; m--) {
 	    l_plus_m = ll+m;
 	    if (i+m >= nx+NGHX) l_plus_m -= nx;
 	    if (i+m <  NGHX)    l_plus_m += nx;
-	    emfz[ll] += by[l_plus_m]*edge_size_x_middlez_lowy(j,k);
+	    emfz[ll] += by[l_plus_m]*edge_size_x_middlez_lowy(i,j,k);
 	  }
 	}
 	if (nxhz[ll2D_int] > 0) {
@@ -98,14 +98,14 @@ void EMF_Upstream_Integrate_cpu (real dt) {
 	    l_plus_m = ll+m;
 	    if (i+m >= nx+NGHX) l_plus_m -= nx;
 	    if (i+m <  NGHX)    l_plus_m += nx;
-	    emfy[ll] += bz[l_plus_m]*edge_size_x_middley_lowz(j,k);
+	    emfy[ll] += bz[l_plus_m]*edge_size_x_middley_lowz(i,j,k);
 	  }
 	} else {
 	  for (m=-1; m >= nxhz[ll2D_int]; m--) {
 	    l_plus_m = ll+m;
 	    if (i+m >= nx+NGHX) l_plus_m -= nx;
 	    if (i+m <  NGHX)    l_plus_m += nx;
-	    emfy[ll] += -bz[l_plus_m]*edge_size_x_middley_lowz(j,k);
+	    emfy[ll] += -bz[l_plus_m]*edge_size_x_middley_lowz(i,j,k);
 	  }
 	}
 //<\#>

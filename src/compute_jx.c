@@ -19,7 +19,6 @@ void ComputeJx_cpu() {
   real* by = By->field_cpu;
   real* bz = Bz->field_cpu;
   real* jx = Jx->field_cpu;
-  real dx = Dx;
   real mu0 = MU0;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;

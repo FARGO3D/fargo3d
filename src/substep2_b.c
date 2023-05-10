@@ -84,7 +84,7 @@ void SubStep2_b_cpu (real dt) {
   int size_x = XIP; 
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
-  real dx = Dx;
+  int fluidtype = Fluidtype;
 //<\EXTERNAL>
   
 //<INTERNAL>
@@ -95,14 +95,22 @@ void SubStep2_b_cpu (real dt) {
 #ifdef X
   int llxm;
   int llxp;
+  real dxmed;
+  real dxrho1;
+  real dxrho2;
 #endif
 #ifdef Y
   int llym;
   int llyp;
+  real dyrho1;
+  real dyrho2;
 #endif
 #ifdef Z
   int llzm;
   int llzp;
+  real dzmed;
+  real dzrho1;
+  real dzrho2;
 #endif
 //<\INTERNAL>
 
@@ -110,6 +118,8 @@ void SubStep2_b_cpu (real dt) {
 // real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
+// real Sxi(Nx);
+// real InvDiffXmed(Nx);
 //<\CONSTANT>
 
 
@@ -141,22 +151,47 @@ void SubStep2_b_cpu (real dt) {
 	llzm = lzm;
 #endif
 #ifdef X
-	vx_temp[ll] += - 2.0*(pres_x[ll]-pres_x[llxm])/(rho[ll]+rho[llxm])* \
-	  dt/zone_size_x(j,k);//Should be distance from center to center
+
+	dxrho1 = Sxi(i);
+	dxrho2 = Sxi(ixm);
+	dxmed  = 0.5*( Sxi(i) + Sxi(ixm) );
+
+	vx_temp[ll] += - 2.0*dt*dxmed*(pres_x[ll]-pres_x[llxm])/(rho[ll]*dxrho1+rho[llxm]*dxrho2)*Inv_zone_size_xmed(i,j,k);
+
 #ifdef ADIABATIC
-	e[ll] += -dt*(pres_x[ll]*(vx[llxp]-vx[ll])/zone_size_x(j,k));
+	e[ll] += -dt*(pres_x[ll]*(vx[llxp]-vx[ll])/zone_size_x(i,j,k));
 #endif
 #endif
+
+
 #ifdef Y
-	vy_temp[ll] += - 2.0*(pres_y[ll]-pres_y[llym])/(rho[ll]+rho[llym])*	\
-	  dt/zone_size_y(j,k);// instead of zone_size_(x,y,z)
+
+	dyrho1 = ymin(j+1)-ymin(j);
+	dyrho2 = ymin(j)-ymin(j-1);
+
+	//ymed(j)-ymed(j-1) cancels out (see substep1_y.c)
+	vy_temp[ll] += - 2.0*(pres_y[ll]-pres_y[llym])/(rho[ll]*dyrho1+rho[llym]*dyrho2)*dt;
+
+
 #ifdef ADIABATIC
 	e[ll] += -dt*(pres_y[ll]*(vy[llyp]-vy[ll])/zone_size_y(j,k));
 #endif
 #endif
+
+
 #ifdef Z
-	vz_temp[ll] += -2.0*(pres_z[ll]-pres_z[llzm])/(rho[ll]+rho[llzm])*	\
-	  dt/zone_size_z(j,k);// which is the distance from edge to edge
+	dzmed  = zmed(k)-zmed(k-1);
+	dzrho1 = zmin(k+1)-zmin(k);
+	dzrho2 = zmin(k)-zmin(k-1);
+
+
+#ifdef SPHERICAL
+	vz_temp[ll] += -2.0*dzmed*(pres_z[ll]-pres_z[llzm])/(rho[ll]*dzrho1+rho[llzm]*dzrho2)*dt/( ymed(j)*(zmed(k)-zmed(k-1)));
+	
+#else
+	vz_temp[ll] += -2.0*(pres_z[ll]-pres_z[llzm])/(rho[ll]*dzrho1+rho[llzm]*dzrho2)*dt;
+#endif
+
 #ifdef ADIABATIC
 	e[ll] += -dt*(pres_z[ll]*(vz[llzp]-vz[ll])/zone_size_z(j,k));
 #endif

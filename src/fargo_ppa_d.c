@@ -28,7 +28,6 @@ void VanLeerX_PPA_d_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
   int size_x = Nx+2*NGHX;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
-  real dx = Dx;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -40,8 +39,8 @@ void VanLeerX_PPA_d_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
   real ksi;
 //<\INTERNAL>
   
-//Parsed as copytosymbol, to a _d variable allocated on the gpu by the user.
 //<CONSTANT>
+// real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -61,11 +60,11 @@ void VanLeerX_PPA_d_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
 	ll = l;
 	llxm = lxm;
 	if (vx[ll] > 0.0) {
-	  ksi = vx[ll]*dt/zone_size_x(j,k);
+	  ksi = vx[ll]*dt/zone_size_x(i,j,k);
 	  qs[ll] = qR[llxm]+ksi*(q[llxm]-qR[llxm]);
 	  qs[ll]+= ksi*(1.0-ksi)*(2.0*q[llxm]-qR[llxm]-qL[llxm]);
 	} else {
-	  ksi = -vx[ll]*dt/zone_size_x(j,k);
+	  ksi = -vx[ll]*dt/zone_size_x(i,j,k);
 	  qs[ll] = qL[ll]+ksi*(q[ll]-qL[ll]);
 	  qs[ll]+= ksi*(1.0-ksi)*(2.0*q[ll]-qR[ll]-qL[ll]);
 	}
