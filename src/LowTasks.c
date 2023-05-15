@@ -297,11 +297,11 @@ void InitSpace() {
   // Fill ghost zones using the fact that du is constant and we bisect in reverse order
   if (J == 0) {
     for (j = 0; j < NGHY; j++) 
-      Ymin(NGHY - (j+1)) = bisect(0.5*YMIN, Ymin(NGHY-j), Ny+1, uy, 1);
+      Ymin(NGHY - (j+1)) = bisect(0.5*YMIN, Ymin(NGHY-j), NY+1, uy, 1);
   }
   if (J == Ncpu_x - 1) {
     for (j = 0; j < NGHY; j++) 
-      Ymin(Ny+NGHY+j+1) = bisect(Ymin(Ny+NGHY+j), 1.5*YMAX, Ny+1, uy, 0);
+      Ymin(Ny+NGHY+j+1) = bisect(Ymin(Ny+NGHY+j), 1.5*YMAX, NY+1, uy, 0);
   }
 
 #endif //Y
