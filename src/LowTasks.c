@@ -307,6 +307,7 @@ void InitSpace() {
 #endif //Y
 
 #ifdef Z
+  dz = (ZMAX-ZMIN)/NZ;
   for (k = 0; k<Nz+2*NGHZ+1; k++) {
       Zmin(k) = ZMIN + dz*(k+Z0-NGHZ);
   }
