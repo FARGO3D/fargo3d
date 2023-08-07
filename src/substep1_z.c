@@ -176,7 +176,7 @@ void SubStep1_z_cpu (real dt) {
 	vphi = .25*(vx_half[ll] + vx_half[llxp] + vx_half[llzm] + vx_half[llxp-stride]);
 	vphi += ymed(j)*sin(zmin(k))*OMEGAFRAME;
 	vz_temp[ll] = vz[ll];
-	if(fluidtype != DUST) vz_temp[ll] -= dtOVERrhom*(p[ll]-p[llzm])/(zmed(k)-zmed(k-1));
+	if(fluidtype != DUST) vz_temp[ll] -= dtOVERrhom*(p[ll]-p[llzm])/(ymed(j)*(zmed(k)-zmed(k-1)));
 
 	vz_temp[ll] += vphi*vphi*cos(zmin(k))/(sin(zmin(k))*ymed(j))*dt;
 
