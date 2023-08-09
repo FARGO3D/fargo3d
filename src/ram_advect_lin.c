@@ -15,7 +15,6 @@ void AdvectRAMlin_cpu(real dt, Field *F) {
   DRAFT(Pressure);
 //<\USER_DEFINED>
 
-
 //<EXTERNAL>
   real* f        = F->field_cpu;
   real* slopes   = Slope->field_cpu;
@@ -43,7 +42,6 @@ void AdvectRAMlin_cpu(real dt, Field *F) {
   int l_star;
   int l_starp;
   int umin_total;
-  int idm;
   real phistarmin_last;
   real deltax;
   real deltax0;
@@ -53,13 +51,10 @@ void AdvectRAMlin_cpu(real dt, Field *F) {
   real deltax4;
 //<\INTERNAL>
 
-
 //<CONSTANT>
 //  real xmin(Nx+2*NGHX+1);
 //<\CONSTANT>
 
-
-  
 //<MAIN_LOOP>
 
   i = j = k = 0;
@@ -82,14 +77,11 @@ void AdvectRAMlin_cpu(real dt, Field *F) {
       id_starp = (int) ( (phistarmin[llxp]-_xmin)/(_xmax-_xmin)*size_x); //p(i+1)
       
 
-      l_star   = id_star  + j*size_x + k*stride;
-      l_starp  = id_starp + j*size_x + k*stride;
+      l_star   = id_star  + j*pitch + k*stride;
+      l_starp  = id_starp + j*pitch + k*stride;
       
       umin_total  = (id_starp-id_star);
       while(umin_total < 0) umin_total += size_x;
-
-      //idm = (int) ( umin_total/(umin_total+1e-17) );
-
 
       if(umin_total == 0){
 	      deltax0  = ( phistarmin[lxp]-phistarmin[ll]);
@@ -114,7 +106,7 @@ void AdvectRAMlin_cpu(real dt, Field *F) {
       aux[ll] += f[l_starp]*deltax2; 
       aux[ll] += 0.5*slopes[l_starp]*(deltax3*deltax3-deltax4*deltax4);
 
-      for(m=id_star+1; m<id_starp; m++) aux[ll] += f[m+j*size_x+k*stride]*(xmin(m+1)-xmin(m));
+      for(m=id_star+1; m<id_starp; m++) aux[ll] += f[m+j*pitch+k*stride]*(xmin(m+1)-xmin(m));
 
       aux[ll] /= (xmin(i+1)-xmin(i));
 //<\#>
