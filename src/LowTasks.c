@@ -320,7 +320,7 @@ void InitSpace() {
 #ifdef X
   dx  = (XMAX-XMIN)/NX;
 #else
-  dx  = 0.0
+  dx  = 0;
 #endif
 #ifdef Y
     dy = (YMAX-YMIN)/NY;

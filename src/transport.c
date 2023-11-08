@@ -177,11 +177,17 @@ void transport(real dt){
     XadvectRAM(Density,dt);
 
 #endif //RAM
-#endif //no STD                                                                                                                                                                                            
-#endif //X 
+#endif //no STD
   }
-  
+#endif //X 
+ 
+#ifdef X
   FARGO_SAFE(NewVelocity_x());
+#endif
+#ifdef Y
   FARGO_SAFE(NewVelocity_y());
+#endif
+#ifdef Z
   FARGO_SAFE(NewVelocity_z());
+#endif
 }
