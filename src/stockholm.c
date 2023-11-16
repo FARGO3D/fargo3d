@@ -37,7 +37,15 @@ void StockholmBoundary_cpu(real dt) {
 
 //<EXTERNAL>
   real* rho  = Density->field_cpu;
-  real* rho0 = Density0->field_cpu;
+
+  #ifndef STOCKHOLMAAV
+    real* rho0 = Density0->field_cpu;
+  #endif
+
+  #ifdef STOCKHOLMAAV
+    reduction_SUM(Density, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
+  #endif
+
 #ifdef X
   real* vx  = Vx->field_cpu;
   real* vx0 = Vx0->field_cpu;
@@ -121,6 +129,10 @@ void StockholmBoundary_cpu(real dt) {
 #endif
 #ifdef Y
     for (j=0; j<size_y; j++) {
+#endif
+#ifdef STOCKHOLMAAV
+      int ll2D = l2D;
+      Density0->field_cpu[ll2D] = Reduction2D->field_cpu[ll2D]/(real)Nx;
 #endif
 #ifdef X
       for (i=0; i<size_x; i++) {

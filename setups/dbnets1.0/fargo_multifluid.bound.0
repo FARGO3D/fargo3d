@@ -1,0 +1,15 @@
+#Boundaries file for fluid number 0
+#----------------------------------
+
+Density:
+	Ymin: CUSTOMBCDENSINNER_GAS
+	Ymax: CUSTOMBCDENSOUTER_GAS
+
+Vx:
+	Ymin: KEPLERIAN2DVAZIM_CORR
+	Ymax: KEPLERIAN2DVAZIM_CORR
+
+Vy:
+	Ymin: NOBOUNDARY
+	Ymax: NOBOUNDARY
+
