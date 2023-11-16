@@ -1,5 +1,5 @@
-#Boundaries configuration file
-#-----------------------------
+#Boundaries configuration file for fargo.bound
+#----------------------------------------------
 
 Density:
 	Ymin: KEPLERIAN2DDENS
