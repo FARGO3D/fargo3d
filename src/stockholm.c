@@ -41,9 +41,41 @@ void StockholmBoundary_cpu(real dt) {
   #ifndef STOCKHOLMAAV
     real* rho0 = Density0->field_cpu;
   #endif
-
   #ifdef STOCKHOLMAAV
     reduction_SUM(Density, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
+    #ifdef Z
+  for (k = 0; k < Nz+2*NGHZ; k++) {
+  #endif
+  #ifdef Y
+      for (j = 0; j < Ny+2*NGHY; j++) {
+  #endif
+        int ll2D = l2D;
+        Density0->field_cpu[ll2D] = Reduction2D->field_cpu[ll2D]/(real)Nx;
+  #ifdef Y
+      }
+  #endif
+  #ifdef Z
+    }
+  #endif
+  real* rho0 = Density0->field_cpu;
+#ifdef X
+  real* vx  = Vx->field_cpu;
+  reduction_SUM(Vx, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
+  #ifdef Z
+  for (k = 0; k < Nz+2*NGHZ; k++) {
+  #endif
+  #ifdef Y
+      for (j = 0; j < Ny+2*NGHY; j++) {
+  #endif
+        int ll2D = l2D;
+        Vx0->field_cpu[ll2D] = Reduction2D->field_cpu[ll2D]/(real)Nx;
+  #ifdef Y
+      }
+  #endif
+  #ifdef Z
+    }
+  #endif
+#endif
   #endif
 
 #ifdef X
@@ -52,7 +84,10 @@ void StockholmBoundary_cpu(real dt) {
 #endif
 #ifdef Y
   real* vy  = Vy->field_cpu;
-  real* vy0 = Vy0->field_cpu;
+  #ifndef STOCKHOLMAAV
+    real* vy0 = Vy0->field_cpu;
+  #endif
+  
 #endif
 #ifdef Z
   real* vz  = Vz->field_cpu;
@@ -72,7 +107,11 @@ void StockholmBoundary_cpu(real dt) {
   real y_max = YMAX;
   real z_min = ZMIN;
   real z_max = ZMAX;
+
+  #ifndef MANUALDAMPBOUNDY
   real dampingzone = DAMPINGZONE;
+  #endif
+
   real kbcol = KILLINGBCCOLATITUDE;
   real of    = OMEGAFRAME;
   real of0   = OMEGAFRAME0;
@@ -86,8 +125,14 @@ void StockholmBoundary_cpu(real dt) {
   int j;
   int k;
   //  Similar to Benitez-Llambay et al. (2016), Eq. 7.
+  #ifndef MANUALDAMPBOUNDY
   real Y_inf = y_min*pow(dampingzone, 2.0/3.0);
   real Y_sup = y_max*pow(dampingzone,-2.0/3.0);
+  #endif
+  #ifdef MANUALDAMPBOUNDY
+  real Y_inf = YDAMPINF;
+  real Y_sup = YDAMPSUP;
+  #endif
   real Z_inf = z_min - (z_max-z_min); // Here we push Z_inf & Z_sup
   real Z_sup = z_max + (z_max-z_min); // out of the mesh
 #ifdef CYLINDRICAL
@@ -129,10 +174,6 @@ void StockholmBoundary_cpu(real dt) {
 #endif
 #ifdef Y
     for (j=0; j<size_y; j++) {
-#endif
-#ifdef STOCKHOLMAAV
-      int ll2D = l2D;
-      Density0->field_cpu[ll2D] = Reduction2D->field_cpu[ll2D]/(real)Nx;
 #endif
 #ifdef X
       for (i=0; i<size_x; i++) {

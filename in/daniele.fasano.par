@@ -1,4 +1,4 @@
-Setup			fargo
+Setup			daniele.fasano
 
 ### Disk parameters
 
@@ -8,9 +8,9 @@ SigmaSlope		1.5		Slope for the surface density
 FlaringIndex		0.5		Slope for the aspect-ratio
 Alpha			0.0001
 
-# Radial range for damping (in period-ratios). Values smaller than one
-# prevent damping.
-
+# Radial range for damping (in period-ratios)
+YDampInf		0.28
+YDampSup		3.4
 
 # Characteristic time for damping, in units of the inverse local
 # orbital frequency. Higher values means lower damping
@@ -19,7 +19,7 @@ TauDamp 0.3
 
 ### Planet parameters
 
-PlanetConfig		planets/mth.25.cfg
+PlanetConfig		planets/Jupiter.cfg
 ThicknessSmoothing 	0.6
 RocheSmoothing 		0.0
 Eccentricity		0.0

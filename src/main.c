@@ -13,11 +13,6 @@ real dt;
 real dtemp = 0.0;
 
 int main(int argc, char *argv[]) {
-
-  #ifdef PROVAA
-  printf("this is a test to see if i can enable options\n");
-  #endif
-  
   
   int   i=0, OutputNumber = 0, d;
   char  sepline[]="===========================";

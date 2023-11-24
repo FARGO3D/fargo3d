@@ -1,4 +1,4 @@
-Setup			fargo
+Setup			daniele.fasano
 
 ### Disk parameters
 
@@ -11,7 +11,8 @@ FlaringIndex		0.0		Slope for the aspect-ratio
 # Radial range for damping (in period-ratios). Values smaller than one
 # prevent damping.
 
-DampingZone 1.15
+YDampInf            0.28
+YDampSup            3.4
 
 # Characteristic time for damping, in units of the inverse local
 # orbital frequency. Higher values means lower damping
@@ -34,7 +35,7 @@ Ny               	128		Radial number of zones
 Xmin			-3.14159265358979323844	
 Xmax			3.14159265358979323844
 Ymin			0.2		Inner boundary radius
-Ymax			4		Outer boundary radius
+Ymax			4.0		Outer boundary radius
 OmegaFrame     		1.0005		Angular velocity for the frame of reference (If Frame is F).
 Frame			G		Method for moving the frame of reference
 
