@@ -48,12 +48,12 @@ mpirun -np 2 ./fargo3d setups/fargo/fargo.par
 
 * ```setups/```: custom setup definitions.
 
-* ```src/```: source files. These can be copied to the ```setups/``` subdirectory and modified there. The makefile uses the ```VPATH``` variable to decide in which order a given source file is sought within different directories (the ```
+* ```src/```: source files. These files can be copied to the ```setups/``` subdirectory and modified there. The makefile uses the ```VPATH``` variable to decide in which order a given source file is sought within different directories (the ```
 setup/``` subdirectory has higher prority than ```src```).
 
-* ```std/```: standard or default definitions. These include definition of standard boundary conditions, units and scaling rules, default setup parameters, etc.
+* ```std/```: standard or default definitions. These definitions include standard boundary conditions, units, scaling rules, default setup parameters, etc.
 
-* ```test_suite/```: scripts used to test various features of the code. The rule to issue them is ```make test[name of python script without extension]``` for any script in this subdirectory. These scripts use the 'test' python module in ```
+* ```test_suite/```: scripts used to test the code. The rule to issue them is ```make test[name of python script without extension]``` for any script in this subdirectory. These scripts use the 'test' python module in ```
 scripts/```
 
 * ```utils/```: utilities to post-process the data.
