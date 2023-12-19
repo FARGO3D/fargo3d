@@ -48,7 +48,7 @@ mpirun -np 2 ./fargo3d setups/fargo/fargo.par
 
 * ```setups/```: custom setup definitions.
 
-* ```src/```: source files. These can be copied to the ```setups/``` subdirectory and modified there. The makefile uses the ```VPATH``` variable which allows to decide in which order a given source file is sought within different directories (the ```
+* ```src/```: source files. These can be copied to the ```setups/``` subdirectory and modified there. The makefile uses the ```VPATH``` variable to decide in which order a given source file is sought within different directories (the ```
 setup/``` subdirectory has higher prority than ```src```).
 
 * ```std/```: standard or default definitions. These include definition of standard boundary conditions, units and scaling rules, default setup parameters, etc.
