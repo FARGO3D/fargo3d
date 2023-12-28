@@ -2,9 +2,9 @@
 
 #### A versatile MULTIFLUID HD/MHD code that runs on clusters of CPUs or GPUs, with special emphasis on protoplanetary disks. 
 
-### [Documentation](https://fargo3d.bitbucket.io/)
+### [Documentation](https://fargo3d.github.io/documentation)
 
-Bugs can be reported to the [issues section](https://github.com/FARGO3D/fargo3d/issues) or to the [Google group](https://groups.google.com/forum/#!forum/fargo3d).
+Report bugs to the [issues section](https://github.com/FARGO3D/fargo3d/issues) or to the [Google group](https://groups.google.com/forum/#!forum/fargo3d).
 
 ### First run
 
