@@ -11,6 +11,7 @@ void SubStep3_cpu (real dt) {
 
 //<USER_DEFINED>
   INPUT(Energy);
+  INPUT2D(Energy0);
 #ifdef X
   INPUT(Vx_temp);
 #endif
@@ -25,6 +26,7 @@ void SubStep3_cpu (real dt) {
 
 //<EXTERNAL>
   real* e   = Energy->field_cpu;
+  real* e0   = Energy0->field_cpu;
 #ifdef X
   real* vx  = Vx_temp->field_cpu;
 #endif
@@ -108,6 +110,15 @@ void SubStep3_cpu (real dt) {
 #endif
 	term = 0.5 * dt * (GAMMA - 1.) * div_v * InvVol(i,j,k);
 	e[ll] *= (1.0-term)/(1.0+term);
+
+  //beta cooling
+
+  #ifdef BETACOOLING
+  temp_p = BETA * dt;
+  e[ll] = (e[ll] + temp_p * e0[ll])/(1 + temp_p);
+  #endif
+
+  //end beta cooling
 //<\#>
 #ifdef X
       }
