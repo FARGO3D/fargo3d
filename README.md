@@ -19,7 +19,7 @@ make SETUP=fargo PARALLEL=0 GPU=0
 
 ```
 make SETUP=fargo PARALLEL=1 GPU=0
-mpirun -np 4 ./fargo3d setups/fargo/fargo.par
+mpirun -np 8 ./fargo3d setups/fargo/fargo.par
 ```
 
 #### Sequential GPU
