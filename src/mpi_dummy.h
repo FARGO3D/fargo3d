@@ -4,6 +4,7 @@
 #define MPI_FLOAT 4
 #define MPI_CHAR 1
 #define MPI_LONG 3
+#define MPI_UNSIGNED_LONG 5
 #define MPI_INT 0
 #define MPI_MIN 0
 #define MPI_MAX 0
@@ -19,7 +20,10 @@ typedef long MPI_Offset;
 void MPI_Comm_rank();
 void MPI_Barrier();
 void MPI_Comm_size();
+void MPI_Comm_dup(MPI_Comm, MPI_Comm*);
+void MPI_Comm_free(MPI_Comm*);
 void MPI_Scan();
+void MPI_Exscan();
 void MPI_Comm_split();
 void MPI_Init();
 void MPI_Finalize();

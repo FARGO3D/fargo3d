@@ -15,6 +15,8 @@ void MPI_Comm_rank (int a, int *b) {*b = 0;} /* Only one process, with rank zero
 
 void MPI_Comm_size (int a, int *b) {*b = 1;} /* Only one process in the world communicator... */
 
+void MPI_Comm_dup(MPI_Comm a, MPI_Comm *b) { *b = a; }
+
 void MPI_Init (int *argc, char **argv[]) {
   fprintf (stderr, "\n       !!!! WARNING !!!!\n\n");
   fprintf (stderr, "This is a sequential built of the %s code\n", *argv[0]);
@@ -88,4 +90,6 @@ void MPI_Recv(){}
 void MPI_Barrier(){}
 void MPI_Wait(){}
 void MPI_Scan(){} //In place scans require no special action
+void MPI_Exscan(){}
 void MPI_Comm_split(){}
+void MPI_Comm_free(MPI_Comm *){}

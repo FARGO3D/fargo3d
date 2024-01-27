@@ -22,7 +22,7 @@ int PrimitiveVariables () {
   var |= VY;
 #endif
 #ifdef Z
-  var |= VZ;  
+  var |= VZ;
 #endif
 
 #ifdef MHD
@@ -116,7 +116,7 @@ void MakeDir (char *string) {
   /* If all processes see the same partition, only the first process
      will create the directory. Alternatively, they will create as
      many directories as necessary. For instance, if we have say 4 PEs per node
-     and each node sees its own scratchdir, nbprocesses/4 
+     and each node sees its own scratchdir, nbprocesses/4
      mkdir() commands will be issued */
   if (CPU_Rank) MPI_Recv (&foo, 1, MPI_INT, CPU_Rank-1, 53, MPI_COMM_WORLD, &fargostat);
   dir = opendir (string);
@@ -199,7 +199,7 @@ void InitSpace() {
   real dx,dy, dz;
   real x0;
   int  i,j,k;
-  
+
   FILE *domain;
   char domain_out[512];
   real ymin, zmin, xmin;
@@ -211,7 +211,7 @@ void InitSpace() {
   int temp, relay;
   int init = 0;
 
- 
+
   if (*SPACING=='F') { //Fixed spacing
 #ifdef X
     masterprint("Warning: zone spacing will be taken from the files domain_i.dat.\n");
@@ -231,7 +231,7 @@ void InitSpace() {
       already_x = YES;
     }
     fclose(domain);
-#endif    
+#endif
 #ifdef Y
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_y.dat");
     domain = fopen(domain_out, "r");
@@ -249,7 +249,7 @@ void InitSpace() {
       }
       already_y = YES;
     }
-    
+
     fclose(domain);
 #endif
 #ifdef Z
@@ -296,11 +296,11 @@ void InitSpace() {
   }
   // Fill ghost zones using the fact that du is constant and we bisect in reverse order
   if (J == 0) {
-    for (j = 0; j < NGHY; j++) 
+    for (j = 0; j < NGHY; j++)
       Ymin(NGHY - (j+1)) = bisect(0.5*YMIN, Ymin(NGHY-j), NY+1, uy, 1);
   }
   if (J == Ncpu_x - 1) {
-    for (j = 0; j < NGHY; j++) 
+    for (j = 0; j < NGHY; j++)
       Ymin(Ny+NGHY+j+1) = bisect(Ymin(Ny+NGHY+j), 1.5*YMAX, NY+1, uy, 0);
   }
 
@@ -313,7 +313,7 @@ void InitSpace() {
   }
 #endif //Z
  }
- 
+
 
   else {
 
@@ -332,7 +332,7 @@ void InitSpace() {
 #else
     dz = 0;
 #endif
-    
+
   if (((toupper(*SPACING)) == 'L') && ((toupper(*(SPACING+1))) == 'O')) { //Logarithmic
       masterprint("Warning: The Y spacing is logarithmic.\n");
       dy = (log(YMAX)-log(YMIN))/NY;
@@ -362,7 +362,7 @@ void InitSpace() {
 	Xmin(i) = XMIN + dx*(i-NGHX);
 #else
 	Xmin(i) = 0.0;
-#endif	
+#endif
       }
   }
 
@@ -380,11 +380,11 @@ void InitSpace() {
     InvDiffXmed(i) = 1./(Xmed(i)-Xmed(i-1));
   }
   InvDiffXmed(0) = 1./( Xmed(0)- (Xmed(Nx-1)-(XMAX-XMIN) ));
-  
+
 
   MPI_Barrier(MPI_COMM_WORLD);
-  
-  if (!already_x) {
+
+  if (!HDF5 && !already_x) {
     if(CPU_Master) {
       sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_x.dat");
       domain = fopen(domain_out, "w");
@@ -394,17 +394,17 @@ void InitSpace() {
       }
     }
   }
-  
-  if (!already_y) {
+
+  if (!HDF5 && !already_y) {
     if (CPU_Rank > 0) { // Force sequential write
       MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
-    
+
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_y.dat");
     if(CPU_Master)  {
       domain = fopen(domain_out, "w");
       jmin = 0;
-      jmax = Ny+NGHY+1; 
+      jmax = Ny+NGHY+1;
     }
     else {
       if (CPU_Rank < Ncpu_x) {
@@ -427,9 +427,9 @@ void InitSpace() {
   }
 
   MPI_Barrier (MPI_COMM_WORLD);
-  
-  if (!already_z) {
-    if (CPU_Rank > 0) { // Force sequential read
+
+  if (!HDF5 && !already_z) {
+    if (CPU_Rank > 0) { // Force sequential write
       MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 43, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_z.dat");
@@ -437,7 +437,7 @@ void InitSpace() {
       domain = fopen(domain_out, "w");
       jmin = 0;
       jmax = Nz+NGHZ+1;
-    } 
+    }
     else {
       if (J == 0) {
 	domain = fopen(domain_out, "a");
@@ -453,10 +453,10 @@ void InitSpace() {
       }
       fclose(domain);
     }
-    if (CPU_Rank < CPU_Number-1) {  // Force sequential read
+    if (CPU_Rank < CPU_Number-1) {  // Force sequential write
       MPI_Send (&relay, 1, MPI_INT, CPU_Rank+1, 43, MPI_COMM_WORLD);
     }
-    
+
     MPI_Barrier (MPI_COMM_WORLD);
   }
 }
@@ -493,7 +493,7 @@ for(i=1;i<Nx+2*NGHX; i++) {
       Szj(j) = 1.0;
 #endif
       InvVj(j)  = 1./(Sxj(j));
-    }    
+    }
     for (k = 0; k<Nz+2*NGHZ; k++) {
 #ifdef Z
       Sxk(k) = Zmin(k+1)-Zmin(k);
@@ -502,7 +502,7 @@ for(i=1;i<Nx+2*NGHX; i++) {
 #endif
 #ifdef Z
       Syk(k) = Zmin(k+1)-Zmin(k);
-#else 
+#else
       Syk(k) = 1.0;
 #endif
       Szk(k) = 1.0;
@@ -540,8 +540,8 @@ for(i=1;i<Nx+2*NGHX; i++) {
 		    -Ymin(j)*Ymin(j));
       Syj(j) = Ymin(j)*Ymin(j);
       Szj(j) = 0.5*(Ymin(j+1)*Ymin(j+1)
-		    -Ymin(j)*Ymin(j)); 
-      InvVj(j) = 3./((Ymin(j+1)*Ymin(j+1)*Ymin(j+1) - 
+		    -Ymin(j)*Ymin(j));
+      InvVj(j) = 3./((Ymin(j+1)*Ymin(j+1)*Ymin(j+1) -
 		      Ymin(j)*Ymin(j)*Ymin(j)));
     }
     for (k = 0; k<Nz+2*NGHZ; k++) {
@@ -552,7 +552,7 @@ for(i=1;i<Nx+2*NGHX; i++) {
 #else
       Sxk(k) = 1.0;
       Syk(k) = 1.0;
-      Szk(k) = 1.0; 
+      Szk(k) = 1.0;
 #endif
     }
 #endif
@@ -596,10 +596,10 @@ void CreateFields() {
   Reduction2D = CreateField2D ("Reduction2D", YZ);
 
 #if (defined(X) || defined(MHD))
-  
+
   Mpx              = CreateField   ("Moment_Plus_X" , 0, 1,0,0);
   Mmx              = CreateField   ("Moment_Minus_X", 0, 1,0,0);
-  
+
   Vxhy             = CreateField2D ("Vxhy"    , YZ);
   Vxhyr            = CreateField2D ("Vxhyr"   , YZ);
   Vxhz             = CreateField2D ("Vxhz"    , YZ);
@@ -614,7 +614,7 @@ void CreateFields() {
   Mpy     = CreateField("Moment_Plus_Y" , 0,0,1,0);
   Mmy     = CreateField("Moment_Minus_Y", 0,0,1,0);
 #endif
-  
+
 #if (defined(Z) || defined(MHD))
   Mpz     = CreateField("Moment_Plus_Z" , 0,0,0,1);
   Mmz     = CreateField("Moment_Minus_Z", 0,0,0,1);
@@ -626,16 +626,16 @@ void CreateFields() {
 						// be aliased wherever
 						// reductions are
 						// needed
-  
+
   DensStar      = CreateField("DensStar"     , 0,0,0,0);
   Qs            = CreateField("Qs"           , 0,0,0,0);
   Pressure      = CreateField("Pressure"     , 0,0,0,0);
   Total_Density = CreateField("Total_Density", 0,0,0,0);
-  
+
   QL      = CREATEFIELDALIAS("QLeft", Pressure, 0);
   QR      = CreateField("QRight", 0,0,0,0);
 
-#ifdef RAM  
+#ifdef RAM
   PhiStarmin = CreateField("PhiStarmin", 0,0,0,0);
   UStarmin   = CreateField("UStarmin", 0,0,0,0);
 #endif
@@ -653,7 +653,7 @@ void CreateFields() {
   Sdiffyfzf = CREATEFIELDALIAS("Sdiffyfzf",Mpy,0);
 #endif
 #endif
-  
+
 #ifdef MHD
   Bx      = CreateField("bx", BX,1,0,0);
   By      = CreateField("by", BY,0,1,0);
@@ -693,13 +693,13 @@ void CreateFields() {
 #ifdef AMBIPOLARDIFFUSION
   EtaAD = CreateField("EtaAD",0,0,0,0);
 #endif
-  
+
   //Claim ownership of storage area
   *(Emfx->owner) = Emfx;
   *(Emfy->owner) = Emfy;
   *(Emfz->owner) = Emfz;
-  
-  Divergence = CreateField("divb", 0, 0,0,0);  
+
+  Divergence = CreateField("divb", 0, 0,0,0);
 
 #endif
 
@@ -711,7 +711,7 @@ real ComputeMass() {
   real totalmass;
 
   real *rho;
-  
+
   INPUT (Density);
 
   rho = Density->field_cpu;
@@ -822,7 +822,7 @@ int RestartSimulation(int n) {
     __Restart = RestartVTK;
   else
     __Restart = RestartDat;
-  
+
   if (Dat2vtk) {
     Merge = YES;
     __Restart = RestartDat;
@@ -848,11 +848,11 @@ int RestartSimulation(int n) {
   __Restart(Bz, n);
 #endif
 #endif
-  
+
 #ifdef MPIIO
   MPI_Offset offset;
   offset = 0; //We start at the begining of the file
-  
+
   offset = ParallelIO(Density, n, MPI_MODE_RDONLY, offset,FALSE);
   if(Fluidtype != DUST)  offset = ParallelIO(Energy, n, MPI_MODE_RDONLY, offset,FALSE);
 #ifdef X
@@ -868,11 +868,11 @@ int RestartSimulation(int n) {
   if(Fluidtype == GAS){
     offset = ParallelIO(Bx, n, MPI_MODE_RDONLY, offset,FALSE);
     offset = ParallelIO(By, n, MPI_MODE_RDONLY, offset,FALSE);
-    offset = ParallelIO(Bz, n, MPI_MODE_RDONLY, offset,FALSE);    
+    offset = ParallelIO(Bz, n, MPI_MODE_RDONLY, offset,FALSE);
   }
 #endif
 #endif
-  
+
   begin = n*NINTERM;
   if (PostRestart)
     PostRestartHook ();
@@ -902,9 +902,9 @@ void RestartVTK(Field *f, int n) {
       masterprint("Error reading %s\n", filename);
       exit(1);
     }
-    
+
     masterprint("Reading %s\n", filename);
-    
+
     while(1) {
       temp = fscanf(fi, "%s\n", line);
       if (strcmp(line,"LOOKUP_TABLE") == 0){
@@ -912,7 +912,7 @@ void RestartVTK(Field *f, int n) {
 	break;
       }
     }
-    
+
     i = j = k = 0;
 
 #ifndef SPHERICAL
@@ -944,9 +944,9 @@ void RestartVTK(Field *f, int n) {
       masterprint("Error reading %s\n", filename);
       exit(1);
     }
-    
+
     masterprint("Reading %s\n", filename);
-    
+
     while(1) {
       temp = fscanf(fi, "%s\n", line);
       if (strcmp(line,"LOOKUP_TABLE") == 0){
@@ -955,7 +955,7 @@ void RestartVTK(Field *f, int n) {
 	break;
       }
     }
-    
+
     i = j = k = 0;
 
     origin = Y0+Z0*NX*NY;
@@ -1008,7 +1008,7 @@ void RestartDat(Field *field, int n) {
       exit(1);
     }
     masterprint("Reading %s\n", filename);
-    
+
     for (k=NGHZ; k<Nz+NGHZ; k++) {
       for (j=NGHY; j<Ny+NGHY; j++) {
 	temp = fread(f+j*(Nx+2*NGHX)+k*Stride+NGHX, sizeof(real), Nx, fi);
@@ -1021,7 +1021,7 @@ void RestartDat(Field *field, int n) {
       MPI_Finalize();
     }
   }
-  
+
   MPI_Barrier(MPI_COMM_WORLD);
   if(Restart_Full == YES) {
     sprintf(filename, "%s%s%d.dat", OUTPUTDIR, name, n);
@@ -1031,7 +1031,7 @@ void RestartDat(Field *field, int n) {
       exit(1);
     }
     masterprint("Reading %s\n", filename);
-    
+
     origin = (z0cell)*NX*NY + (y0cell)*NX; //z0cell and y0cell are global variables.
     for (k=NGHZ; k<Nz+NGHZ; k++) {
       fseek(fi, (origin+(k-NGHZ)*NX*NY)*sizeof(real), SEEK_SET); // critical part

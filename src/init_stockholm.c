@@ -51,9 +51,9 @@ void _init_stockholm() {
   }
 
   int i,j,k;
-  
+
   i = j = k = 0;
-  
+
 #ifdef X
   real* vx  = Vx->field_cpu;
   real* vx0 = Vx0->field_cpu;
@@ -72,7 +72,7 @@ void _init_stockholm() {
 #endif
   real* rho  = Density->field_cpu;
   real* rho0 = Density0->field_cpu;
-  
+
 #ifdef Z
   for (k=0; k<Nz+2*NGHZ; k++) {
 #endif
@@ -104,24 +104,28 @@ void _init_stockholm() {
   }
 #endif
 
-  sprintf(outputname,"%s0_2d.dat",Density->name);
-  Write2D(Density0, outputname, OUTPUTDIR, GHOSTINC);
+  if (HDF5) {
+    WriteOutputs2dHdf5();
+  } else {
+    sprintf(outputname,"%s0_2d.dat",Density->name);
+    Write2D(Density0, outputname, OUTPUTDIR, GHOSTINC);
 #ifdef X
-  sprintf(outputname,"%s0_2d.dat",Vx->name);
-  Write2D(Vx0, outputname, OUTPUTDIR, GHOSTINC);
+    sprintf(outputname,"%s0_2d.dat",Vx->name);
+    Write2D(Vx0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
 #ifdef Y
-  sprintf(outputname,"%s0_2d.dat",Vy->name);
-  Write2D(Vy0, outputname, OUTPUTDIR, GHOSTINC);
+    sprintf(outputname,"%s0_2d.dat",Vy->name);
+    Write2D(Vy0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
 #ifdef Z
-  sprintf(outputname,"%s0_2d.dat",Vz->name);
-  Write2D(Vz0, outputname, OUTPUTDIR, GHOSTINC);
+    sprintf(outputname,"%s0_2d.dat",Vz->name);
+    Write2D(Vz0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
 #ifdef ADIABATIC
-  sprintf(outputname,"%s0_2d.dat",Energy->name);
-  Write2D(Energy0, outputname, OUTPUTDIR, GHOSTINC);
+    sprintf(outputname,"%s0_2d.dat",Energy->name);
+    Write2D(Energy0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
+  }
 
 }
 
@@ -130,7 +134,7 @@ void init_stockholm() {
   static boolean init = TRUE;
 
   if (init) MULTIFLUID(_init_stockholm());
-  
+
   init = FALSE;
 
 }
