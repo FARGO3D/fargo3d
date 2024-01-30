@@ -1,692 +1,546 @@
-#!/usr/bin/env python
-
-"""
+'''
 C2CUDA parser developped for the FARGO3D code (http://fargo.in2p3.fr)
 Pablo Benitez Llambay, 2012-2014
-"""
+Modified by Ellen M. Price, 2024
+'''
 
-from __future__ import print_function
-import re
-import sys
-import getopt
 import os
+import re
+import argparse
+import textwrap
+from collections import namedtuple
 
-def verb(ifile, ofile):
-    print('\nVERBOSE MODE ACTIVATED')
-    print('=======================\n')
-    print('\nInput file: ', ifile)
-    print('Output file:',  ofile)
+parser = argparse.ArgumentParser(prog='c2cuda.py',
+    description='Compile structured .c file to .cu',
+    epilog='This script is part of FARGO3D.')
+parser.add_argument('input', nargs='+')
+parser.add_argument('-o', '--outdir', default='')
+parser.add_argument('-v', '--verbose', action='store_true')
+parser.add_argument('-p', '--profiling', action='store_true')
+parser.add_argument('-b', '--blocks', default='fargo.blocks')
+args = parser.parse_args()
 
-def read_file(input_file):
-    try:
-        ifile = open(input_file,'r')
-    except IOError:
-        print('\nI/O error in c2cuda.py! Please, verify your input/output files.\n')
-        exit()
-    return ifile.readlines()
+Function = namedtuple('Function', ['return_type', 'name', 'argument_list'])
+Variable = namedtuple('Variable', ['data_type', 'symbol'])
+External = namedtuple('External', ['data_type', 'name', 'assignment'])
+Constant = namedtuple('Constant', ['data_type', 'size', 'symbol'])
 
-def usage():
-    print('\nUsage: -i --input=  --> input_file')
-    print('       -o --output= --> output file')
-    print('       -v --verbose --> verbose mode')
-    print('       -f --formatted --> formatted with astyle (external dependence)')
-    print('       -p --profiling --> for block-dim studies.\n')
-    print('       -s --setup --> setup name.\n')
+divider = '-' * 20
+fill_kw = dict(initial_indent='', subsequent_indent='  ',
+    break_long_words=False, break_on_hyphens=False)
+fill_kw2 = dict(initial_indent='', subsequent_indent='    ',
+    break_long_words=False, break_on_hyphens=False)
 
-    exit()
+################################################################################
+# PARSE SECTION
+################################################################################
 
-def opt_reader():
-    #default values:
-    verbose = False
-    formated = False
-       
-    try:
-        options, remainder = getopt.getopt(sys.argv[1:],
-                                           'i:o:s:vfp',
-                                           ['input=',
-                                            'output=',
-                                            'verbose',
-                                            'formated',
-                                            'profiling',
-                                            'setup='])
-    except getopt.GetoptError:
-        usage()
-        
-    if(options == []):
-        usage()
+def find_block(content, tag):
+    '''Find a block delimited by //<tag> and //<\\tag> in the given
+    string, returning a list of the lines between the delimiters.
+    '''
+    rgx = r'\/\/<' + tag + r'>((?:.*\n)+?)\/\/<\\' + tag + r'>'
+    pat = re.compile(rgx)
 
-    o_file = i_file = ''
+    if args.verbose:
+        print(f'\n{divider}\nLooking for {tag} lines.')
 
-    global profiling
-    global SETUP
-    global INPUT
-
-    SETUP = ""
-    profiling = False
-            
-    for opt,arg in options:
-        if opt in ('-o', '--output'):
-            o_file = arg
-            continue
-        if opt in ('-i', '--input'):
-            i_file = arg
-            INPUT = arg
-            continue
-        if opt in ('-v', '--verbose'):
-            verbose = True
-            continue
-        if opt in ('-f', '--formated'):
-            formated = True
-        if opt in ('-p', '--profiling'):
-            profiling = True
-            continue
-        if opt in ('-s', '--setup'):
-            SETUP=arg
-            continue
-
-    opt = {'verbose': verbose,
-           'input': i_file,
-           'output': o_file,
-           'formated': formated,
-           'profiling': profiling,
-           'setup':SETUP}
-
-    return opt
-        
-def literal(lines, option, verbose = False):
-
-    found = False
-    output = []
-
-    begin = '//<'   + option + '>'
-    end   = '//<\\' + option + '>'
-    
-    if verbose:
-        print('\n---------------------------------')
-        print('Looking for ', option, ' lines.\n')
-
-    for line in lines:
-        line = line[:-1] # Avoiding \n
-        if line == begin:
-            found = True
-            continue
-
-        if line == end:
-            if verbose:
-                if output == []:
-                    print(option, ' is empty...')
-                print('\nAll ' + option +  ' lines were stored.')
-                print('---------------------------------\n')
-            return output
-
-        if found:
-            output.append(line)
-            if verbose:
-                print(line[:-1], 'is a/an ' + option + ' line.')
-
-def main_func(lines, verbose=False, test=False):
-
-    if verbose:
-        print('\n---------------------------------')
-        print('Searching cpu main function...\n')
-    
-    function = re.compile(r"""
-               (\w+)         #function type "1"
-               \s+           #1 or more whitespace
-               (\w+)_cpu     #function name "2"
-               (\s?|\s+)     #1 or more whitespace
-               \( (.*) \)    #input variables (all of them) "4"
-               """, re.VERBOSE)
-
-    if test:
-        print('\nTEST OF MAIN_FUNC')
-        print('=================\n')
-        
-        test_lines = ['void function_cpu (real dt, float b, string str_1) {',
-                      'void function_cpu (real dt, float b){',
-                      'void function_cpu(real dt, float b){',
-                      'void function_cpu(real dt, float b, int j) {',
-                      'void function_cpu (real dt,float b) {',
-                      'void function_cpu(real dt,float b){',
-                      'void     function_cpu    (real dt,   float b)    {']
-        for line in test_lines:
-            s = function.search(line)     
-            if(s):
-                func_type = s.group(1)
-                func_name = s.group(2)
-                func_var  = re.sub(',(\s+|\s?)',', ',s.group(4))
-                parsed_line = func_type + ' ' + func_name
-                parsed_line += '_gpu' + '(' + func_var + ') {\n'
-                print(line, " was parsed as ")
-                print(parsed_line)
-
-        exit()
-    for line in lines:
-        s = function.search(line)
-        if(s):
-            func_type = s.group(1)
-            func_name = s.group(2)
-            func_var  = re.sub(',(\s+|\s?)',', ',s.group(4)) 
-            parsed_line = func_type + ' ' + func_name
-            parsed_line += '_gpu' + '(' + func_var + ') {\n'
-            if(verbose):
-                print(line[:-1], " was parsed as ")
-                print(parsed_line)
-                print("Function", func_name, "was found.")
-                print('---------------------------------')
-            return parsed_line
-
-def gathering_data(lines,verbose):
-
-    flags     = literal(lines,'FLAGS',verbose)
-    includes  = literal(lines,'INCLUDES',verbose)
-    user_def  = literal(lines,'USER_DEFINED',verbose)
-    loop      = literal(lines,'LOOP_VARIABLES',verbose)
-    external  = literal(lines,'EXTERNAL',verbose)
-    variables = literal(lines,'VARIABLES',verbose)
-    filling   = literal(lines,'FILLING_VARIABLES',verbose)
-    internal  = literal(lines,'INTERNAL',verbose)
-    main_loop = literal(lines,'MAIN_LOOP',verbose)
-    constant  = literal(lines,'CONSTANT',verbose)
-    last_block = literal(lines, 'LAST_BLOCK',verbose)
-    gpu_func  = main_func(lines,test=False,verbose=verbose)
-    
-    data = {'flags':flags, 'includes':includes,'user_def':user_def,
-            'loop':loop,'external':external,'variables':variables,
-            'filling':filling,'main_loop':main_loop,'gpu_func':gpu_func,
-            'constant':constant, 'internal':internal, 'last_block':last_block}
-    return data
-
-def make_flags(flags):
-    new_flags = []
-    for element in flags:
-        new_flags.append(element[2:])
-    return new_flags
-
-def parsing_external(external):
-    
-    ifdef_level=0
-    declarations = []
-    calls = []
-    variables = re.compile(r"""
-                \s+                #1 or more whitespace
-                (\w+\*?)           #variable type "1"
-                \s+                #1 or more whitespace
-                (\w+)              #variable name "2"
-                (\s?|\s+)=         #1 or more whitespace and = "3"
-                (\s?|\s+)          #1 or more whitespace and = "4"
-                (.*);              #asign arguments "5"
-                """, re.VERBOSE)
-    
-    externals = []
-
-    for element in external:
-        if not re.search("\s?//",element): #Avoiding comments...
-            if element[0] == '#':
-                declarations.append(element)
-                calls.append(element)
-                continue
-            s = variables.search(element)
-            declarations.append(s.group(1)+' '+s.group(2))
-            if(re.match(".*_cpu",s.group(5))):
-                calls.append(re.sub("_cpu","_gpu",s.group(5)))
-            else:
-                calls.append(s.group(5))
-
-        externals.append([s.group(2), s.group(5)])
-
-    return declarations, calls, externals
-
-def make_launcher(gpu_func,calls):
-
-    launcher = re.search("\w*\s*(.*)",gpu_func).group(1) #avoiding type
-    
-    func_name = re.search("(.*)\(",launcher).group(1)
-
-    variables = re.search("\((.*)\)",launcher).group(1).split(',')
-    var = []
-    for i in variables:
-        if re.search('Field',i):
-            continue
-        try:
-            var.append(i.split()[1])
-        except IndexError:
-            continue
-    launcher = re.sub("_gpu","_kernel<<<grid,block>>>",func_name) + '('
-    for i in var:
-        launcher += i + ',\n'
-
-    for element in calls:
-        if(element[0] == '#'):
-            launcher += element + '\n'
-        else:
-            launcher += element + ',\n'
-
-    return launcher[:-2] + ") {\n", 'extern "C" ' + gpu_func
-    
-def make_kernel(gpu_func,declarations):
-    launcher = re.sub("_gpu","_kernel",gpu_func)        
-    if re.search("\(\s*\)",launcher):
-#Avoiding problems if there is no argument.
-        launcher = "__global__ " + launcher[:-4] + '\n'
+    m = pat.search(content)
+    if m is not None:
+        lines = m.group(1)
+        if args.verbose:
+            n = len(lines.split('\n'))
+            print(f'Found {n} {tag} lines.')
+        return lines
     else:
-        launcher = "__global__ " + launcher[:-4] + ',\n'
-    """
-    Note that this line implies that any string
-    defined after some Field string will be removed.
-    So, in order to avoid problems, you must define
-    all the Field variables at the end of the function!!!
-    """
-    temporal1 = re.search("\(.*",launcher).group(0)
-    temporal1 = re.sub("Field.*"," ",temporal1)
-    launcher = re.search("(.*)\(",launcher).group(1) + \
-        temporal1   
-    for element in declarations:
-        if(element[0] == '#'):
-            launcher += element + '\n'
+        return ''
+
+def parse_main_func(content):
+    '''Finds a function declaration in the input and returns the
+    transformed version for GPU.
+    '''
+    fn = None
+
+    if args.verbose:
+        print(f'\n{divider}\nParsing main CPU function.')
+
+    # This regex will match a C function definition like:
+    #   void foo_cpu(real x, real y)
+    # Groups extracted:
+    #   1 = return type
+    #   2 = name
+    #   3 = argument list
+    rgx1 = r'(\w+)\s+(\w+)_cpu\s*\((.*)\)'
+    pat1 = re.compile(rgx1)
+
+    rgx2 = r'(\w+\s*\*?\s*)(\w+)\s*,?'
+    pat2 = re.compile(rgx2)
+
+    m = pat1.search(content)
+    if m is not None:
+        before = m.group(0)
+        rtype, fname, arglist = m.group(1, 2, 3)
+
+        parsed_arglist = [Variable(data_type=m2.group(1), symbol=m2.group(2)) \
+            for m2 in pat2.finditer(arglist)]
+
+        # Construct a new function definition
+        fn = Function(return_type=rtype, name=fname, argument_list=parsed_arglist)
+
+        if args.verbose:
+            after = f'{rtype} {fname}({arglist})'
+            print(textwrap.dedent(f'''
+                Found function {name}:
+                {before} => {after}
+                {divider}
+                '''))
+
+    return fn
+
+def parse_external(block_content):
+    '''Parses the external block for variable assignments, extracting the
+    type, variable name, and right-hand side assignment.
+    '''
+    external = list()
+
+    # This regex will match a C variable assignment like:
+    #   real* foo = bar;
+    # Groups extracted:
+    #   1 = variable type
+    #   2 = lhs name
+    #   3 = rhs value
+    assign = re.compile(r'\s*(\w+\s*\*?\s*)(\w+)\s*=\s*(.*);')
+
+    for line in block_content.split('\n'):
+        if len(line) == 0: continue
+        elif line[0] == '#':
+            # Preserve preprocessor directives verbatim
+            external.append('\n' + line + '\n')
         else:
-            launcher += element + ',\n'
-    return launcher[:-2] + ") {\n"
+            # Loop over all matches on this line
+            for m in assign.finditer(line):
+                dtype, name, rhs = m.group(1, 2, 3)
+                rhs = rhs.replace('_cpu', '_gpu')
+                ext = External(data_type=dtype, name=name, assignment=rhs)
+                external.append(ext)
 
+    return external
 
-def make_constant(symbols):
-    
-    data = re.compile(r"""
-               (\s?|\s+)//       #comments "1"
-               (\s?|\s+)(\w+)    #type "3"
-               (\s?|\s+)(\w+)    #name "5"
-               (\s?|\s+)\(?      #whitespace? "6"
-               (.*)\);           #size "7"               
-               """, re.VERBOSE)
+def parse_constant(block_content):
+    '''Find all instances of constant memory specs in the given content;
+    returns a list of Constant tuples.
+    '''
+    constant = list()
 
-    cte_cpy = ''
-    sizes = []
+    # This regex will match a constant spec like:
+    #   real foo(16);
+    # Groups extracted:
+    #   1 = variable type
+    #   2 = symbol name
+    #   3 = size in elements
+    pat = re.compile(r'\s*\/\/\s*(\w+)\s*(\w+)\s*\((.*)\);')
 
-    for line in symbols:
-        s = data.search(line)
-        try:
-            size = int(s.group(7)) #if it is a number
-        except ValueError:
-            size = 796; #any value!
-        if(size == 1):
-            cte_cpy += 'cudaMemcpyToSymbol(' + \
-                 s.group(5) + '_s, ' + \
-                "&" + s.group(5) + ', ' + \
-                'sizeof(' + s.group(3) + ')' + \
-                '*(' + s.group(7) + '), ' + \
-                '0, cudaMemcpyHostToDevice);\n'
-        else:            
-            cte_cpy += 'CUDAMEMCPY(' + \
-                s.group(5) + '_s, ' + \
-                s.group(5) + '_d, ' + \
-                'sizeof(' + s.group(3) + ')' + \
-                '*(' + s.group(7) + '), ' + \
-                '0, cudaMemcpyDeviceToDevice);\n'
-        sizes.append(s.group(7))
+    for m in pat.finditer(block_content):
+        dtype, name, size = m.group(1, 2, 3)
 
-#determining size of constant memory....
-    numvar = len(symbols)
-    exact_size = 0
-    vectors = 0
-    for i in sizes:
-        try:            
-            exact_size +=int(i)
-        except ValueError:
-            vectors += 1
+        try: size = int(size)
+        except ValueError: pass
+
+        constant.append(Constant(data_type=dtype, symbol=name, size=size))
+
+    return constant
+
+def parse_topology(gpu_func):
+    '''Open the blocks file and extract the entries for
+    BLOCK_X, BLOCK_Y, BLOCK_Z, returned as a tuple
+    '''
     try:
-        vector_size = int((15384/2-exact_size)/vectors)
-    except ZeroDivisionError:
-        vector_size = 0
-    
-    cte_dec = ''
-    defines = ''
-    undefs  = ''
-
-    for line in symbols:
-        s = data.search(line)
-        try:
-            size = int(s.group(7)) #if it is a number
-        except ValueError:
-            size = vector_size
-        if(size > 1):
-            cte_dec += 'CONSTANT(' + \
-                s.group(3)+ ', ' + \
-                s.group(5) + '_s, ' + str(size) + ');\n'
-            defines += '#define ' + s.group(5) + "(i) " + s.group(5) + "_s[(i)]\n" 
-        else:
-            cte_dec += '__device__ __constant__ ' + \
-                s.group(3) + ' ' + \
-                s.group(5) + '_s;\n'
-            defines += '#define ' + s.group(5) + " " + s.group(5) + "_s\n"
-            undefs  += '#undef ' + s.group(5) + '\n'
-
-    return cte_cpy, cte_dec, defines, undefs
-
-
-def make_mainloop(mainloop):
-    data = re.compile(r"""
-               (\s?|\s+)for\s*\(                 #identifying a for "1"
-               (\s?|\s+)(.*)(\s+|\s?)=        #ivariable "3"
-               (\s?|\s+)(.*)(\s+|\s?);        #lower index "6"
-               (\s?|\s+).*(\s?|\s+)<
-               (\s?|\s+)(.*)(\s?|\s+);        #upper index 11
-               """, re.VERBOSE)
-    var = []
-
-    loop = False
-    
-    begin = '//<'   + '#' + '>'
-    end   = '//<\\' + '#' + '>'
-
-    effective_loop = []
-
-    for line in mainloop:
-        if data.search(line):
-            s = data.search(line)
-            var.append([s.group(3),s.group(6),s.group(11)])
-        if line == begin:
-            loop = True
-            continue
-        if line == end:
-            loop = False
-            break
-        if loop:
-            effective_loop.append(line)
-    second_line = ''
-    for i in var:
-        first_line = 'i = threadIdx.x + blockIdx.x * blockDim.x;\n' + \
-            'j = threadIdx.y + blockIdx.y * blockDim.y;\n' + \
-            'k = threadIdx.z + blockIdx.z * blockDim.z;\n'
-        second_line += i[0] + '>=' + i[1] + \
-            ' && ' + i[0] + '<' + i[2] + ' && '
-
-    second_line = ''
-
-    first_line = '#ifdef X \n' + \
-        'i = threadIdx.x + blockIdx.x * blockDim.x;\n' + \
-        '#else \n' + \
-        'i = 0;\n' + \
-        '#endif \n' + \
-        '#ifdef Y \n' + \
-        'j = threadIdx.y + blockIdx.y * blockDim.y;\n' + \
-        '#else \n' + \
-        'j = 0;\n' + \
-        '#endif \n' + \
-        '#ifdef Z \n' + \
-        'k = threadIdx.z + blockIdx.z * blockDim.z;\n' + \
-        '#else \n' + \
-        'k = 0;\n' + \
-        '#endif\n'
-    second_line += '#ifdef Z\n'
-    second_line += 'if(' + var[0][0] + '>=' + var[0][1] + \
-        ' && ' + var[0][0] + '<' + var[0][2] + ') {\n'
-    second_line += '#endif\n'
-    second_line += '#ifdef Y\n'
-    second_line += 'if(' + var[1][0] + '>=' + var[1][1] + \
-        ' && ' + var[1][0] + '<' + var[1][2] + ') {\n'
-    second_line += '#endif\n'    
-    second_line += '#ifdef X\n'
-    second_line += 'if(' + var[2][0] + '<' + var[2][2] + ') {\n'
-    second_line += '#endif\n'    
-
-    return first_line, second_line, effective_loop, var
-
-def output(data):
-
-    out = '//This file was created automatically by the script c2cuda.py\n'
-
-    for element in data['includes']: #Writing includes
-        out += element + '\n'
-
-    out += data['gpu_func'] #Writing the launcher
-    print(out)
-
-def make_topology(var_loop, externals):
-
-    blocks_define = '' 
-
-    BLOCKS = analyze_blocks()
-    if(BLOCKS != None):
-        blocks = 'dim3 block ({0:s}, {1:s}, {2:s});'.format(BLOCKS[0],BLOCKS[1],BLOCKS[2])
-    else:
-        blocks = 'dim3 block (BLOCK_X, BLOCK_Y, BLOCK_Z);'
-
-    size_x = size_y = size_z = 0
-
-    #Matching loop variables with external variables
-    for varex,asign in externals:
-        for index,minval,maxval in var_loop:            
-            if varex == maxval:
-                if index == 'i':
-                    size_x = asign
-                elif index == 'j':
-                    size_y = asign
-                elif index == 'k':
-                    size_z = asign
-
-    grid   = 'dim3 grid ((' + "Nx+2*NGHX" + '+block.x-1)/block.x,\n' + \
-        '((' + "Ny+2*NGHY" + ')+block.y-1)/block.y,\n' + \
-        '((' + "Nz+2*NGHZ" + ')+block.z-1)/block.z);'
-
-
-    return blocks_define, blocks, grid
-
-
-
-def analyze_blocks():
-    try:
-        blocks = open("../setups/"+SETUP+"/"+SETUP+".blocks","r")
+        with open(args.blocks, 'r') as blocks_file:
+            for line in blocks_file:
+                split = line.split()
+                m = re.search(split[0], gpu_func.name)
+                if m is not None:
+                    return split[1:4]
     except IOError:
-        return None
-    for line in blocks.readlines():        
-        split = line.split()
-        search = re.search(split[0],INPUT[:-2])
-        if search:
-            BLOCK_X = split[1]
-            BLOCK_Y = split[2]
-            BLOCK_Z = split[3]
-            return BLOCK_X,BLOCK_Y,BLOCK_Z
+        pass
     return None
 
-def make_output(f,output_file, formated=False):
-    output = ''
-    for line in f['flags']:
-        output += line + '\n'
-    
-    output += '\n'
-    for line in f['includes']:
-        output += line + '\n'
+def gather_data(content):
+    '''Finds all blocks recognized by this script, returning the blob
+    of data as a dictionary.
+    '''
+    flags      = find_block(content, 'FLAGS')
+    includes   = find_block(content, 'INCLUDES')
+    user_def   = find_block(content, 'USER_DEFINED')
+    loop       = find_block(content, 'LOOP_VARIABLES')
+    external   = find_block(content, 'EXTERNAL')
+    variables  = find_block(content, 'VARIABLES')
+    filling    = find_block(content, 'FILLING_VARIABLES')
+    internal   = find_block(content, 'INTERNAL')
+    main_loop  = find_block(content, 'MAIN_LOOP')
+    constant   = find_block(content, 'CONSTANT')
+    last_block = find_block(content, 'LAST_BLOCK')
 
-    output += '\n' + f['defines']
-#    output += '\n' + f['blocks_define']
-    
-    output += '\n' + f['cte_dec']
-    
-    output += '\n' + f['kernel'] + '\n'
+    loop_body  = find_block(main_loop, '#')
 
-    for line in f['internal']:
-        output += line + '\n'
+    gpu_func = parse_main_func(content)
+    external = parse_external(external)
+    constant = parse_constant(constant)
+    topology = parse_topology(gpu_func)
 
-    output += '\n' + f['first_line']
-    output += '\n' + f['second_line']
-    
-    for line in f['effective_loop']:
-        output += line + '\n'
-    
-    output += '#ifdef X \n } \n #endif\n'
-    output += '#ifdef Y \n } \n #endif\n'
-    output += '#ifdef Z \n } \n #endif\n'
+    data = dict(flags=flags, includes=includes, user_def=user_def,
+                loop=loop, external=external, variables=variables,
+                filling=filling, internal=internal, main_loop=main_loop,
+                loop_body=loop_body, constant=constant, last_block=last_block,
+                gpu_func=gpu_func, topology=topology)
+    return data
 
-    output += '}\n'
+################################################################################
+# BUILD SECTION
+################################################################################
 
-    output += '\n' + f['def_launcher']
+def make_flags(data):
+    '''Strips the comment delimiter from the beginning of each flag
+    line, so they can be added to the GPU source file.
+    '''
+    flags_lines = list()
+    pat = re.compile('\/\/(.*)')
+    return '\n'.join([m.group(1) for m in pat.finditer(data['flags'])])
 
-    output +=  '\n' + f['undefs'] + '\n'
+def make_constant(constant):
+    '''Generates lines of code needed to copy constant symbols into
+    device memory. Returns four lists of lines for copies, declarations,
+    defines, and undefines, in that order.
+    '''
+    copy_lines = list()
+    declare_lines = list()
+    define_lines = list()
+    undef_lines = list()
 
-    try:
-        for line in f['user_def']:
-            output += line + '\n'
-    except TypeError:
-        pass
+    for cnst in constant:
+        if cnst.size == 1:
+            # scalar constant
+            copy_lines.append(textwrap.fill(textwrap.dedent(f'''\
+                cudaMemcpyToSymbol({cnst.symbol}_s, &{cnst.symbol},
+                sizeof({cnst.data_type}), 0,
+                cudaMemcpyHostToDevice);'''), **fill_kw))
+        else:
+            # non-scalar constant
+            copy_lines.append(textwrap.fill(textwrap.dedent(f'''\
+                CUDAMEMCPY({cnst.symbol}_s, {cnst.symbol}_d,
+                sizeof({cnst.data_type}) * ({cnst.size}),
+                0, cudaMemcpyDeviceToDevice);'''), **fill_kw))
 
-    output += '\n' + f['blocks']
-    output += '\n' + f['grid'] + '\n'
+    # add up the known sizes
+    exact_size = sum([cnst.size for cnst in constant \
+        if isinstance(cnst.size, int)])
 
-    output += '\n#ifdef BIGMEM\n'
-    output += ('#define xmin_d &Xmin_d\n' + \
-                   '#define ymin_d &Ymin_d\n' + \
-                   '#define zmin_d &Zmin_d\n')
-    output += ('#define Sxj_d &Sxj_d\n'+ \
-                   '#define Syj_d &Syj_d\n'+ \
-                   '#define Szj_d &Szj_d\n'+ \
-                   '#define Sxk_d &Sxk_d\n'+ \
-                   '#define Syk_d &Syk_d\n'+ \
-                   '#define Szk_d &Szk_d\n'+ \
-                   '#define Sxi_d &Sxi_d\n'+ \
-                   '#define InvVj_d &InvVj_d\n'+ \
-                   '#define InvDiffXmed_d &InvDiffXmed_d\n')
-    output += '#endif\n'
+    # TODO: this was previously hardcoded to 15384/2, but it's not clear
+    # why. If this number had some significance, it would be good to
+    # document that here. 64 kib is based on the CUDA standard.
+    max_const_mem  = 8192    # 64 kib / 64 bits (most conservative)
+    max_const_mem -= exact_size
 
-    output += '\n'+ f['cte_cpy'] + '\n'
+    nvectors = sum([1 for cnst in constant if not isinstance(cnst.size, int)])
+    vector_size = int(max_const_mem / nvectors) if nvectors > 0 else 0
 
-    kernel_name = re.search("(.*)<<<",f['launcher']).group(1)
-    cache = 'cudaFuncSetCacheConfig(' + kernel_name + \
-        ', cudaFuncCachePreferL1 );'
-    output += '\n' + cache
+    for cnst in constant:
+        size = cnst.size if isinstance(cnst.size, int) else vector_size
+        if size > 1:
+            declare_lines.append(f'''\
+                CONSTANT({cnst.data_type}, {cnst.symbol}_s, {size:d});''')
+            define_lines.append(f'''\
+                #define {cnst.symbol}(i) {cnst.symbol}_s[(i)]''')
+        else:
+            declare_lines.append(f'''\
+                __device__ __constant__ {cnst.data_type} {cnst.symbol}_s;''')
+            define_lines.append(f'''#define {cnst.symbol} {cnst.symbol}_s''')
+            undef_lines.append(f'''#undef {cnst.symbol}''')
 
-#=================================================================
-    if profiling:
-        prof = """
-cudaEvent_t start, stop;
-float time;
+    copy_lines = textwrap.dedent('\n'.join(copy_lines))
+    declare_lines = textwrap.dedent('\n'.join(declare_lines))
+    define_lines = textwrap.dedent('\n'.join(define_lines))
+    undef_lines = textwrap.dedent('\n'.join(undef_lines))
 
-cudaEventCreate(&start);
-cudaEventCreate(&stop);
- 
-int eex, ey, ez;
+    return copy_lines, declare_lines, define_lines, undef_lines
 
-#ifndef X
-{ex=0;
-#else
-for (eex=3; eex < 7; eex++) {
-#endif
-#ifndef Y
-{ey=0;
-#else
-for (ey=0; ey < 7; ey++) {
-#endif
-#ifndef Z
-{ez=0;
-#else
-for (ez=0; ez < 7; ez++) {
-#endif
-  block.x = 1<<eex;
-  block.y = 1<<ey;
-  block.z = 1<<ez;
-  if (block.x * block.y * block.z <= 1024) {
- grid.x  = (Nx+2*NGHX+block.x-1)/block.x;
- grid.y  = ((Ny+2*NGHY)+block.y-1)/block.y;
- grid.z  = ((Nz+2*NGHZ)+block.z-1)/block.z;
+def make_launcher(data):
+    '''Constructs the kernel launch call. If topology is given, the dimensions
+    are hardcoded here; otherwise, use the macros defined in the code.
+    '''
+    gpu_func = data['gpu_func']
+    external = data['external']
+    constant = data['constant']
+    topology = data['topology']
+    user_def = data['user_def']
+    last_block = data['last_block']
 
- cudaEventRecord(start, 0);
+    copy_lines, *_ = make_constant(constant)
 
-
-"""
-        output += '\n' + prof
-#=================================================================
-    
-    output += '\n' + f['launcher'][:-3] + ';\n'
-    if not profiling:
-        output += '\n' + 'check_errors("' + kernel_name + '");\n'
-
-#=================================================================
-    if profiling:
-
-        prof = """
-cudaDeviceSynchronize();
-cudaError_t  cudaError = cudaGetLastError();
-cudaEventRecord(stop, 0);
-cudaEventSynchronize(stop);
-if (cudaError == 0) {
-"""
-        output += prof
-        prof = """
-cudaEventElapsedTime(&time, start, stop);
-printf ("{:s}\\t%d\\t%d\\t%d\\t%f\\n", block.x, block.y, block.z, time);
-""".format(output_file)
-
-        output += '\n' + prof + "}"
-
-        output += '}}}}' + '\nexit(1);\n'
-#=================================================================
-
-    try:
-        for line in f['last_block']:
-            output += line +'\n'
-    except TypeError:
-        pass
-
-    output += '\n}'
-    
-    if(len(output_file)==0):
-        print(output)
+    if topology is not None:
+        blocks_def = 'dim3 block({:d}, {:d}, {:d});'.format(*topology)
     else:
-        out = open(output_file,'w')
-        out.write(output)
-    if(formated == True):
-        os.system('astyle ' + output_file + "&")
-    return
+        blocks_def = 'dim3 block(BLOCK_X, BLOCK_Y, BLOCK_Z);'
 
-def main():
+    # Form launch argument list as a string
+    launch_args = ''
+    for arg in gpu_func.argument_list:
+        if isinstance(arg, Variable):
+            launch_args += f'{arg.data_type} {arg.symbol}, '
+        else:
+            launch_args += arg
+    launch_args = launch_args.strip(' ,')
 
-    options = opt_reader()
+    # Form kernel argument list as a string
+    kernel_args = ''.join([f'{arg.symbol}, ' \
+        for arg in gpu_func.argument_list if 'Field' not in arg.data_type])
+    for ext in external:
+        if isinstance(ext, External):
+            kernel_args += ext.assignment + ', '
+        else:
+            kernel_args += ext
+    kernel_args = kernel_args.strip(' ,')
 
-    verbose     = options['verbose']
-    input_file  = options['input']
-    output_file = options['output']
-    
-    if input_file == output_file:
-        print("\nWARNING!!! You would overwrite your input file!!!")
-        print("            This is not allowed...\n")
-        exit()
+    cache_line = f'cudaFuncSetCacheConfig({gpu_func.name}_kernel, cudaFuncCachePreferL1);'
+    kernel_line = f'{gpu_func.name}_kernel<<<grid, block>>>({kernel_args});'
 
-    if(output_file[-3:] != '.cu'):
-        print('\nWARNING!!! Your output file must be a CUDA file (.cu extension)!!!\n')
-        exit()
+    output  = ''
+    output += textwrap.dedent(f'''\
+        extern "C"
+        {gpu_func.return_type} {gpu_func.name}_gpu({launch_args}) {{
+        ''')
+    output += user_def + '\n'
+    output += textwrap.dedent(f'''\
+          {blocks_def}
+          dim3 grid(((Nx+2*NGHX)+block.x-1)/block.x,
+                    ((Ny+2*NGHY)+block.y-1)/block.y,
+                    ((Nz+2*NGHZ)+block.z-1)/block.z);
 
-    if verbose:
-        verb(input_file, output_file)
-    input_lines = read_file(input_file) #Reading file
+        #if BIGMEM
+        #define xmin_d &Xmin_d
+        #define ymin_d &Ymin_d
+        #define zmin_d &Zmin_d
+        #define Sxj_d &Sxj_d
+        #define Syj_d &Syj_d
+        #define Szj_d &Szj_d
+        #define Sxk_d &Sxk_d
+        #define Syk_d &Syk_d
+        #define Szk_d &Szk_d
+        #define Sxi_d &Sxi_d
+        #define InvVj_d &InvVj_d
+        #define InvDiffXmed_d &InvDiffXmed_d
+        #endif
+        ''')
+    output += '\n' + textwrap.indent(copy_lines, ' ' * 2) + '\n'
+    output += '\n' + textwrap.indent(cache_line, ' ' * 2) + '\n'
+    output += kernel_line + '\n'
+    output += textwrap.dedent(f'''\
+          check_errors("{gpu_func.name}_kernel");
+        ''')
+    output += last_block + '\n'
+    output += textwrap.dedent(f'''\
+        }}''')
+    return output
 
-    data = gathering_data(input_lines,verbose)
-    
-    declarations, calls,externals  = parsing_external(data['external'])
-    flags                          = make_flags(data['flags'])
+def make_profiling_launcher(data):
+    gpu_func = data['gpu_func']
 
-    launcher,def_launcher          = make_launcher(data['gpu_func'], calls)
+    return textwrap.dedent(f'''\
+            cudaEvent_t start, stop;
+            float time;
+            dim3 block, grid;
+            int eex, ey, ez;
 
-    kernel                         = make_kernel(data['gpu_func'], declarations)
+            cudaEventCreate(&start);
+            cudaEventCreate(&stop);
 
-    if(data['constant']) != None:
-        cte_cpy,cte_dec,defines,undefs = make_constant(data['constant'])
+        #if XDIM
+            for (eex = 3; eex < 7; eex++) {{
+        #else
+            eex = 0;
+        #endif
+        #if YDIM
+            for (ey=0; ey < 7; ey++) {{
+        #else
+            ey = 0;
+        #endif
+        #if ZDIM
+            for (ez=0; ez < 7; ez++) {{
+        #else
+            ez = 0;
+        #endif
+            block.x = 1 << eex;
+            block.y = 1 << ey;
+            block.z = 1 << ez;
+            if (block.x * block.y * block.z <= 1024) {{
+                grid.x  = ((Nx+2*NGHX)+block.x-1)/block.x;
+                grid.y  = ((Ny+2*NGHY)+block.y-1)/block.y;
+                grid.z  = ((Nz+2*NGHZ)+block.z-1)/block.z;
+
+                cudaEventRecord(start, 0);
+
+                cudaDeviceSynchronize();
+                cudaError_t cudaError = cudaGetLastError();
+                cudaEventRecord(stop, 0);
+                cudaEventSynchronize(stop);
+
+                if (cudaError != 0) exit(EXIT_FAILURE);
+
+                cudaEventElapsedTime(&time, start, stop);
+                printf("{gpu_func.name}\\t%d\\t%d\\t%d\\t%f\\n",
+                    block.x, block.y, block.z, time);
+            }}
+        #if XDIM
+            }}
+        #endif
+        #if YDIM
+            }}
+        #endif
+        #if ZDIM
+            }}
+        #endif
+        ''')
+
+def make_kernel(data):
+    '''Constructs the CUDA kernel function, including the full loop
+    body and function declaration.
+    '''
+    gpu_func = data['gpu_func']
+    external = data['external']
+    internal = data['internal']
+    constant = data['constant']
+    loop_body = data['loop_body']
+
+    _, declare_lines, define_lines, undef_lines = make_constant(constant)
+
+    # This regex will match something that looks like the beginning
+    # of a C for loop:
+    #   for (q = m; q < n; ...
+    # Groups:
+    #   1 = variable name
+    #   2 = lower limit
+    #   3 = upper limit
+    rgx = r'\s*for\s*\(\s*(.+)\s*=\s*(.+)\s*;\s*.+\s*<\s*(.+);'
+    pat = re.compile(rgx)
+
+    # Find the loop limits and save in `vbls`
+    loop_vbls = list()
+    for m in pat.finditer(data['main_loop']):
+        loop_vbls.append(m.group(1, 2, 3))
+        if len(loop_vbls) == 3: break
+
+    # Ensure we found the right number of loops! There are cases where more than
+    # three nested loops is okay, but any loops after three aren't distributed
+    # across GPU blocks
+    if len(loop_vbls) < 3:
+        d = len(loop_vbls)
+        raise ValueError(f'Expected a nested loop of depth 3, but found depth {d}')
+
+    kvar, klo, khi = loop_vbls[0]
+    jvar, jlo, jhi = loop_vbls[1]
+    ivar, _,   ihi = loop_vbls[2]
+
+    # Form kernel argument list as a string
+    kernel_args = ''.join([f'{arg.data_type} {arg.symbol}, ' \
+        for arg in gpu_func.argument_list if 'Field' not in arg.data_type])
+    for ext in external:
+        if isinstance(ext, External):
+            kernel_args += f'{ext.data_type} {ext.name}, '
+        else:
+            kernel_args += ext
+    kernel_args = kernel_args.strip(' ,')
+
+    output  = ''
+    output += define_lines + '\n\n'
+    output += declare_lines + '\n\n'
+    output += textwrap.dedent(f'''\
+        __global__ void {gpu_func.name}_kernel({kernel_args}) {{
+        ''')
+    output += internal + '\n'
+    output += textwrap.dedent(f'''\
+        #if XDIM
+          i = threadIdx.x + blockIdx.x * blockDim.x;
+        #else
+          i = 0;
+        #endif
+        #if YDIM
+          j = threadIdx.y + blockIdx.y * blockDim.y;
+        #else
+          j = 0;
+        #endif
+        #if ZDIM
+          k = threadIdx.z + blockIdx.z * blockDim.z;
+        #else
+          k = 0;
+        #endif
+
+        #if ZDIM
+          if (({kvar} >= {klo}) && ({kvar} < {khi})) {{
+        #endif
+        #if YDIM
+            if (({jvar} >= {jlo}) && ({jvar} < {jhi})) {{
+        #endif
+        #if XDIM
+              if ({ivar} < {ihi}) {{
+        #endif
+        ''')
+    output += loop_body
+    output += textwrap.dedent(f'''\
+        #if XDIM
+              }}
+        #endif
+        #if YDIM
+            }}
+        #endif
+        #if ZDIM
+          }}
+        #endif
+        }}
+        ''')
+    output += undef_lines + '\n'
+    return output
+
+for input_file in args.input:
+    # form the output file name, raising an error if it points to
+    # the same file as the input file name
+    _, input_base = os.path.split(input_file)
+    output_file = os.path.join(args.outdir, os.path.splitext(input_base)[0] + '.cu')
+    if os.path.isfile(output_file) and os.path.samefile(input_file, output_file):
+        msg = textwrap.dedent(f'''\
+            Input file {input_file} and its output file {output_file} are the
+            same file, but overwriting is not allowed.
+            ''')
+        raise ValueError(msg)
+
+    if args.verbose:
+        print(f'Processing {input_file} -> {output_file}')
+
+    # read the entire input file
+    with open(input_file, 'r') as infile:
+        content = infile.read()
+
+    data = gather_data(content)
+
+    flags = make_flags(data)
+    kernel = make_kernel(data)
+    includes = data['includes']
+
+    if args.profiling:
+        launcher = make_profiling_launcher(data)
     else:
-        cte_cpy = cte_dec = defines = undefs = ''
-    
-    first_line, second_line, effective_loop, var_loop \
-        = make_mainloop(data['main_loop'])
+        launcher = make_launcher(data)
 
-    blocks_define, blocks, grid = make_topology(var_loop,externals)
+    output  = ''
+    output += flags + '\n\n'
+    output += includes + '\n\n'
+    output += kernel + '\n\n'
+    output += launcher
 
-    final = {'flags':flags, 'launcher':launcher, 'def_launcher':def_launcher,
-             'kernel':kernel, 'includes':data['includes'], 'defines':defines,
-             'internal':data['internal'], 'var_loop':var_loop,
-             'user_def':data['user_def'],'filling':data['filling'], 
-             'cte_cpy':cte_cpy,'cte_dec':cte_dec, 'first_line':first_line,
-             'second_line':second_line, 'effective_loop':effective_loop,
-             'blocks_define':blocks_define, 'blocks':blocks,'grid':grid,
-             'undefs':undefs, 'last_block':data['last_block']}
+    warning = textwrap.fill(textwrap.dedent(f'''\
+        /* This file was created automatically during compilation from
+        {input_file}. Do not edit. See python script 'c2cuda.py' for details. */
+        '''))
 
-    output = make_output(final, output_file, formated=options['formated'])
-
-if __name__=='__main__':
-    main()
+    with open(output_file, 'w') as outfile:
+        outfile.write(warning + '\n\n')
+        outfile.write(output)

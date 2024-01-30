@@ -32,15 +32,15 @@ void DerivMotionRK5(real *q_init, real *masses, \
   derivvx = deriv+3*n;
   derivvy = deriv+4*n;
   derivvz = deriv+5*n;
-  
+
   for (i = 0; i < n; i++)
     Dist[i] = sqrt(x[i]*x[i]+y[i]*y[i]+z[i]*z[i]);
-  
+
   for (i = 0; i < n; i++) {
     derivx[i] = vx[i];
     derivy[i] = vy[i];
     derivz[i] = vz[i];
-#ifdef NODEFAULTSTAR
+#if NODEFAULTSTAR
     coef = 0.0;
 #else
     coef = -G*MSTAR/Dist[i]/Dist[i]/Dist[i];
@@ -49,7 +49,7 @@ void DerivMotionRK5(real *q_init, real *masses, \
     derivvy[i] = coef*y[i];
     derivvz[i] = coef*z[i];
     for (j = 0; j < n; j++) {
-#ifndef NODEFAULTSTAR
+#if (!NODEFAULTSTAR)
       if (INDIRECTTERM) {
 	coef = G*masses[j]/Dist[j]/Dist[j]/Dist[j];
 	derivvx[i] -= coef*x[j];
@@ -75,7 +75,7 @@ void DerivMotionRK5(real *q_init, real *masses, \
   }
 
   for (i = 0; i < 6*n; i++)
-    deriv[i] *= dt;  
+    deriv[i] *= dt;
 }
 
 void TranslatePlanetRK5(real *qold, real c1, real c2, real c3,
@@ -110,9 +110,9 @@ void RungeKutta(real *q0, real dt, real *masses, real *q1,
 
   for (i = 0; i < 6*n; i++)
     q1[i] = (q0[i]+
-	     37.0/378.0*k1[i]  + 
-	     250.0/621.0*k3[i] + 
-	     125.0/594.0*k4[i] + 
+	     37.0/378.0*k1[i]  +
+	     250.0/621.0*k3[i] +
+	     125.0/594.0*k4[i] +
 	     512.0/1771.0*k6[i]);
 
 }
@@ -124,10 +124,10 @@ void AdvanceSystemRK5 (real dt) {
   real theta, rdot, r, new_r, omega, x, y;
   real dtheta, vx, vy, denom;
   real xc, yc, zc;
-  
-  n = Sys->nb; 
 
-  for (i = 0; i < n; i++) { 
+  n = Sys->nb;
+
+  for (i = 0; i < n; i++) {
     q0[i]     = Sys->x[i];
     q0[i+n]   = Sys->y[i];
     q0[i+2*n] = Sys->z[i];
@@ -135,7 +135,7 @@ void AdvanceSystemRK5 (real dt) {
     q0[i+3*n] = Sys->vx[i];
     q0[i+4*n] = Sys->vy[i];
     q0[i+5*n] = Sys->vz[i];
-    
+
     PlanetMasses[i] = Sys->mass[i];
   }
 
@@ -169,8 +169,8 @@ void AdvanceSystemRK5 (real dt) {
     Sys->x[0] = new_r*cos(dtheta+theta);
     Sys->y[0] = new_r*sin(dtheta+theta);
     Sys->z[0] = 0.0;
-    Sys->vx[0]= vx*cos(dtheta+theta)-vy*sin(dtheta+theta); 
-    Sys->vy[0]= vx*sin(dtheta+theta)+vy*cos(dtheta+theta); 
+    Sys->vx[0]= vx*cos(dtheta+theta)-vy*sin(dtheta+theta);
+    Sys->vy[0]= vx*sin(dtheta+theta)+vy*cos(dtheta+theta);
     Sys->vz[0] = 0.0;
   }
 

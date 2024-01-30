@@ -30,11 +30,11 @@ void ShearBC (int var) {
     FARGO_SAFE(SB_slide (Vy_temp));
   if (var & VZTEMP)
     FARGO_SAFE(SB_slide (Vz_temp));
-#ifdef ADIABATIC
+#if ADIABATIC
   if (var & ENERGY)
     FARGO_SAFE(SB_slide (Energy));
 #endif
-#ifdef MHD
+#if MHD
   if (var & EMFX)
     FARGO_SAFE(SB_slide (Emfx));
   if (var & EMFY)
@@ -102,15 +102,15 @@ void SlideIntShearingBoundary (Field *F) {
 }
 
 void SlideResShearingBoundary (Field *Q) {
-  
+
   int i,j,k,side;
   real dqm, dqp, work, diff, cord, ksi;
-  
+
   real *q;
   static real qs[MAX1D], slope[MAX1D], qL[MAX1D], qR[MAX1D], qH[MAX1D];
   boolean IsVx=NO;
   int exception_by=0;
-  
+
   q  = Q->field_cpu;
   if (((Q->type == VX) || (Q->type == VXTEMP)) && (VxIsResidual == NO))
     IsVx = YES;
@@ -123,7 +123,7 @@ void SlideResShearingBoundary (Field *Q) {
     if (((side == 0) && (J == 0)) || ((side == 1) && (J == Ncpu_x-1))) {
       for (k=0; k<Nz+2*NGHZ; k++) {
 	for (j=(Ny+NGHY)*side+side*exception_by; j<NGHY+(Ny+NGHY)*side; j++) { //Inner or outer radial ghost
-	  for (i=0; i<Nx; i++) {	
+	  for (i=0; i<Nx; i++) {
 	    dqm = (q[l]-q[lxm]);
 	    dqp = (q[lxp]-q[l]);
 	    if(dqp*dqm<=0.0)  slope[i] = 0.0;
@@ -136,18 +136,18 @@ void SlideResShearingBoundary (Field *Q) {
 	      else slope[i] = work;
 	    }
 	  }
-	  
+
 	  for (i=0; i<Nx; i++)	// Now we compute q_j+1/2
 	    qH[i] = q[l]+0.5*(q[lxp]-q[l])-1.0/6.0*(slope[ixp]-slope[i]);
-	  
+
 	  for (i=0; i<Nx; i++) {  // Now we compute qRight & qLeft
 	    qR[i] = qH[i];
 	    qL[i] = qH[ixm];
 	  }
-	  
+
 	  /* Monotonicity constraints */
 	  /* -> Modify qRight & qLeft */
-	  
+
 	  for (i=0; i<Nx; i++) {
 	    if ((qR[i]-q[l])*(q[l]-qL[i]) < 0.0) {
 	      qL[i] = q[l];
@@ -160,11 +160,11 @@ void SlideResShearingBoundary (Field *Q) {
 	    if (-diff*diff > 6.0*diff*cord) /* don't simplify by diff !!! */
 	      qR[i] = 3.0*q[l]-2.0*qL[i];
 	  }
-	  
+
 	  /* Now we've got qRight & qLeft */
 	  /* Switch back to Stone & Norman paper */
 	  /* for notations */
-	  
+
 	  for (i=0; i<Nx; i++) {
 	    if (SB_resi[side] > 0.0) {
 	      ksi = SB_resi[side];
@@ -176,7 +176,7 @@ void SlideResShearingBoundary (Field *Q) {
 	      qs[i]+= ksi*(1.0-ksi)*(2.0*q[l]-qR[i]-qL[i]);
 	    }
 	  }
-	  
+
 	  for (i = 0; i<Nx; i++) { // Final update
 	    q[l] += (qs[i]-qs[ixp])*SB_resi[side];
 	  }

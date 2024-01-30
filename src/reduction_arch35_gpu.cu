@@ -17,7 +17,7 @@
 __global__ void kernel_reduction(macro) (real *array, real *array_int, int pitch, int stride,\
 					 int pitchb, int pitchj, int pitchk, int ymin, int ymax,\
 					 int Nx, int offset, int ngh) {
-  
+
   __shared__ real sdata[LOCAL_BLOCK_X*LOCAL_BLOCK_Y/WARPSIZE];
   real wdata, shuffle;
   unsigned int s;
@@ -27,28 +27,28 @@ __global__ void kernel_reduction(macro) (real *array, real *array_int, int pitch
   unsigned int k   = blockIdx.z;  // This kernel is written for blockDim.z = 1, necessarily.
   // This avoids to have to test the value of k and compare with  zmin and zmax.
   unsigned int ll;
-  
+
   unsigned int lane  = i%WARPSIZE;
-  unsigned int warp  = i/WARPSIZE;   
+  unsigned int warp  = i/WARPSIZE;
   unsigned int warps = LOCAL_BLOCK_X/WARPSIZE;
 
   ll = j*pitch+k*stride;
   wdata = INIT_REDUCTION(macro);
 
   for (;i < Nx+ngh;i+=blockDim.x)wdata = macro (wdata,array[i+ll]);
-    
+
   __syncthreads ();
 
   int lo, hi;
   for (s = WARPSIZE/2; s > 0; s >>= 1){
-    
-#ifndef FLOAT
+
+#if (!FLOAT)
     asm volatile("mov.b64 {%0,%1}, %2;":"=r"(lo),"=r"(hi):"d"(wdata));
     // Shuffle the two 32b registers.
     lo = __shfl_down(lo,s,32);
     hi = __shfl_down(hi,s,32);
     // Recreate the 64b number.
-    asm volatile("mov.b64 %0,{%1,%2};":"=d"(shuffle):"r"(lo),"r"(hi));	
+    asm volatile("mov.b64 %0,{%1,%2};":"=d"(shuffle):"r"(lo),"r"(hi));
 #else
     shuffle = __shfl_down(wdata,s,WARPSIZE);
 #endif
@@ -57,35 +57,35 @@ __global__ void kernel_reduction(macro) (real *array, real *array_int, int pitch
 
   if (lane==0)sdata[warp]=wdata;
 
-  __syncthreads();        
-    
+  __syncthreads();
+
   wdata = (id < warps) ? sdata[id] : 0;
-  
+
   if (warp==0){
     for (s = warps/2; s > 0; s >>= 1){
-#ifndef FLOAT
+#if (!FLOAT)
     asm volatile("mov.b64 {%0,%1}, %2;":"=r"(lo),"=r"(hi):"d"(wdata));
     // Shuffle the two 32b registers.
     lo = __shfl_down(lo,s,32);
     hi = __shfl_down(hi,s,32);
     // Recreate the 64b number.
-    asm volatile("mov.b64 %0,{%1,%2};":"=d"(shuffle):"r"(lo),"r"(hi));	
+    asm volatile("mov.b64 %0,{%1,%2};":"=d"(shuffle):"r"(lo),"r"(hi));
 #else
     shuffle = __shfl_down(wdata,s,WARPSIZE);
 #endif
     wdata = macro (wdata,shuffle);
      }
   }
-  
+
   if (id == 0)array_int[pitchb*blockIdx.x+j*pitchj+k*pitchk+offset] = wdata;
-  
+
 }
 
 extern "C" void name_reduction_gpu(macro) (Field *F, int ymin, int ymax, int zmin, int zmax) {
-  
+
   INPUT (F);
   OUTPUT2D (Reduction2D);
-  
+
   dim3 block (LOCAL_BLOCK_X, LOCAL_BLOCK_Y, LOCAL_BLOCK_Z);
   dim3 grid (1,
 	     ((Ny+2*NGHY)+block.y-1)/block.y,
@@ -95,7 +95,7 @@ extern "C" void name_reduction_gpu(macro) (Field *F, int ymin, int ymax, int zmi
 					       0, 1, Pitch2D, ymin, ymax, Nx, 0, NGHX);
 #define str(s) #s
 #define xstr(s) str(s)
- 
+
   check_errors(xstr(name_reduction_gpu(macro)));
 
   // The result is ultimately sent to the CPU, where the final 2D (or

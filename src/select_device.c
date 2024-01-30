@@ -1,7 +1,7 @@
 #include "fargo3d.h"
 
 void SelectDevice(int myrank){
-#ifdef GPU
+#if GPU
   char hostname[1024];
   int device, i;
   boolean ChooseDeviceForMe = YES;
@@ -57,7 +57,7 @@ void SelectDevice(int myrank){
 }
 
 void EarlyDeviceSelection () {
-#ifdef GPU
+#if GPU
   char hostname[1024];
   int local_rank, device, mydevice=-1;
   char MpiEnvVariable[MAXLINELENGTH];

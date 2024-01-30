@@ -1,7 +1,7 @@
 #include "fargo3d.h"
 
 void send2cpu() {
-#ifdef GPU
+#if GPU
   Field* g;
   g = ListOfGrids;
   printf("\nCopying Fields--------------------------------------\n");
@@ -20,7 +20,7 @@ void send2cpu() {
 }
 
 void send2gpu() {
-#ifdef GPU
+#if GPU
   Field* g;
   g = ListOfGrids;
   printf("\nCopying Fields--------------------------------------\n");
@@ -40,7 +40,7 @@ void send2gpu() {
 
 void Input2D_CPU(Field2D *field, int line, const char *string){
   int status;
-#ifdef GPU
+#if GPU
   if(!field->fresh_cpu) {
     status = Dev2Host2D(field);
     //    printf("%d\n",status);
@@ -61,7 +61,7 @@ void Input2D_CPU(Field2D *field, int line, const char *string){
 
 void Input2D_GPU(Field2D *field, int line, const char *string){
   int status;
-#ifdef GPU
+#if GPU
   if(!field->fresh_gpu) {
     status = Host2Dev2D(field);
     //    printf("%d\n",status);
@@ -82,7 +82,7 @@ void Input2D_GPU(Field2D *field, int line, const char *string){
 
 void Input2DInt_CPU(FieldInt2D *field, int line, const char *string){
   int status;
-#ifdef GPU
+#if GPU
   if(!field->fresh_cpu) {
     status = Dev2Host2DInt(field);
     //    printf("%d\n",status);
@@ -103,7 +103,7 @@ void Input2DInt_CPU(FieldInt2D *field, int line, const char *string){
 
 void Input2DInt_GPU(FieldInt2D *field, int line, const char *string){
   int status;
-#ifdef GPU
+#if GPU
   if(!field->fresh_gpu) {
     status = Host2Dev2DInt(field);
     //    printf("%d\n",status);
@@ -139,7 +139,7 @@ void Input_CPU(Field *field, int line, const char *string){
     printf ("Since the line %d of file %s\n", (*(field->owner))->line_origin, (*(field->owner))->file_origin);
     prs_exit (EXIT_FAILURE);
   }
-#ifdef GPU
+#if GPU
   if (!field->fresh_cpu) take_action = YES;
   for (i = 0; i < 4; i++) {
     if (field->fresh_inside_contour_cpu[i] == NO) take_action = YES;
@@ -201,7 +201,7 @@ void Input_GPU(Field *field, int line, const char *string){
     printf ("Since the line %d of file %s\n", (*(field->owner))->line_origin, (*(field->owner))->file_origin);
     prs_exit (EXIT_FAILURE);
   }
-#ifdef GPU
+#if GPU
   if (!field->fresh_gpu) take_action = YES;
   for (i = 0; i < 4; i++) {
     if (field->fresh_inside_contour_gpu[i] == NO) take_action = YES;
@@ -328,7 +328,7 @@ void WhoOwns (Field *field) {
 }
 
 void SynchronizeHD () {
-#ifdef GPU
+#if GPU
   Field *current;
   current = ListOfGrids;
   while (current != NULL) {
@@ -350,7 +350,7 @@ void SynchronizeHD () {
 }
 
 void WhereIsWho () {
-#ifdef GPU
+#if GPU
   Field *current;
   char loc[3];
   current = ListOfGrids;

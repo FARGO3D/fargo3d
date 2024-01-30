@@ -9,8 +9,8 @@ void CflFluidsMin() {
     if (step > Min[i])
       step = Min[i];
   }
-  
-#ifdef FLOAT
+
+#if FLOAT
   MPI_Allreduce(&step, &StepTime, 1, MPI_FLOAT, MPI_MIN, MPI_COMM_WORLD);
 #else
   MPI_Allreduce(&step, &StepTime, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);

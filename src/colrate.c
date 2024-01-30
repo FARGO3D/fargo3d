@@ -8,15 +8,15 @@
 //<\INCLUDES>
 
 void ColRate(real colrate, int i, int j, int feedback) {
-  
+
   Alpha[i+j*NFLUIDS] = colrate;
-  
+
   if(feedback == YES)
     Alpha[j+i*NFLUIDS] = colrate;
   else
     Alpha[j+i*NFLUIDS] = 0.0;
 
-#ifdef GPU
+#if GPU
   DevMemcpyH2D(Alpha_d,Alpha,sizeof(real)*NFLUIDS*NFLUIDS);
 #endif
 

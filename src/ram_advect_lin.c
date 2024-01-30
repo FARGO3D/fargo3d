@@ -59,27 +59,27 @@ void AdvectRAMlin_cpu(real dt, Field *F) {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++ ) {
 #endif
 //<#>
       ll = l;
-      llxp = lxp; 
-      
+      llxp = lxp;
+
 
       id_star  = (int) ( (phistarmin[ll]-_xmin)/(_xmax-_xmin)*size_x);   //p(i)
       id_starp = (int) ( (phistarmin[llxp]-_xmin)/(_xmax-_xmin)*size_x); //p(i+1)
-      
+
 
       l_star   = id_star  + j*pitch + k*stride;
       l_starp  = id_starp + j*pitch + k*stride;
-      
+
       umin_total  = (id_starp-id_star);
       while(umin_total < 0) umin_total += size_x;
 
@@ -100,23 +100,23 @@ void AdvectRAMlin_cpu(real dt, Field *F) {
 
       deltax  = phistarmin[ll]-xmed(id_star);
 
-      aux[ll]  = f[l_star]*deltax0; 
+      aux[ll]  = f[l_star]*deltax0;
       aux[ll] += 0.5*slopes[l_star]*(deltax1*deltax1-deltax*deltax);
 
-      aux[ll] += f[l_starp]*deltax2; 
+      aux[ll] += f[l_starp]*deltax2;
       aux[ll] += 0.5*slopes[l_starp]*(deltax3*deltax3-deltax4*deltax4);
 
       for(m=id_star+1; m<id_starp; m++) aux[ll] += f[m+j*pitch+k*stride]*(xmin(m+1)-xmin(m));
 
       aux[ll] /= (xmin(i+1)-xmin(i));
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

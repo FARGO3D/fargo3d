@@ -52,9 +52,9 @@ void repartition (int *nx, int ncpu, int *MX) {
   }
   ncomb = pow2[nfact]; // Number of possibilities 2^(#fact)
   for (i=0; i < ncomb; i++) {
-    nb = i; 
+    nb = i;
     for (j = nfact-1; j >= 0; j--) {
-      comb[j] = nb/pow2[j];  
+      comb[j] = nb/pow2[j];
       nb -= comb[j]*pow2[j];
     }
     for (j = 0; j<2; j++) mx[j] = 1;
@@ -66,7 +66,7 @@ void repartition (int *nx, int ncpu, int *MX) {
       for (j = 0; j < 2; j++) MX[j] = mx[j];
     }
   }
-#ifdef DEBUG
+#if DEBUG
   if(!CPU_Rank)  printf("CPU_GRID = %d*%d\n", MX[0], MX[1]);
 #endif
   Ncpu_x = MX[0];
@@ -81,7 +81,7 @@ void split(Grid *g) {
   int nx[2];
   int MX[2];
 
-#ifdef DEBUG
+#if DEBUG
   char filename[200];
   FILE *grid_file;
   sprintf(filename, "%sgrid%03d.inf", OUTPUTDIR, CPU_Rank);
@@ -147,13 +147,13 @@ void split(Grid *g) {
   Y0 = y0cell;
   Z0 = z0cell;
 
-#ifdef DEBUG
+#if DEBUG
   fprintf(grid_file, "CPU_Rank\tY0\tYN\tZ0\tZN\tIndexY\tIndexZ\n");
   fprintf(grid_file, "%d\t%d\t%d\t%d\t%d\t%d\t%d\n",CPU_Rank, \
   	  y0cell, y0cell+tamanyox-1, z0cell ,z0cell+tamanyoy-1, J, K);
   fclose(grid_file);
 #endif
-  
+
   Xmin = (real *)malloc(sizeof(real)*(Nx+2*NGHX+1));
   Ymin = (real *)malloc(sizeof(real)*(Ny+2*NGHY+1));
   Zmin = (real *)malloc(sizeof(real)*(Nz+2*NGHZ+1));
@@ -163,7 +163,7 @@ void split(Grid *g) {
   Zmed = (real *)malloc(sizeof(real)*(Nz+2*NGHZ));
 
   InvDiffXmed = (real *)malloc(sizeof(real)*(Nx+2*NGHX));
- 
+
   Sxi  = (real *)malloc(sizeof(real)*(Nx+2*NGHX));
 
   Sxj  = (real *)malloc(sizeof(real)*(Ny+2*NGHY));
@@ -175,7 +175,7 @@ void split(Grid *g) {
   Szk  = (real *)malloc(sizeof(real)*(Nz+2*NGHZ));
 
   InvVj = (real *)malloc(sizeof(real)*(Ny+2*NGHY));
-  
+
   ycells = ixceldas;
   zcells = iyceldas;
 
@@ -184,7 +184,7 @@ void split(Grid *g) {
   Gridd.bc_right = ((J == Ncpu_x-1)  ? 1 : 0);
   Gridd.bc_left  = ((J == 0)         ? 1 : 0);
 
-#ifdef GPU
+#if GPU
 
   DevMalloc(&Xmin_d,sizeof(real)*(Nx+2*NGHX+1));
   DevMalloc(&Ymin_d,sizeof(real)*(Ny+2*NGHY+1));
@@ -206,7 +206,7 @@ void split(Grid *g) {
   DevMalloc(&Alpha_d,sizeof(real)*NFLUIDS*NFLUIDS);
 
 #endif
-  
+
   //We allocate and initialize the memory of the collision matrix
   Alpha = (real*) calloc(NFLUIDS*NFLUIDS,sizeof(real));
 

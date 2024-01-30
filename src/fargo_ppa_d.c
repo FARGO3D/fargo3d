@@ -8,7 +8,7 @@
 //<\INCLUDES>
 
 void VanLeerX_PPA_d_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
-  
+
 //<USER_DEFINED>
   INPUT(Q);
   INPUT(QL);
@@ -38,7 +38,7 @@ void VanLeerX_PPA_d_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
   int llxm;
   real ksi;
 //<\INTERNAL>
-  
+
 //<CONSTANT>
 // real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
@@ -49,10 +49,10 @@ void VanLeerX_PPA_d_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
       for (i=XIM; i<size_x; i++) {
@@ -70,10 +70,10 @@ void VanLeerX_PPA_d_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t){
 	}
 //<\#>
       }
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

@@ -29,7 +29,7 @@ code.
 #define   R_MU_CGS  36149835.0
 #define    MU0_CGS  12.5663706143591   //B in Gauss
 
-#if !(defined(MKS) || defined (CGS))
+#if !(MKS || CGS)
 #define		G	(G_SF)
 #define     MSTAR       (MSTAR_SF)
 #define        R0       (R0_SF)
@@ -38,7 +38,7 @@ code.
 #endif
 
 //International System
-#ifdef MKS
+#if MKS
 #define		G	(G_MKS)
 #define     MSTAR       (MSTAR_MKS)
 #define        R0       (R0_MKS)
@@ -47,7 +47,7 @@ code.
 #endif
 
 //cgs
-#ifdef CGS
+#if CGS
 #define		G	(G_CGS)
 #define     MSTAR       (MSTAR_CGS)
 #define        R0       (R0_CGS)

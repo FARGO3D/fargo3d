@@ -65,7 +65,7 @@ void HallEffect_emfz_cpu(){
 	bmod = sqrt(b1*b1 + b2*b2 + b3*b3 + eps);
 	
 	etac = 0.25*( eta[ll] + eta[lxm] + eta[lym] + eta[lxm-pitch] );
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	emf[ll] =  etac*(j1*b2 - j2*b1)/bmod;
 #else
 	emf[ll] = -etac*(j1*b2 - j2*b1)/bmod;

@@ -15,28 +15,28 @@ real ComputeMean(Field *F) {
   f = F->field_cpu;
 
   i = j = k = 0;
-#ifdef Z
+#if ZDIM
   for (k=NGHZ;k<Nz+NGHZ;k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=NGHY;j<Ny+NGHY;j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=NGHX;i<Nx+NGHX;i++) {
 #endif
 	dvol = Vol(i,j,k);
 	total += f[l]*dvol;
 	volume += dvol;
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
-#ifdef FLOAT
+#if FLOAT
   MPI_Allreduce(&total, &grandtotal, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
   MPI_Allreduce(&volume, &grandvolume, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 #else

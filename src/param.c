@@ -41,7 +41,7 @@ void DumpToFargo3drc (int argc, char *argv[]) {
     strcat (rcfile, "/history");
     rc = fopen (rcfile, "a");
     time (&tloc);
-    if (rc) fprintf (rc, "-----------\n%s", ctime(&tloc)); 
+    if (rc) fprintf (rc, "-----------\n%s", ctime(&tloc));
     for (i = 0; i < argc; i++) {
       if (rc) { 	 /* Silent if cannot create file */
 	fprintf (rc, "%s ", argv[i]);
@@ -73,7 +73,7 @@ void init_var(char *name, char *variable, int type, int need, char *value) {
   boolean bool_value;
   real temp;
 
-#ifdef FLOAT
+#if FLOAT
   sscanf(value, "%f", &temp);  // Save default value of variable
 #else
   sscanf(value, "%lf", &temp);  // Save default value of variable
@@ -87,7 +87,7 @@ void init_var(char *name, char *variable, int type, int need, char *value) {
   Var_Set[Id_Var].need = need;
   Var_Set[Id_Var].read = NO;
   // Set to default values. These come from var.c
-  if (type == INT)  *((int*) variable) = int_value; 
+  if (type == INT)  *((int*) variable) = int_value;
   if (type == REAL) *((real*)variable) = real_value;
   if (type == BOOL) *((boolean*)variable) = bool_value;
   if (type == STRING) strcpy(variable, value);
@@ -96,13 +96,13 @@ void init_var(char *name, char *variable, int type, int need, char *value) {
 }
 
 void ReadVarFile(char *filename) {
-  
+
   FILE *input;
-  
+
   real real_value;
   int  int_value, type;
   boolean bool_value = FALSE;
- 
+
   real temp;
 
   char separator[20] = "\t :=>"; //Separators between a parameter name and its value
@@ -131,7 +131,7 @@ void ReadVarFile(char *filename) {
     if(name[0]!='#' && success == 1) {
       s1 = s + (int)strlen(name); // pointer shift (Here is the data)
       // cast to int because type of strlen is size_t.
-#ifdef FLOAT
+#if FLOAT
       sscanf(s1 + strspn(s1, separator),"%f", &temp); //single precision floating point value
 #else
       sscanf(s1 + strspn(s1, separator),"%lf", &temp); //double precision floating point value
@@ -239,11 +239,11 @@ void var_assign(){
     GuidingCenter = YES;
   }
 
-#if defined(CARTESIAN)
+#if CARTESIAN
   sprintf(COORDINATES,"%s","cartesian");
-#elif defined(CYLINDRICAL)
+#elif CYLINDRICAL
   sprintf(COORDINATES,"%s","cylindrical");
-#elif defined(SPHERICAL)
+#elif SPHERICAL
   sprintf(COORDINATES,"%s","spherical");
 #endif
 
@@ -255,7 +255,7 @@ void var_assign(){
     prs_exit (1);
   }
 
-#ifndef VISCOSITY
+#if (!VISCOSITY)
   if (NU != 0.0) {
     mastererr ("ERROR - You have defined a non-vanishing value for\n");
     mastererr ("the kinematic viscosity NU, but the code is built\n");
@@ -266,8 +266,8 @@ void var_assign(){
     prs_exit (1);
   }
 #endif
-  
-#ifndef ALPHAVISCOSITY
+
+#if (!ALPHAVISCOSITY)
   if (ALPHA != 0.0) {
     mastererr ("ERROR - You have defined a non-vanishing value for\n");
     mastererr ("the disk's alpha viscosity, but the code is built\n");
@@ -279,20 +279,20 @@ void var_assign(){
   }
 #endif
 
-#if (defined(VISCOSITY) && defined(ALPHAVISCOSITY))
+#if (VISCOSITY && ALPHAVISCOSITY)
   mastererr ("ERROR - You cannot activate at the same time\n");
   mastererr ("VISCOSITY and ALPHAVISCOSITY. Fix, rebuild and rerun.\n");
   prs_exit (1);
 #endif
 
-#if (defined(COLLISIONPREDICTOR) && !defined(DRAGFORCE))
+#if (COLLISIONPREDICTOR && (!DRAGFORCE))
   mastererr ("ERROR - You cannot activate the COLLISIONPREDICTOR without the DRAGFORCE\n");
   prs_exit (1);
 #endif
 
 
-#if defined(DUSTDIFFUSION) && defined(ALPHAVISCOSITY) && !defined(Y)
-  mastererr("ERROR - Direction Y (-DY in the .opt file) must be activated\n");
+#if (DUSTDIFFUSION && ALPHAVISCOSITY && (!YDIM))
+  mastererr("ERROR - Direction Y (-DYDIM in the .opt file) must be activated\n");
   mastererr("\tfor the dust diffusion module with Alpha Viscosity.\n");
   prs_exit (1);
 #endif
@@ -311,21 +311,21 @@ void var_assign(){
   if (*(OUTPUTDIR+strlen(OUTPUTDIR)-1) != '/')
     strcat (OUTPUTDIR, "/");
 
-#ifdef FLOAT
+#if FLOAT
   sprintf(REALTYPE,"%s","float32");
 #else
   sprintf(REALTYPE,"%s","float64");
 #endif
 
 
-#ifdef RESCALE
+#if RESCALE
   YMAX *= R0;
   YMIN *= R0;
-#if defined(CYLINDRICAL) || defined(CARTESIAN)
+#if (CYLINDRICAL || CARTESIAN)
   ZMAX *= R0;
   ZMIN *= R0;
 #endif
-#ifdef CARTESIAN
+#if CARTESIAN
   XMIN *= R0;
   XMAX *= R0;
 #endif

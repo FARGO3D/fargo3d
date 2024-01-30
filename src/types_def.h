@@ -1,5 +1,5 @@
 typedef char boolean;
-#ifdef FLOAT
+#if FLOAT
 typedef float real;
 #else
 typedef double real;

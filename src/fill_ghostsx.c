@@ -11,37 +11,37 @@ void Fill_GhostsX_cpu () {
 
 //<USER_DEFINED>
   INPUT(Density);
-  //#ifdef ADIABATIC
+  //#if ADIABATIC
   INPUT(Energy);
   //#endif
-#ifdef X
+#if XDIM
   INPUT(Vx);
 #endif
-#ifdef Y
+#if YDIM
   INPUT(Vy);
 #endif
-#ifdef Z
+#if ZDIM
   INPUT(Vz);
 #endif
-#ifdef MHD
+#if MHD
   INPUT(Bx);
   INPUT(By);
   INPUT(Bz);
 #endif
   OUTPUT(Density);
-  //#ifdef ADIABATIC
+  //#if ADIABATIC
   OUTPUT(Energy);
   //#endif
-#ifdef X
+#if XDIM
   OUTPUT(Vx);
 #endif
-#ifdef Y
+#if YDIM
   OUTPUT(Vy);
 #endif
-#ifdef Z
+#if ZDIM
   OUTPUT(Vz);
 #endif
-#ifdef MHD
+#if MHD
   OUTPUT(Bx);
   OUTPUT(By);
   OUTPUT(Bz);
@@ -60,19 +60,19 @@ void Fill_GhostsX_cpu () {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef X  
+#if XDIM
   real* vx = Vx->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* vy = Vy->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* vz = Vz->field_cpu;
 #endif
-  //#ifdef ADIABATIC
+  //#if ADIABATIC
   real* energy = Energy->field_cpu;
   //#endif
-#ifdef MHD
+#if MHD
   real* bx = Bx->field_cpu;
   real* by = By->field_cpu;
   real* bz = Bz->field_cpu;
@@ -80,45 +80,45 @@ void Fill_GhostsX_cpu () {
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
   int nx = Nx;
-  int size_x = NGHX; 
+  int size_x = NGHX;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
 //<\EXTERNAL>
 
 //<MAIN_LOOP>
     i = j = k = 0;
-#ifdef Z
+#if ZDIM
     for (k = 0; k < size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
       for (j = 0; j < size_y; j++) {
-#endif	 
+#endif
 	for (i = 0; i < size_x; i++) {
 //<#>
 	  lghost1 = l;
-          lcopy1 = l + nx; 
+          lcopy1 = l + nx;
           lcopy2 = lghost1 + NGHX;
-          lghost2 = lcopy2 + nx; 
-	  
+          lghost2 = lcopy2 + nx;
+
 	  rho[lghost1]    = rho[lcopy1];
 	  rho[lghost2]    = rho[lcopy2];
-#ifdef Y
+#if YDIM
 	  vy[lghost1]     = vy[lcopy1];
 	  vy[lghost2]     = vy[lcopy2];
 #endif
-#ifdef X
+#if XDIM
 	  vx[lghost1]     = vx[lcopy1];
 	  vx[lghost2]     = vx[lcopy2];
-#endif	 
-#ifdef Z
+#endif
+#if ZDIM
 	  vz[lghost1]     = vz[lcopy1];
 	  vz[lghost2]     = vz[lcopy2];
-#endif	 
-	  //#ifdef ADIABATIC
+#endif
+	  //#if ADIABATIC
 	  energy[lghost1]   = energy[lcopy1];
 	  energy[lghost2]   = energy[lcopy2];
 	  //#endif
-#ifdef MHD
+#if MHD
 	  bx[lghost1]     = bx[lcopy1];
 	  bx[lghost2]     = bx[lcopy2];
 	  by[lghost1]     = by[lcopy1];
@@ -128,10 +128,10 @@ void Fill_GhostsX_cpu () {
 #endif
 //<\#>
 	}
-#ifdef Y
+#if YDIM
       }
-#endif	 
-#ifdef Z
+#endif
+#if ZDIM
     }
 #endif
 //<\MAIN_LOOP>

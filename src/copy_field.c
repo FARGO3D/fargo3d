@@ -4,7 +4,7 @@ void copy_field_cpu(Field *Dst, Field *Src) {
 
   real *dst = Dst->field_cpu;
   real *src = Src->field_cpu;
-  
+
   INPUT(Src);
   OUTPUT(Dst);
   memcpy (dst, src, sizeof(real)*(Nx+2*NGHX)*(Ny+2*NGHY)*(Nz+2*NGHZ));
@@ -13,7 +13,7 @@ void copy_field_cpu(Field *Dst, Field *Src) {
 
 void copy_field_gpu(Field *Dst, Field *Src) {
 
-#ifdef GPU
+#if GPU
   int width, height, pitch;
 
   real *dst = Dst->field_gpu;
@@ -21,7 +21,7 @@ void copy_field_gpu(Field *Dst, Field *Src) {
 
   Input_GPU(Src, __LINE__, __FILE__);
   Output_GPU(Dst, __LINE__, __FILE__);
-  
+
   if (Nx+2*NGHX == 1) { //Actually we need something like check mute in x direction also
     pitch = Stride_gpu * sizeof(real);
     width = (Ny+2*NGHY)*sizeof(real);

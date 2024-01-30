@@ -21,7 +21,7 @@ void RestartStretch (Field *field, int n) {
     masterprint("Error reading %s\n", filename);
     exit(1);
   }
-  
+
   fseek (fi, 0L, SEEK_END);
   sz = ftell(fi);  // File size
   fseek (fi, 0L, SEEK_SET);
@@ -40,7 +40,7 @@ void RestartStretch (Field *field, int n) {
   origin = (z0cell)*Nxp*NY + (y0cell)*Nxp; //z0cell and y0cell are global variables.
   for (k = NGHZ; k < Nz+NGHZ; k++) {
     for (j = NGHY; j < Ny+NGHY; j++) {
-      fseek(fi, (origin+(k-NGHZ)*Nxp*NY+(j-NGHY)*Nxp)*sizeof(real), SEEK_SET); 
+      fseek(fi, (origin+(k-NGHZ)*Nxp*NY+(j-NGHY)*Nxp)*sizeof(real), SEEK_SET);
       temp = fread(f+j*(Nx+2*NGHX)+k*Stride+NGHX, sizeof(real), Nxp, fi);
       for (i = NX+NGHX-1; i>=0; i--) //backward sweep as we overwrite data
 	f[l] = f[(i-NGHX)/size_ratio + j*(Nx+2*NGHX) + k*Stride+NGHX];
@@ -52,17 +52,17 @@ void RestartStretch (Field *field, int n) {
 
 void StretchOutput (int n) {
   RestartStretch(Density, n);
-#ifdef X	
+#if XDIM
   RestartStretch(Vx, n);
 #endif
-#ifdef Y	
+#if YDIM
   RestartStretch(Vy, n);
 #endif
-#ifdef Z	
+#if ZDIM
   RestartStretch(Vz, n);
 #endif
   if(Fluidtype != DUST) RestartStretch(Energy, n);
-#ifdef MHD
+#if MHD
   RestartStretch(Bx, n);
   RestartStretch(By, n);
   RestartStretch(Bz, n);

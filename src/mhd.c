@@ -1,7 +1,7 @@
 #include "fargo3d.h"
 
 void ComputeMHD(real dt) {
-  
+
   // EMF in x
   FARGO_SAFE(ComputeSlopes(0,0,1,Vy,Slope_v1));
   FARGO_SAFE(ComputeSlopes(0,0,1,By,Slope_b1));
@@ -36,19 +36,19 @@ void ComputeMHD(real dt) {
   FARGO_SAFE(ComputeEmf(dt, 0, 0, 1, B1_star, V1_star, B2_star, V2_star));
 
   // ----------------- NON-IDEAL MHD ---------------------
-  
-#ifdef OHMICDIFFUSION
+
+#if OHMICDIFFUSION
   FARGO_SAFE(OhmicDiffusion());
 #endif
-#ifdef AMBIPOLARDIFFUSION
+#if AMBIPOLARDIFFUSION
   FARGO_SAFE(AmbipolarDiffusion());
 #endif
-#ifdef HALLEFFECT
+#if HALLEFFECT
   FARGO_SAFE(HallEffect(dt));
 #endif
   //-------------------------------------------------------
-  
-#ifndef PASSIVEMHD
+
+#if (!PASSIVEMHD)
   FARGO_SAFE(ComputeSlopes(0,1,0,Bx,Slope_b1));
   FARGO_SAFE(ComputeSlopes(0,1,0,Vx,Slope_v1));
   FARGO_SAFE(ComputeSlopes(1,0,0,By,Slope_b2));
@@ -114,7 +114,7 @@ void ComputeDivergence(Field *CompX, Field *CompY, Field *CompZ){
   szj = Szj;
   szk = Szk;
 
-  i = j = k = 0;  
+  i = j = k = 0;
   for (k=0; k<Nz+2*NGHZ-1; k++) {
     for (j=0; j<Ny+2*NGHY-1; j++) {
       for (i=0; i<Nx; i++) {

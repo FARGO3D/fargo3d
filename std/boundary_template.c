@@ -11,11 +11,11 @@
 #define UP    3
 //<\INCLUDES>
 
-void boundary_%side () {
+void boundary_{side} () {{
 
 //<USER_DEFINED>
-  %ifields;
-  %ofields;
+{ifields}
+{ofields}
 //<\USER_DEFINED>
 
 //<INTERNAL>
@@ -26,14 +26,14 @@ void boundary_%side () {
   int __attribute__((unused))jgh;
   int __attribute__((unused))kact;
   int __attribute__((unused))kgh;
-  %internal;
+{internal}
 //<\INTERNAL>
 
 //<EXTERNAL>
-  %pointerfield;
+{pointerfield}
   int size_x = Nx+2*NGHX;
-  int size_y = %size_y;
-  int size_z = %size_z;
+  int size_y = {size_y};
+  int size_z = {size_z};
   int nx = Nx;
   int ny = Ny;
   int nz = Nz;
@@ -41,7 +41,7 @@ void boundary_%side () {
   int nghz = NGHZ;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  %global;
+{globals}
 //<\EXTERNAL>
 
 //<CONSTANT>
@@ -54,26 +54,26 @@ void boundary_%side () {
 
   i = j = k = 0;
 
-#ifdef Z
-  for(k=0; k<size_z; k++) {
+#if ZDIM
+  for(k=0; k<size_z; k++) {{
 #endif
-#ifdef Y
-    for(j=0; j<size_y; j++) {
+#if YDIM
+    for(j=0; j<size_y; j++) {{
 #endif
-#ifdef X
-      for(i=0; i<size_x; i++) {
+#if XDIM
+      for(i=0; i<size_x; i++) {{
 #endif
 //<#>
-	%boundaries;
+{boundaries}
 //<\#>
-#ifdef X
-      }
+#if XDIM
+      }}
 #endif
-#ifdef Y
-    }
+#if YDIM
+    }}
 #endif
-#ifdef Z
-  }
+#if ZDIM
+  }}
 #endif
 //<\MAIN_LOOP>
-}
+}}

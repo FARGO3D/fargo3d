@@ -11,7 +11,7 @@ void NewVelocity_y_cpu () {
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef Y
+#if YDIM
   INPUT(Mmy);
   INPUT(Mpy);
   OUTPUT(Vy);
@@ -20,7 +20,7 @@ void NewVelocity_y_cpu () {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef Y
+#if YDIM
   real* vy  = Vy -> field_cpu;
   real* mmy = Mmy->field_cpu;
   real* mpy = Mpy->field_cpu;
@@ -51,29 +51,29 @@ void NewVelocity_y_cpu () {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=XIM; i<size_x; i++) {
 #endif
 //<#>
-#ifdef Y
+#if YDIM
 	ll = l;
 	llym = lym;
 	vy[ll] = (mmy[ll]*Vol(i,j,k)+mpy[llym]*Vol(i,j-1,k))/(rho[ll]*Vol(i,j,k)+rho[llym]*Vol(i,j-1,k));
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

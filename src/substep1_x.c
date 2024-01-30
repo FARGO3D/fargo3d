@@ -15,13 +15,13 @@ void SubStep1_x_cpu (real dt) {
   INPUT(Density);
   INPUT(Pot);
   INPUT(Vx);
-#ifdef MHD
-#if defined (CYLINDRICAL) || defined (SPHERICAL)
+#if MHD
+#if (CYLINDRICAL || SPHERICAL)
   INPUT(Bx);
 #endif
   INPUT(By);
   INPUT(Bz);
-#endif  
+#endif
   OUTPUT(Vx_temp);
 //<\USER_DEFINED>
 
@@ -29,23 +29,23 @@ void SubStep1_x_cpu (real dt) {
   real* p   = Pressure->field_cpu;
   real* pot = Pot->field_cpu;
   real* rho = Density->field_cpu;
-#ifdef X
+#if XDIM
   real* vx      = Vx->field_cpu;
   real* vx_temp = Vx_temp->field_cpu;
 #endif
-#ifdef MHD
+#if MHD
   real* bx = Bx->field_cpu;
   real* by = By->field_cpu;
   real* bz = Bz->field_cpu;
 #endif
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
   int fluidtype = Fluidtype;
 //<\EXTERNAL>
-  
+
 //<INTERNAL>
   int i; //Variables reserved
   int j; //for the topology
@@ -53,16 +53,16 @@ void SubStep1_x_cpu (real dt) {
   int ll;
   real dtOVERrhom;
   real dxmed;
-#ifdef X
+#if XDIM
   int llxm;
 #endif
-#ifdef Y
+#if YDIM
   int llyp;
 #endif
-#ifdef Z
+#if ZDIM
   int llzp;
 #endif
-#ifdef MHD
+#if MHD
   real db1;
   real db2;
   real bmeanm;
@@ -70,7 +70,7 @@ void SubStep1_x_cpu (real dt) {
 #if defined (CYLINDRICAL)|| defined (SPHERICAL)
   real brmean;
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
   real btmean;
 #endif
 #endif
@@ -88,24 +88,24 @@ void SubStep1_x_cpu (real dt) {
 //<MAIN_LOOP>
 
   i = j = k = 0;
-  
-#ifdef Z
+
+#if ZDIM
   for(k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=XIM; i<size_x; i++) {
 #endif
 //<#>
-#ifdef X
+#if XDIM
 	ll = l;
 	llxm = lxm;
-#ifdef Y
+#if YDIM
 	llyp = lyp;
 #endif
-#ifdef Z
+#if ZDIM
 	llzp = lzp;
 #endif
 
@@ -114,52 +114,52 @@ void SubStep1_x_cpu (real dt) {
 
 	vx_temp[ll] = vx[ll];
 	if(fluidtype != DUST) vx_temp[ll] -=  dtOVERrhom*(p[ll]-p[llxm])*Inv_zone_size_xmed(i,j,k);
-	
-#ifdef POTENTIAL
+
+#if POTENTIAL
 	vx_temp[ll] -= (pot[ll]-pot[llxm])*dt*Inv_zone_size_xmed(i,j,k);
 #endif
 
-#ifdef MHD
+#if MHD
 	if(fluidtype == GAS) {
 
-#ifndef PASSIVEMHD
-	  
+#if (!PASSIVEMHD)
+
 	  bmean  = 0.5*(by[ll] + by[llyp]);
 	  bmeanm = 0.5*(by[llxm] + by[llxm+pitch]);
-	  
+
 	  db1 = (bmean*bmean-bmeanm*bmeanm);
-	  
+
 #if defined(CYLINDRICAL) || defined(SPHERICAL)
 	  brmean = .5*(bmean+bmeanm);
 	  vx_temp[ll] += dtOVERrhom*brmean*bx[ll]/(MU0*ymed(j));
 #endif
-	  
+
 	  bmean  = 0.5*(bz[ll] + bz[llzp]);
 	  bmeanm = 0.5*(bz[llxm] + bz[llxm+stride]);
-	  
+
 	  db2 = (bmean*bmean-bmeanm*bmeanm);
-	  
+
 	  vx_temp[ll] -= .5*dtOVERrhom*(db1 + db2)*Inv_zone_size_xmed(i,j,k)/MU0;
-	  
-#ifdef SPHERICAL
+
+#if SPHERICAL
 	btmean = .5*(bmean+bmeanm);
 	vx_temp[ll] += dtOVERrhom*btmean*cos(zmed(k))*bx[ll]/(MU0*ymed(j)*sin(zmed(k)));
 #endif
-      
+
 #endif
       }
 #endif
 #endif
-      
+
 
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

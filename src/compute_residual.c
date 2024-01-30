@@ -51,23 +51,23 @@ void ComputeResidual_cpu(real dt) {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k = 0; k < size_z; k++) {
-#endif 
-#ifdef Y
+#endif
+#if YDIM
     for (j = 0; j < size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i = 0; i < size_x; i++) {
 #endif
 //<#>
 	ll = l;
 	ll2D = l2D;
 
-#ifndef RAM
+#if (!RAM)
 	ntilde = vxmed[ll2D]*dt/zone_size_x(i,j,k);
 	nround = floor(ntilde+0.5);
-	if(i == 0) 
+	if(i == 0)
 	  nshift[l2D_int] = (int)nround;
 	vxr[ll] = vx[ll]-vxmed[ll2D];
 	vx[ll] = (ntilde-nround)*zone_size_x(i,j,k)/dt;
@@ -75,13 +75,13 @@ void ComputeResidual_cpu(real dt) {
 	vxr[ll] = vx[ll]-vxmed[ll2D];
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

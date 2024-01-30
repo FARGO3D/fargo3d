@@ -13,13 +13,13 @@ void RamSlopes_cpu(Field *Q){
   INPUT(Q);
   OUTPUT(Slope);
 //<\USER_DEFINED>
-    
+
 //<EXTERNAL>
   real* slope = Slope->field_cpu;
   real* q = Q->field_cpu;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
 //<\EXTERNAL>
@@ -46,14 +46,14 @@ void RamSlopes_cpu(Field *Q){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
-      for (i=XIM; i<size_x; i++) {	
+#if XDIM
+      for (i=XIM; i<size_x; i++) {
 #endif
 //<#>
 	ll = l;
@@ -66,19 +66,19 @@ void RamSlopes_cpu(Field *Q){
 	dqm = (q[ll]-q[llxm])/dxmed;
 	dqp = (q[llxp]-q[ll])/dxmedp;
 	if(dqp*dqm<=0.0)  slope[ll] = 0.0;
-#ifndef DONOR
+#if (!DONOR)
 	else  slope[ll] = (2.*dqp*dqm)/(dqm+dqp);
 #else
 	else  slope[ll] = 0.0;
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 

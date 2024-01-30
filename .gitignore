@@ -17,3 +17,5 @@ std/.lastflags.old
 *.bak
 *tests.log
 mp.pro
+CMakeCache.txt
+CMakeUserPresets.json

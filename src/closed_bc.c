@@ -40,46 +40,46 @@ void CloseBoundaries_cpu(Field *Vy, Field *Vz){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++) {
 #endif
 //<#>
 
-#ifdef YMINCLOSED	
+#if YDIMMINCLOSED
 	if ((jcpu == 0) && (j == NGHY))
 	  vy[l] = 0.0;
 #endif
 
-#ifdef YMAXCLOSED
+#if YDIMMAXCLOSED
 	if ((jcpu == ncpuy-1) && (j == size_y-NGHY-1))
 	  vy[l] = 0.0;
 #endif
 
-#ifdef ZMINCLOSED	
+#if ZDIMMINCLOSED
 	if ((kcpu == 0) && (k == NGHZ)) {
 	  vz[l] = 0.0;
 	}
 #endif
 
-#ifdef ZMAXCLOSED
+#if ZDIMMAXCLOSED
 	if ((kcpu == ncpuz-1) && (k == size_z-NGHZ-1))
 	  vz[l] = 0.0;
 #endif
 
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

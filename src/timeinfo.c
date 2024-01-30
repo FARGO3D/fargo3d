@@ -2,7 +2,7 @@
 
 #define WALLCLOCK 1
 
-#ifdef WALLCLOCK
+#if WALLCLOCK
 #define TIMETICKS wcticks
 #else
 #define TIMETICKS buffer.tms_utime
@@ -13,7 +13,7 @@ static long     Ticks;
 extern int begin_i;
 
 void InitSpecificTime (TimeProcess *process_name, char *title){
-#ifdef PROFILING
+#if PROFILING
   struct tms buffer;
   clock_t wcticks;
   Ticks = sysconf (_SC_CLK_TCK);
@@ -26,7 +26,7 @@ void InitSpecificTime (TimeProcess *process_name, char *title){
 
 real GiveSpecificTime (TimeProcess process_name){
   real t=0.0;
-#ifdef PROFILING
+#if PROFILING
   struct tms buffer;
   clock_t wcticks;
   long ticks;
@@ -36,7 +36,7 @@ real GiveSpecificTime (TimeProcess process_name){
   ticks = TIMETICKS - process_name.clicks;
   t = (real)ticks / (real)Ticks;
   if (process_name.name[0] != 0) {
-#ifdef WALLCLOCK
+#if WALLCLOCK
     masterprint ("Wall clock time elapsed during %s : %.3f s\n", process_name.name, t);
 #else
     fprintf (stderr, "Time spent in %s : %.3f s\n", process_name.name, t);
@@ -70,7 +70,7 @@ void GiveTimeInfo (int number){
     fprintf (stderr, "CPU Time since last time step : %.3f s\n", last);
     fprintf (stderr, "Mean CPU Time between time steps : %.3f s\n", mean);
     fprintf (stderr, "CPU Load on last time step : %.1f %% \n", (real)(CurrentUser-PreceedingUser)/(real)(Current-Preceeding)*100.);
-  }     
+  }
   PreceedingUser = CurrentUser;
   Preceeding = Current;
 }

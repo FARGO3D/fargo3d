@@ -6,32 +6,32 @@ void cfl_b(){
 
   Min[FluidIndex] = reduction_full_MIN(DensStar, NGHY, Ny+NGHY, NGHZ, Nz+NGHZ);
 
-#ifdef X
+#if XDIM
     real* vxmed = VxMed->field_cpu;
     real shearlimit;
 
-#ifndef STANDARD
+#if (!STANDARD)
     INPUT2D (VxMed);
     i = j = k = 0;
-#ifdef Z
+#if ZDIM
     for (k=NGHZ; k<Nz+NGHZ; k++) {
 #endif
-#ifdef Y
+#if YDIM
       for (j=NGHY; j<Ny+NGHY; j++) {
 #endif
-#ifdef CARTESIAN
+#if CARTESIAN
 	shearlimit = CFL*Mindx / fabs(vxmed[l2D]-vxmed[l2D+1]);
 #endif
-#if defined(CYLINDRICAL) || defined(SPHERICAL)
+#if (CYLINDRICAL || SPHERICAL)
 	shearlimit = CFL*Mindx / fabs(vxmed[l2D]/Ymed(j)-vxmed[l2D+1]/Ymed(j+1));
 #endif
 	if (shearlimit < Min[FluidIndex]) {
 	  Min[FluidIndex] = shearlimit;
 	}
-#ifdef Y
+#if YDIM
       }
 #endif
-#ifdef Z
+#if ZDIM
     }
 #endif
 #endif

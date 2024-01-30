@@ -52,8 +52,8 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
   real dx;
   real dy;
   real dz;
-  real InvDist3; 
-  real hill_cut; 
+  real InvDist3;
+  real hill_cut;
   real planet_distance;
 //<\INTERNAL>
 
@@ -75,13 +75,13 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=NGHZ; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j = NGHY; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i = NGHX; i<size_x; i++) {
 #endif
 
@@ -91,17 +91,17 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 
 	ll = l;
 	cellmass = Vol(i,j,k)*dens[ll];
-#ifdef CARTESIAN
+#if CARTESIAN
 	dx = xmed(i)-x;
 	dy = ymed(j)-y;
 	dz = zmed(k)-z;
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	dx = ymed(j)*cos(xmed(i))-x;
 	dy = ymed(j)*sin(xmed(i))-y;
 	dz = zmed(k)-z;
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	dx = ymed(j)*cos(xmed(i))*sin(zmed(k))-x;
 	dy = ymed(j)*sin(xmed(i))*sin(zmed(k))-y;
 	dz = ymed(j)*cos(zmed(k))-z;
@@ -109,7 +109,7 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 	dist2 = dx*dx+dy*dy+dz*dz;
 	/* New default exclusion function */
 
-#ifdef HILLCUT 
+#if HILLCUT
 	planet_distance=sqrt(dist2);
 
 	if (planet_distance/rh < 0.5)
@@ -126,11 +126,11 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 	distance = sqrt(dist2);
 	InvDist3 = 1.0/(dist2*distance);
 	InvDist3 *= G*cellmass;
-	
+
 	fxi[ll]  = dx*InvDist3;
 	fyi[ll]  = dy*InvDist3;
 	fzi[ll]  = dz*InvDist3;
-#ifdef HILLCUT
+#if HILLCUT
 	fxhi[ll] = dx*InvDist3*hill_cut;
 	fyhi[ll] = dy*InvDist3*hill_cut;
 	fzhi[ll] = dz*InvDist3*hill_cut;
@@ -139,32 +139,32 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 	fyhi[ll] = 0.0;
 	fzhi[ll] = 0.0;
 #endif
-#ifdef HALFDISK
+#if HALFDISK
 	fzi[ll] = 0.0;
 	fzhi[ll] = 0.0;
 #endif
 
 //<\#>
 
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>
 
 //<LAST_BLOCK>
-  
+
   int index;
   real aa = sqrt(x*x+y*y+z*z);
 
   /*This part can be improved for 3D*/
   index = (int)(((aa-Ymin(NGHY))/(Ymin(Ny+NGHY+1)-Ymin(NGHY)))*(real)Ny) + NGHY;
-  
+
   if (index >= NGHY) {
     if(index < Ny+NGHY) {
       /*Inner Force*/

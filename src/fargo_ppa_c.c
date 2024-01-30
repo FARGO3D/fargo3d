@@ -41,10 +41,10 @@ void VanLeerX_PPA_c_cpu(Field *Q){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
       for (i=0; i<size_x; i++) {
@@ -63,10 +63,10 @@ void VanLeerX_PPA_c_cpu(Field *Q){
 	  qR[ll] = 3.0*q[ll]-2.0*qL[ll];
 //<\#>
       }
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

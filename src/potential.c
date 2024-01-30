@@ -15,17 +15,17 @@ void compute_potential(real dt) {
   static int alreadycalculated = -1;
 
   if (alreadycalculated != Timestepcount){ //For multifluid purposes...
-    
+
     if (Corotating) GetPsysInfo (MARK);
-    
-#ifdef GPU
+
+#if GPU
     //Copy all the planetary data to device
     DevMemcpyH2D(Sys->x_gpu, Sys->x_cpu, sizeof(real)*(Sys->nb+1));
     DevMemcpyH2D(Sys->y_gpu, Sys->y_cpu, sizeof(real)*(Sys->nb+1));
     DevMemcpyH2D(Sys->z_gpu, Sys->z_cpu, sizeof(real)*(Sys->nb+1));
     DevMemcpyH2D(Sys->mass_gpu, Sys->mass_cpu, sizeof(real)*(Sys->nb+1));
 #endif
-    
+
     DiskOnPrimaryAcceleration = ComputeAccel(0.0, 0.0, 0.0, 0.0, 0.0);
     FARGO_SAFE(ComputeIndirectTerm());
     FARGO_SAFE(Potential()); // Gravitational potential from star and planet(s)
@@ -36,9 +36,9 @@ void compute_potential(real dt) {
 				   should fit most needs */
   for (i = 0; i < subcycling; i++)
     FARGO_SAFE(AdvanceSystemRK5(1.0/((double)(subcycling))*dt));
-  
+
   alreadycalculated = Timestepcount;
-  
+
   if (Corotating) {
     omeganew = GetPsysInfo(GET)/dt;
     Domega = omeganew-OMEGAFRAME;
@@ -49,7 +49,7 @@ void compute_potential(real dt) {
 }
 
 void Potential_cpu() {
-  
+
 //<USER_DEFINED>
   OUTPUT(Pot);
   real planetmass_taper;
@@ -80,7 +80,7 @@ void Potential_cpu() {
   int istar2 = BinaryStar2;
   int binary_true = ThereIsACentralBinary;
 //<\EXTERNAL>
-  
+
 //<INTERNAL>
   int i;
   int j;
@@ -107,24 +107,24 @@ void Potential_cpu() {
 //<MAIN_LOOP>
 
   i = j = k = 0;
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++) {
 #endif
 //<#>
-#ifndef NODEFAULTSTAR
-#ifdef SPHERICAL
+#if (!NODEFAULTSTAR)
+#if SPHERICAL
 	pot[l] =  -G*MSTAR/ymed(j); //Potential from star
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	pot[l] =  -G*MSTAR/sqrt(ymed(j)*ymed(j)+ZC*ZC); //Potential from star
 #endif
-#ifdef CARTESIAN
+#if CARTESIAN
 	pot[l] = -G*MSTAR/sqrt(XC*XC+YC*YC+ZC*ZC);
 #endif
 #else
@@ -133,7 +133,7 @@ void Potential_cpu() {
 
 
 
-#ifdef GASINDIRECTTERM
+#if GASINDIRECTTERM
 	if (indirect_term == YES) {
 		pot[l] -= indirectx*XC + indirecty*YC + indirectz*ZC; /* Indirect term due to gas */
 	}
@@ -141,7 +141,7 @@ void Potential_cpu() {
 
 	for(n=0; n<nb; n++) {
 	  mp = mplanet[n]*taper;
-	  
+
 
 	  planetdistance = sqrt(xplanet[n]*xplanet[n]+
 				yplanet[n]*yplanet[n]+
@@ -160,7 +160,7 @@ void Potential_cpu() {
 	  dist = ((XC-xplanet[n])*(XC-xplanet[n])+
 		  (YC-yplanet[n])*(YC-yplanet[n])+
 		  (ZC-zplanet[n])*(ZC-zplanet[n]));
-#ifndef NODEFAULTSTAR
+#if (!NODEFAULTSTAR)
 	  if (indirect_term == YES) {
 	    /* Indirect term due to planets */
 	    pot[l] += G*mp*(XC*xplanet[n]+YC*yplanet[n]+ZC*zplanet[n])/(planetdistance*
@@ -168,7 +168,7 @@ void Potential_cpu() {
 										planetdistance);
 	  }
 #endif
-#ifdef NODEFAULTSTAR
+#if NODEFAULTSTAR
 	  if (binary_true && (indirect_term == YES)) {
 	    if ((n != istar1) && (n != istar2)) { /* For all non-stellar objects */
 	      planetdistance = sqrt((xplanet[n]-xplanet[istar1])*(xplanet[n]-xplanet[istar1])+
@@ -179,7 +179,7 @@ void Potential_cpu() {
 					       (yplanet[n]-yplanet[istar1])*YC+	\
 					       (zplanet[n]-zplanet[istar1])*ZC)/\
 		(mplanet[1]+mplanet[2]);
-	      
+
 	      planetdistance = sqrt((xplanet[n]-xplanet[istar2])*(xplanet[n]-xplanet[istar2])+
 				    (yplanet[n]-yplanet[istar2])*(yplanet[n]-yplanet[istar2])+
 				    (zplanet[n]-zplanet[istar2])*(zplanet[n]-zplanet[istar2]));
@@ -188,20 +188,20 @@ void Potential_cpu() {
 					       (yplanet[n]-yplanet[istar2])*YC+	\
 					       (zplanet[n]-zplanet[istar2])*ZC)/\
 		(mplanet[1]+mplanet[2]);
-	      
+
 	    }
 	  }
 #endif
 	  pot[l] += -G*mp/sqrt(dist+smoothing); //Potential from planets
 	}
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

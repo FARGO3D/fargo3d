@@ -4,19 +4,19 @@ void _init_stockholm() {
 
   INPUT(Density);
   OUTPUT2D(Density0);
-#ifdef ADIABATIC
+#if ADIABATIC
   INPUT(Energy);
   OUTPUT2D(Energy0);
 #endif
-#ifdef X
+#if XDIM
   INPUT(Vx);
   OUTPUT2D(Vx0);
 #endif
-#ifdef Y
+#if YDIM
   INPUT(Vy);
   OUTPUT2D(Vy0);
 #endif
-#ifdef Z
+#if ZDIM
   INPUT(Vz);
   OUTPUT2D(Vz0);
 #endif
@@ -32,19 +32,19 @@ void _init_stockholm() {
   if ((Restart == YES) || (Restart_Full == YES)) {
     sprintf(outputname,"%s0_2d.dat",Density->name);
     error_density = Read2D(Density0, outputname, OUTPUTDIR, GHOSTINC);
-#ifdef X
+#if XDIM
     sprintf(outputname,"%s0_2d.dat",Vx->name);
     error_vx = Read2D(Vx0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
-#ifdef Y
+#if YDIM
     sprintf(outputname,"%s0_2d.dat",Vy->name);
     error_vy = Read2D(Vy0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
-#ifdef Z
+#if ZDIM
     sprintf(outputname,"%s0_2d.dat",Vz->name);
     error_vz = Read2D(Vz0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
     sprintf(outputname,"%s0_2d.dat",Energy->name);
     error_energy = Read2D(Energy0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
@@ -54,71 +54,71 @@ void _init_stockholm() {
   
   i = j = k = 0;
   
-#ifdef X
+#if XDIM
   real* vx  = Vx->field_cpu;
   real* vx0 = Vx0->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* vy  = Vy->field_cpu;
   real* vy0 = Vy0->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* vz  = Vz->field_cpu;
   real* vz0 = Vz0->field_cpu;
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
   real* e    = Energy->field_cpu;
   real* e0   = Energy0->field_cpu;
 #endif
   real* rho  = Density->field_cpu;
   real* rho0 = Density0->field_cpu;
   
-#ifdef Z
+#if ZDIM
   for (k=0; k<Nz+2*NGHZ; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<Ny+2*NGHY; j++) {
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
       if (error_energy)
 	e0[l2D]   = e[l];
 #endif
-#ifdef X
+#if XDIM
       if (error_vx)
 	vx0[l2D]  = vx[l];
 #endif
-#ifdef Y
+#if YDIM
       if (error_vy)
 	vy0[l2D]  = vy[l];
 #endif
-#ifdef Z
+#if ZDIM
       if (error_vz)
 	vz0[l2D]  = vz[l];
 #endif
       if (error_density)
 	rho0[l2D] = rho[l];
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 
   sprintf(outputname,"%s0_2d.dat",Density->name);
   Write2D(Density0, outputname, OUTPUTDIR, GHOSTINC);
-#ifdef X
+#if XDIM
   sprintf(outputname,"%s0_2d.dat",Vx->name);
   Write2D(Vx0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
-#ifdef Y
+#if YDIM
   sprintf(outputname,"%s0_2d.dat",Vy->name);
   Write2D(Vy0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
-#ifdef Z
+#if ZDIM
   sprintf(outputname,"%s0_2d.dat",Vz->name);
   Write2D(Vz0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
   sprintf(outputname,"%s0_2d.dat",Energy->name);
   Write2D(Energy0, outputname, OUTPUTDIR, GHOSTINC);
 #endif

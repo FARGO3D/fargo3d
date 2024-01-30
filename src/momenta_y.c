@@ -11,7 +11,7 @@ void momenta_y_cpu() {
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef Y
+#if YDIM
   INPUT(Vy_temp);
   OUTPUT(Mmy);
   OUTPUT(Mpy);
@@ -20,7 +20,7 @@ void momenta_y_cpu() {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef Y
+#if YDIM
   real* vy = Vy_temp->field_cpu;
   real* mmy = Mmy->field_cpu;
   real* mpy = Mpy->field_cpu;
@@ -33,7 +33,7 @@ void momenta_y_cpu() {
 //<\EXTERNAL>
 
 //<INTERNAL>
-  int i; //Reserved variables 
+  int i; //Reserved variables
   int j; //for the topology
   int k; //of the kernels
   int ll;
@@ -44,30 +44,30 @@ void momenta_y_cpu() {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++) {
 #endif
 //<#>
-#ifdef Y
+#if YDIM
 	ll = l;
 	llyp = lyp;
 	mmy[ll] = vy[ll] * rho[ll];
 	mpy[ll] = vy[llyp] * rho[ll];
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

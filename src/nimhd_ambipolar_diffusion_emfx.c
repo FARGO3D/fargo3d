@@ -69,11 +69,11 @@ void AmbipolarDiffusion_emfx_cpu(){
 
 	bmod = b1*b1 + b2*b2 + b3*b3 + eps;
 	etac = 0.25*(eta[ll]+eta[lym]+eta[lzm]+eta[lym-stride]);
-	
-#if (defined(CARTESIAN) || defined(SPHERICAL) )
+
+#if (CARTESIAN || SPHERICAL)
 	emf[ll] += etac*(j1 - (b1*j1+b2*j2+b3*j3)*b1/bmod);
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	emf[ll] -= etac*(j1 - (b1*j1+b2*j2+b3*j3)*b1/bmod);
 #endif
 //<\#>

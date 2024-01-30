@@ -15,7 +15,7 @@ void LorentzForce(real dt, Field *Bs1, Field *Bs2, int idx, int idy, int idz) {
   int idx2, idy2, idz2;
   int stride1;
   int stride2;
-  
+
   Field* B1;
   Field* B2;
   Field* V;
@@ -25,8 +25,8 @@ void LorentzForce(real dt, Field *Bs1, Field *Bs2, int idx, int idy, int idz) {
     B1 = By;
     B2 = Bz;
     stride1 = (Nx+2*NGHX);
-    stride2 = (Nx+2*NGHX)*(Ny+2*NGHY); 
-#ifdef GPU
+    stride2 = (Nx+2*NGHX)*(Ny+2*NGHY);
+#if GPU
     if ( _LorentzForce ==  _LorentzForce_gpu) {
       stride1 = Pitch_gpu;
       stride2 = Stride_gpu;
@@ -35,14 +35,14 @@ void LorentzForce(real dt, Field *Bs1, Field *Bs2, int idx, int idy, int idz) {
     idx1 = 0; idy1 = 1; idz1 = 0;
     idx2 = 0; idy2 = 0; idz2 = 1;
   }
-  
+
   if(idy == 1) {
     V = Vy;
     B1 = Bz;
     B2 = Bx;
     stride1 = (Nx+2*NGHX)*(Ny+2*NGHY);
-    stride2 = 1;    
-#ifdef GPU
+    stride2 = 1;
+#if GPU
     if ( _LorentzForce ==  _LorentzForce_gpu) {
       stride1 = Stride_gpu;
       stride2 = 1;
@@ -51,14 +51,14 @@ void LorentzForce(real dt, Field *Bs1, Field *Bs2, int idx, int idy, int idz) {
     idx1 = 0; idy1 = 0; idz1 = 1;
     idx2 = 1; idy2 = 0; idz2 = 0;
   }
-  
+
   if(idz == 1) {
     V = Vz;
     B1 = Bx;
     B2 = By;
     stride1 = 1;
     stride2 = Nx+2*NGHX;
-#ifdef GPU
+#if GPU
     if ( _LorentzForce ==  _LorentzForce_gpu) {
       stride1 = 1;
       stride2 = Pitch_gpu;
@@ -98,7 +98,7 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
   int size_z = Nz+2*NGHZ-1;
   real nx = Nx;
 //<\EXTERNAL>
-    
+
 
 //<INTERNAL>
   int i;
@@ -153,18 +153,18 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
 	delta1 = (zone_size_x(i,j,k)*idx1	+ \
 		  zone_size_y(j,k)*idy1 + \
 		  zone_size_z(j,k)*idz1);
-	
+
 	delta2 = (zone_size_x(i,j,k)*idx2 + \
 		  zone_size_y(j,k)*idy2 + \
 		  zone_size_z(j,k)*idz2);
-	
+
 	/* The test below MUST be "if (idz == 1)" and NOT "if (stride1
 	   == 1)". What is intended is to flush the index to the mesh
 	   in X **if the direction 1 is X**. Now we could have stride1
 	   being 1 and yet the direction 1 not being X (if Nx =
 	   1...) */
 
-#ifndef GHOSTSX
+#if (!GHOSTSX)
 	if (idz == 1) {
 	  if (i == nx-1) {
 	    lmperp1plus -= nx;
@@ -177,7 +177,7 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
 	  }
 	}
 #endif
-	
+
 	b1_mean1 = 0.5*(b1[lp1]+b1[lmperp1plus]);
 	b1_mean2 = 0.5*(b1[ll]+b1[lm]);
 	b1_mean  = 0.5*(b1_mean1+b1_mean2);
@@ -187,7 +187,7 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
 
 	d1bs1 = (bs1[lp1]-bs1[ll])/delta1;
 	d2bs2 = (bs2[lp2]-bs2[ll])/delta2;
-	
+
 	v[ll] += 2.0*dt/(rho[ll]+rho[lm])*(b1_mean*d1bs1 + b2_mean*d2bs2)/MU0;
 //<\#>
       }

@@ -21,7 +21,7 @@ void OhmicDiffusion_emf(int idx, int idy, int idz) {
   Field *B1;
   Field *B2;
   Field *Emf;
-  
+
   int i,j,k;
 
   if (idx == 1) {
@@ -68,7 +68,7 @@ void _OhmicDiffusion_emf_cpu (int idx, int idy, int idz, int idx1, int idy1, int
   int pitch  = Pitch_cpu;
   int pitch2d = Pitch2D;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
 //<\EXTERNAL>
@@ -104,15 +104,15 @@ void _OhmicDiffusion_emf_cpu (int idx, int idy, int idz, int idx1, int idy1, int
 	diff1 = zone_size_x(i,j,k)*idx1+zone_size_y(j,k)*idy1+zone_size_z(j,k)*idz1;
 	diff2 = zone_size_x(i,j,k)*idx2+zone_size_y(j,k)*idy2+zone_size_z(j,k)*idz2;
 
-	//Warning: staggering of eta can be improved. 
-	
+	//Warning: staggering of eta can be improved.
+
 	emf[ll] += eta[ll]*((b2[ll]-b2[l1m])/diff1-(b1[ll]-b1[l2m])/diff2);
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	if (idz1+idz2 == 0) // Considering vertical component of Emf
-	  emf[ll] -= eta[ll]*(b1[ll]+b1[l2m])*.5/ymin(j); 
+	  emf[ll] -= eta[ll]*(b1[ll]+b1[l2m])*.5/ymin(j);
 //Note that (phi,r,z) has a left-handed orientation.
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	if (idy1+idy2 == 0) // Considering radial component of Emf
 	  emf[ll] += eta[ll]*(b2[ll]+b2[l1m])*.5/ymed(j)*cos(zmin(k))/sin(zmin(k));
 	if (idz1+idz2 == 0) // Considering colatitude component of Emf

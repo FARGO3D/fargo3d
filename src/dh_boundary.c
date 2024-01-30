@@ -17,13 +17,13 @@ static int Stride_k_GPU;
 static int Nj[4][2];
 static int Nk[4][2];
 
-#ifdef GPU
+#if GPU
 static struct cudaMemcpy3DParms Inner[4] = {0,0,0,0};
 static struct cudaMemcpy3DParms Outer[4] = {0,0,0,0};
-#endif 
+#endif
 
 void Prepare_DH_buffers () {
-#ifdef GPU
+#if GPU
   Inner[LEFT].srcPos = Inner[LEFT].dstPos = make_cudaPos (0, NGHY, 0);
   Outer[LEFT].extent = Inner[LEFT].extent = \
     make_cudaExtent ((Nx+2*NGHX)*sizeof(real), NGHY, Nz+2*NGHZ);
@@ -66,7 +66,7 @@ void Prepare_DH_buffers () {
   StartAddress_GPU[LEFT][INSIDE] = NGHY*Pitch_gpu;
   Nj[LEFT][INSIDE] = NGHY+1;
   Nk[LEFT][INSIDE] = Nz+2*NGHZ;
-  
+
   StartAddress_CPU[RIGHT][OUTSIDE] = (Ny+NGHY)*(Nx+2*NGHX);
   StartAddress_GPU[RIGHT][OUTSIDE] = (Ny+NGHY)*Pitch_gpu;
   Nj[RIGHT][OUTSIDE] = NGHY;
@@ -76,22 +76,22 @@ void Prepare_DH_buffers () {
   StartAddress_GPU[RIGHT][INSIDE] = Ny*Pitch_gpu;
   Nj[RIGHT][INSIDE] = NGHY+1;
   Nk[RIGHT][INSIDE] = Nz+2*NGHZ;
-  
+
   StartAddress_CPU[DOWN][OUTSIDE] = 0;
   StartAddress_GPU[DOWN][OUTSIDE] = 0;
   Nj[DOWN][OUTSIDE] = Ny+2*NGHY;
   Nk[DOWN][OUTSIDE] = NGHZ+1;
-  
+
   StartAddress_CPU[DOWN][INSIDE] = NGHZ*(Ny+2*NGHY)*(Nx+2*NGHX);
   StartAddress_GPU[DOWN][INSIDE] = NGHZ*Stride_gpu;
   Nj[DOWN][INSIDE] = Ny+2*NGHY;
   Nk[DOWN][INSIDE] = NGHZ+1;
-  
+
   StartAddress_CPU[UP][OUTSIDE] = (Nz+NGHZ)*(Ny+2*NGHY)*(Nx+2*NGHX);
   StartAddress_GPU[UP][OUTSIDE] = (Nz+NGHZ)*Stride_gpu;
   Nj[UP][OUTSIDE] = Ny+2*NGHY;
   Nk[UP][OUTSIDE] = NGHZ;
-  
+
   StartAddress_CPU[UP][INSIDE] = Nz*(Ny+2*NGHY)*(Nx+2*NGHX);
   StartAddress_GPU[UP][INSIDE] = Nz*Stride_gpu;
   Nj[UP][INSIDE] = Ny+2*NGHY;
@@ -103,7 +103,7 @@ void Prepare_DH_buffers () {
 
 
 void Input_Contour_Inside (Field *f, int side) { // Active zones go from D to H
-#ifdef GPU
+#if GPU
   if (BuffersReady == NO) Prepare_DH_buffers();
   if (side>3) return;
   if (f->fresh_inside_contour_cpu[side] == YES) return;
@@ -121,14 +121,14 @@ void Input_Contour_Inside (Field *f, int side) { // Active zones go from D to H
     Inner[side].dstPtr = f->cpu_pp;
     cudaMemcpy3D (&(Inner[side]));
     check_errors ("memcpy3d");
-  }  
+  }
   ContourComms++;
   f->fresh_inside_contour_cpu[side] = YES;
 #endif
 }
 
 void Output_Contour_Outside (Field *f, int side) { // Ghost zones go from H to D
-#ifdef GPU
+#if GPU
   if (BuffersReady == NO) Prepare_DH_buffers();
   if (side>3) return;
   if (f->fresh_outside_contour_gpu[side] == YES) return;

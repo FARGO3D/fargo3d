@@ -15,7 +15,7 @@ struct gpucommunicator {
   int dst;
   int direction;
   struct gpucommunicator *next;	/* We use a chained list */
-#ifdef GPU
+#if GPU
   struct cudaPitchedPtr buffer;    /* Will be allocated according to
 				      size only on the relevant
 				      processes, of course */
@@ -43,7 +43,7 @@ void MakeCommunicatorGPU (int src, int dest, int direction,			\
 			  int yminsrc, int zminsrc, int ymaxsrc, int zmaxsrc, \
 			  int ymindst, int zmindst, int ymaxdst, int zmaxdst, int parity)
 {
-#ifdef GPU
+#if GPU
   GpuCommunicator *comm;
   int nvar;
   size_t pitch;
@@ -109,23 +109,23 @@ void MakeCommunicatorGPU (int src, int dest, int direction,			\
 }
 
 void ResetBuffersGPU() {
-#ifdef GPU
+#if GPU
   int j, k, rank, rankdest;
   int extraz = 0, extray = 0;
-#ifdef Z
+#if ZDIM
   extraz = 1;
 #endif
-#ifdef Y
+#if YDIM
   extray = 1;
 #endif
   for (j = 0; j < Ncpu_x; j++) { /* We scan all CPUs */
     for (k = 0; k < Ncpu_y; k++) {
       rank = j+k*Ncpu_x;
-      
+
       /* ****************************************************** */
       /* ******************  EDGES  *************************** */
       /* ****************************************************** */
-      
+
       /* Do we have a neighbor on our right side ? */
       if ((j < Ncpu_x-1) || PERIODICY) {
 	MakeCommunicatorGPU (rank,					\
@@ -162,7 +162,7 @@ void ResetBuffersGPU() {
 			     NGHY, Nz+NGHZ, NGHY+Ny+extray, Nz+2*NGHZ,	\
 			     k%2);
       }
-      
+
       /* ****************************************************** */
       /* ******************  CORNERS  ************************* */
       /* ****************************************************** */
@@ -185,7 +185,7 @@ void ResetBuffersGPU() {
 			       0, 0, NGHY, NGHZ,		\
 			       j%2);
 	}
-      
+
       /* Do we have a left-top neighbor ? */
       if ((j + PERIODICY > 0) && (k < Ncpu_y-1 + PERIODICZ))
 	{
@@ -199,7 +199,7 @@ void ResetBuffersGPU() {
 			       Ny+NGHY, 0, Ny+2*NGHY, NGHZ,	\
 			       j%2);
 	}
-      
+
       /* Do we have a left-bottom neighbor ? */
       if ((j + PERIODICY > 0) && (k + PERIODICZ > 0))
 	{
@@ -213,7 +213,7 @@ void ResetBuffersGPU() {
 			       Ny+NGHY, Nz+NGHZ, Ny+2*NGHY, Nz+2*NGHZ,	\
 			       j%2);
 	}
-      
+
       /* Do we have a right-bottom neighbor ? */
       if ((j < Ncpu_x-1 + PERIODICY) && (k + PERIODICZ > 0))
 	{
@@ -230,10 +230,10 @@ void ResetBuffersGPU() {
     }
   }
 #endif
-}      
+}
 
 void comm_gpu (int options) {
-#ifdef GPU
+#if GPU
   static boolean comm_init = NO;
   MPI_Request reqs[8], reqr[8];		/* At most 8 requests per PE */
   Field *f[MAX_FIELDS_PER_COMM];
@@ -253,29 +253,29 @@ void comm_gpu (int options) {
     f[nvar++] = Density;
   if (options & ENERGY)
     f[nvar++] = Energy;
-#ifdef X
+#if XDIM
   if (options & VX)
     f[nvar++] = Vx;
   if (options & VXTEMP)
     f[nvar++] = Vx_temp;
 #endif
-#ifdef Y
+#if YDIM
   if (options & VY)
     f[nvar++] = Vy;
   if (options & VYTEMP)
     f[nvar++] = Vy_temp;
 #endif
-#ifdef Z
+#if ZDIM
   if (options & VZ)
     f[nvar++] = Vz;
   if (options & VZTEMP)
     f[nvar++] = Vz_temp;
 #endif
-#ifdef MHD
+#if MHD
   if (options & BX)
     f[nvar++] = Bx;
   if (options & BY) {
-#ifdef SHEARINGBC
+#if SHEARINGBC
     if (J == Ncpu_x-1) {
       special[nvar] = 1;
     }
@@ -303,7 +303,7 @@ void comm_gpu (int options) {
     Input_GPU (f[i], __LINE__, __FILE__);
     Output_GPU (f[i], __LINE__, __FILE__);
   }
-  
+
   for (parity = 0; parity < 2; parity++) {
     for (direction = 0; direction < 8; direction++) {
       comm = ListStart;
@@ -324,7 +324,7 @@ void comm_gpu (int options) {
 	      check_errors ("mpi src send to buffer");
 	    }
 	    if (comm->src != comm->dst) {
-#ifdef FLOAT
+#if FLOAT
 	      MPI_Isend (comm->buffer.ptr, comm->size*nvar*comm->buffer.pitch/sizeof(real), \
 			 MPI_FLOAT, comm->dst, comm->direction,		\
 			 MPI_COMM_WORLD, reqs+nbreqs++);
@@ -337,7 +337,7 @@ void comm_gpu (int options) {
 	  }
 	  if (comm->dst == CPU_Rank) {
 	    if (comm->dst != comm->src) {
-#ifdef FLOAT
+#if FLOAT
 	      MPI_Irecv (comm->buffer.ptr, comm->size*nvar*comm->buffer.pitch/sizeof(real),\
 			 MPI_FLOAT, comm->src, comm->direction,		\
 			 MPI_COMM_WORLD, reqr+nbreqr);
@@ -377,8 +377,8 @@ void comm_gpu (int options) {
   for (n = 0; n < nbreqs; n++)
     MPI_Wait (reqs+n, MPI_STATUS_IGNORE);
   MPI_Barrier (MPI_COMM_WORLD);
-#ifdef SHEARINGBC
+#if SHEARINGBC
   FARGO_SAFE(ShearBC (options));
-#endif  
+#endif
 #endif
 }

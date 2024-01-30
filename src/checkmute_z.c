@@ -17,37 +17,37 @@ void CheckMuteZ_cpu() {
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef ADIABATIC
+#if ADIABATIC
   INPUT(Energy);
 #endif
-#ifdef X
+#if XDIM
   INPUT(Vx);
 #endif
-#ifdef Y
+#if YDIM
   INPUT(Vy);
 #endif
-#ifdef Z
+#if ZDIM
   INPUT(Vz);
 #endif
-#ifdef MHD
+#if MHD
   INPUT(Bx);
   INPUT(By);
   INPUT(Bz);
 #endif
   OUTPUT(Density);
-#ifdef ADIABATIC
+#if ADIABATIC
   OUTPUT(Energy);
 #endif
-#ifdef X
+#if XDIM
   OUTPUT(Vx);
 #endif
-#ifdef Y
+#if YDIM
   OUTPUT(Vy);
 #endif
-#ifdef Z
+#if ZDIM
   OUTPUT(Vz);
 #endif
-#ifdef MHD
+#if MHD
   OUTPUT(Bx);
   OUTPUT(By);
   OUTPUT(Bz);
@@ -65,19 +65,19 @@ void CheckMuteZ_cpu() {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef X  
+#if XDIM  
   real* vx = Vx->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* vy = Vy->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* vz = Vz->field_cpu;
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
   real* energy = Energy->field_cpu;
 #endif
-#ifdef MHD
+#if MHD
   real* bx = Bx->field_cpu;
   real* by = By->field_cpu;
   real* bz = Bz->field_cpu;
@@ -93,13 +93,13 @@ void CheckMuteZ_cpu() {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k = 0; k < size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j = 0; j < size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i = 0; i < size_x; i++) {
 #endif
 //<#>
@@ -109,23 +109,23 @@ void CheckMuteZ_cpu() {
 	
 	rho[ll]    = rho[l_act];
 	rho[l_up]  = rho[l_act];
-#ifdef Z
+#if ZDIM
 	vz[ll]     = vz[l_act];
 	vz[l_up]   = vz[l_act];
 #endif
-#ifdef X
+#if XDIM
 	vx[ll]     = vx[l_act];
 	vx[l_up]   = vx[l_act];
 #endif	 
-#ifdef Y
+#if YDIM
 	vy[ll]     = vy[l_act];
 	vy[l_up]   = vy[l_act];
 #endif	 
-#ifdef ADIABATIC
+#if ADIABATIC
 	energy[ll]   = energy[l_act];
 	energy[l_up] = energy[l_act];
 #endif
-#ifdef MHD
+#if MHD
 	bx[ll]     = bx[l_act];
 	bx[l_up]   = bx[l_act];
 	by[ll]     = by[l_act];
@@ -134,13 +134,13 @@ void CheckMuteZ_cpu() {
 	bz[l_up]   = bz[l_act];
 #endif   
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

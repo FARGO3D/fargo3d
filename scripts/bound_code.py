@@ -1,33 +1,44 @@
-import sys
+import argparse
+import textwrap
 
-FLUIDNUMBER =  int(sys.argv[2])
+parser = argparse.ArgumentParser(prog="boundparser.py",
+    description="Produce CPU and GPU prototypes of boundary functions",
+    epilog="This script is part of FARGO3D.")
+parser.add_argument("-n", "--nfluids", type=int, default=1)
+parser.add_argument("-cpu", help="Output file for CPU prototypes", default="bound_cpu.code")
+parser.add_argument("-gpu", help="Output file for GPU prototypes", default="bound_gpu.code")
+parser.add_argument("-proto", help="Output file for all prototypes", default="bound_proto.code")
+args = parser.parse_args()
 
-bound_cpu   = open("../scripts/bound_cpu.code","w")
-bound_gpu   = open("../scripts/bound_gpu.code","w")
-bound_proto = open("../scripts/bound_proto.code","w")
-    
-for i in range(FLUIDNUMBER):
-    for s in ['y','z']:
-        bound_cpu.write("#ifdef "+s.upper()+"\n")
-        bound_cpu.write("boundary_{0:s}min[{1:d}] = boundary_{0:s}min_{1:d}_cpu;\n".format(s,i))
-        bound_cpu.write("boundary_{0:s}max[{1:d}] = boundary_{0:s}max_{1:d}_cpu;\n".format(s,i))
-        bound_cpu.write("#endif\n")
+with open(args.cpu, "w") as bound_cpu, open(args.gpu, "w") as bound_gpu, \
+        open(args.proto, "w") as bound_proto:
 
-        bound_gpu.write("#ifdef "+s.upper()+"\n")
-        bound_gpu.write("boundary_{0:s}min[{1:d}] = boundary_{0:s}min_{1:d}_gpu;\n".format(s,i))
-        bound_gpu.write("boundary_{0:s}max[{1:d}] = boundary_{0:s}max_{1:d}_gpu;\n".format(s,i))
-        bound_gpu.write("#endif\n")
+    for i in range(args.nfluids):
+        for s in ['y', 'z']:
+            supper = s.upper()
 
-        bound_proto.write("#ifdef "+s.upper()+"\n")
-        bound_proto.write("ex void boundary_{0:s}min_{1:d}_cpu(void);\n".format(s,i))
-        bound_proto.write("ex void boundary_{0:s}max_{1:d}_cpu(void);\n".format(s,i))
-        bound_proto.write("#endif\n")
+            lines = f"""\
+                #if {supper}DIM
+                boundary_{s}min[{i}] = boundary_{s}min_{i}_cpu;
+                boundary_{s}max[{i}] = boundary_{s}max_{i}_cpu;
+                #endif
+                """
+            bound_cpu.write(textwrap.dedent(lines))
 
-        bound_proto.write("#ifdef "+s.upper()+"\n")
-        bound_proto.write("ex void boundary_{0:s}min_{1:d}_gpu(void);\n".format(s,i))
-        bound_proto.write("ex void boundary_{0:s}max_{1:d}_gpu(void);\n".format(s,i))
-        bound_proto.write("#endif\n")
+            lines = f"""\
+                #if {supper}DIM
+                boundary_{s}min[{i}] = boundary_{s}min_{i}_gpu;
+                boundary_{s}max[{i}] = boundary_{s}max_{i}_gpu;
+                #endif
+                """
+            bound_gpu.write(textwrap.dedent(lines))
 
-bound_cpu.close()
-bound_gpu.close()
-bound_proto.close()
+            lines = f"""\
+                #if {supper}DIM
+                ex void boundary_{s}min_{i}_cpu(void);
+                ex void boundary_{s}max_{i}_cpu(void);
+                ex void boundary_{s}min_{i}_gpu(void);
+                ex void boundary_{s}max_{i}_gpu(void);
+                #endif
+                """
+            bound_proto.write(textwrap.dedent(lines))

@@ -2,15 +2,15 @@
 
 
 void viscosity(real dt){
-#ifdef CARTESIAN
+#if CARTESIAN
   FARGO_SAFE(visctensor_cart());
   FARGO_SAFE(addviscosity_cart(dt));
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
   FARGO_SAFE(visctensor_cyl());
   FARGO_SAFE(addviscosity_cyl(dt));
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
   FARGO_SAFE(visctensor_sph());
   FARGO_SAFE(addviscosity_sph(dt));
 #endif

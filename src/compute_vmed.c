@@ -20,18 +20,18 @@ void ComputeVmed(Field *V) {
 
   k = j = 0;
 
-#ifdef Z
+#if ZDIM
   for (k = 0; k < Nz+2*NGHZ; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j = 0; j < Ny+2*NGHY; j++) {
 #endif
       ll2D = l2D;
       VxMed->field_cpu[ll2D] = Reduction2D->field_cpu[ll2D]/(XMAX-XMIN);
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 
@@ -71,26 +71,26 @@ void ComputeVweight_cpu(Field *V, Field *Q) {
   
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k = 0; k < size_z; k++) {
 #endif 
-#ifdef Y
+#if YDIM
     for (j = 0; j < size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i = 0; i < size_x; i++) {
 #endif
 //<#>
 	ll = l;
 	q[ll]  = v[ll]*(xmin(i+1)-xmin(i));
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

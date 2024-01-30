@@ -1,7 +1,7 @@
 #include "fargo3d.h"
 void boundaries() {
   if (!PERIODICZ) {
-#ifdef Z
+#if ZDIM
     if(Gridd.bc_down)
       boundary_zmin[FluidIndex]();
     if(Gridd.bc_up)
@@ -9,14 +9,14 @@ void boundaries() {
 #endif
   }
   if (!PERIODICY) {
-#ifdef Y
+#if YDIM
     if(Gridd.bc_left)
       boundary_ymin[FluidIndex]();
     if(Gridd.bc_right)
       boundary_ymax[FluidIndex]();
 #endif
   }
-#ifdef GHOSTSX 
+#if GHOSTSX
   Fill_GhostsX();
 #endif
 }

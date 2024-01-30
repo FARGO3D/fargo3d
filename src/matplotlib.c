@@ -30,10 +30,10 @@ int check_simtype() {
 }
 
 void initialize_python() {
-  
+
   Py_InitializeEx(1);
   //Bug with python event handler!!!! http://www.vtk.org/Bug/view.php?id=13788
-  pyrun("import signal;" 
+  pyrun("import signal;"
 	"signal.signal(signal.SIGINT, signal.SIG_DFL);");
   pyrun("import matplotlib");
   pyrun("matplotlib.use('TKAgg')");
@@ -83,7 +83,7 @@ void plot1d(char* name, int n, int merge) {
     initialize_python();
 
   if (merge){
-#ifndef FLOAT
+#if (!FLOAT)
     pyrun("field = np.fromfile('%s%s%d.dat')",OUTPUTDIR, name, n);
 #else
     pyrun("field = np.fromfile('%s%s%d.dat',dtype='f32')",OUTPUTDIR, name, n);
@@ -99,20 +99,20 @@ void plot1d(char* name, int n, int merge) {
 
   if (init == 0) {
     pyrun("ax = fig.add_subplot(111,axisbg='k')");
-    pyrun("ax.set_title('Field: %s',color='w')",name);  
+    pyrun("ax.set_title('Field: %s',color='w')",name);
 
     pyrun("ax.set_ylabel('%s')",name);
 
-#ifdef X
+#if XDIM
     pyrun("ax.set_xlabel('X')");
 #endif
-#ifdef Y
+#if YDIM
     pyrun("ax.set_xlabel('Y')");
 #endif
-#ifdef Z
+#if ZDIM
     pyrun("ax.set_xlabel('Z')");
 #endif
-#ifdef FLOAT
+#if FLOAT
     pyrun("domain = np.linspace(%f,%f,%d)",x1,x2,dim);
 #else
     pyrun("domain = np.linspace(%lf,%lf,%d)",x1,x2,dim);
@@ -131,7 +131,7 @@ void plot1d(char* name, int n, int merge) {
       pyrun("ax.relim()");
     }
     else {
-#ifdef FLOAT
+#if FLOAT
       pyrun("ax.set_ylim([%f,%f])",VMIN,VMAX);
 #else
       pyrun("ax.set_ylim([%lf,%lf])",VMIN,VMAX);
@@ -150,7 +150,7 @@ void plot1d(char* name, int n, int merge) {
       pyrun("ax.relim()");
     }
     else {
-#ifdef FLOAT
+#if FLOAT
       pyrun("ax.set_ylim([%f,%f])",VMIN,VMAX);
 #else
       pyrun("ax.set_ylim([%lf,%lf])",VMIN,VMAX);
@@ -200,11 +200,11 @@ void plot2d(char* name, int n, int merge) {
       y1 = Ymin(NGHY); y2 = Ymin(Ny+NGHY);
     }
   }
-  
+
   if (init == 0)
     initialize_python();
 
-#ifdef FLOAT
+#if FLOAT
   pyrun("dtype = np.float32");
 #else
   pyrun("dtype = np.float64");
@@ -233,9 +233,9 @@ void plot2d(char* name, int n, int merge) {
   }
   else
     pyrun("field = np.fromfile(f,dtype=dtype).reshape([%d,%d])",n2, n1);
-  
+
   pyrun("f.close()");
-  
+
   if(PLOTLOG) {
     pyrun("field = np.log10(field)");
   }
@@ -243,7 +243,7 @@ void plot2d(char* name, int n, int merge) {
   if (init == 0) {
     pyrun("ax = fig.add_subplot(111)");
     pyrun("ax.set_title('Field: %s',color='w')",name);
-    
+
     int simtype = check_simtype();
 
     if (simtype == YZSIM) {
@@ -258,7 +258,7 @@ void plot2d(char* name, int n, int merge) {
       pyrun("ax.set_xlabel('X')");
       pyrun("ax.set_ylabel('Y')");
     }
-    
+
     pyrun("time = ax.text(0.98, 0.97,'Time: %3.5f',"
 	  "horizontalalignment='right',"
 	  "verticalalignment='center',"
@@ -267,7 +267,7 @@ void plot2d(char* name, int n, int merge) {
 	  "horizontalalignment='left',"
 	  "verticalalignment='center',"
 	  "transform = ax.transAxes, color='w')", n);
-    
+
     pyrun("image = plt.imshow(field,"
 	  "cmap = plt.cm.%s,"
 	  "extent = [%lf,%lf,%lf,%lf],"
@@ -290,20 +290,20 @@ void plot2d(char* name, int n, int merge) {
     else {
       pyrun("image.set_clim(%lf,%lf)",VMIN,VMAX);
     }
-    
+
     pyrun("fig.canvas.flush_events()");
   }
 }
 
 void plot3d(char* name, int n, int merge) {
-  static boolean init = YES;  
+  static boolean init = YES;
   int n1,n2,n3;
 
   if (init)
     initialize_python();
     pyrun("ax = fig.add_subplot(111)");
     pyrun("ax.set_title('Field: %s',color='w')",name);
-    
+
   if (merge) {
     n1 = NX;  n2 = NY; n3 = NZ;
   }
@@ -311,7 +311,7 @@ void plot3d(char* name, int n, int merge) {
     n1 = Nx;  n2 = Ny; n3 = Nz;
   }
 
-#ifdef FLOAT
+#if FLOAT
   pyrun("dtype = np.float32");
 #else
   pyrun("dtype = np.float64");
@@ -336,11 +336,11 @@ void plot3d(char* name, int n, int merge) {
     pyrun("field = np.fromfile(f,dtype=dtype).reshape([%d,%d,%d])", n3, n2, n1);
 
   pyrun("f.close()");
-  
+
   if(PLOTLOG) {
     pyrun("field = np.log10(field)");
   }
-  
+
   if (init) {
     pyrun("time = ax.text(0.98, 0.97,'Time: %3.5f',"
 	  "horizontalalignment='right',"
@@ -377,10 +377,10 @@ void plot3d(char* name, int n, int merge) {
 }
 
 void Display() {
-  
-#if ((defined(X) && defined(Y) && !defined(Z)) || \
-     (defined(X) && defined(Z) && !defined(Y)) || \
-     (defined(Y) && defined(Z) && !defined(X)))
+
+#if ((XDIM && YDIM && (!ZDIM)) || \
+     (XDIM && ZDIM && (!YDIM)) || \
+     (YDIM && ZDIM && (!XDIM)))
   if (Merge) {
     if (CPU_Master) {
       plot2d(FIELD, TimeStep, Merge);
@@ -391,7 +391,7 @@ void Display() {
   }
 #endif
 
-#if (defined(X) && defined(Y) && defined(Z))
+#if (XDIM && YDIM && ZDIM)
   if (Merge) {
     if (CPU_Master) {
       plot3d(FIELD, TimeStep, Merge);
@@ -401,10 +401,10 @@ void Display() {
     plot3d(FIELD, TimeStep, Merge);
   }
 #endif
-  
-#if ((defined(X) & !(defined(Y) || defined(Z))) ||  \
-     (defined(Y) & !(defined(X) || defined(Z)))  || \
-     (defined(Z) & !(defined(X) || defined(Y))))
+
+#if ((XDIM && !(YDIM || ZDIM)) ||  \
+     (YDIM && !(XDIM || ZDIM)) || \
+     (ZDIM && !(XDIM || YDIM)))
   plot1d(FIELD, TimeStep, Merge);
 #endif
 }

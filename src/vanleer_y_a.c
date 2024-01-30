@@ -8,7 +8,7 @@
 //<\INCLUDES>
 
 void VanLeerY_a_cpu(Field *Q){
-  
+
 //<USER_DEFINED>
   INPUT(Q);
   OUTPUT(Slope);
@@ -44,13 +44,13 @@ void VanLeerY_a_cpu(Field *Q){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++) {
 #endif
 //<#>
@@ -61,19 +61,19 @@ void VanLeerY_a_cpu(Field *Q){
 	dqm = (q[ll]-q[llym])/zone_size_y(j,k);
 	dqp = (q[llyp]-q[ll])/zone_size_y(j+1,k);
 	if(dqp*dqm<=0) slope[ll] = 0;
-#ifndef DONOR
+#if (!DONOR)
 	else  slope[ll] = 2.*dqp*dqm/(dqm+dqp);
 #else
 	else  slope[ll] = 0.0;
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

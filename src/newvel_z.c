@@ -11,7 +11,7 @@ void NewVelocity_z_cpu () {
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef Z
+#if ZDIM
   INPUT(Mmz);
   INPUT(Mpz);
   OUTPUT(Vz);
@@ -20,7 +20,7 @@ void NewVelocity_z_cpu () {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef Z
+#if ZDIM
   real* vz  = Vz -> field_cpu;
   real* mmz = Mmz->field_cpu;
   real* mpz = Mpz->field_cpu;
@@ -52,32 +52,32 @@ void NewVelocity_z_cpu () {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=XIM; i<size_x; i++) {
 #endif
 //<#>
-#ifdef Z
+#if ZDIM
 	ll = l;
 	llzm = lzm;
 	vz[ll] = (mmz[ll]*Vol(i,j,k)+mpz[llzm]*Vol(i,j,k-1))/(rho[ll]*Vol(i,j,k)+rho[llzm]*Vol(i,j,k-1));
-#ifdef SPHERICAL
+#if SPHERICAL
 	vz[ll] /= ymed(j);
 #endif
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

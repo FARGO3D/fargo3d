@@ -1,64 +1,52 @@
 import re
-import sys
+import argparse
+import textwrap
 
-ifile = open("../std/collisions_template.cu","r")
-lines = ifile.readlines()
-ifile.close()
+parser = argparse.ArgumentParser(prog='collisions_gpu.py',
+    description='Compile GPU collisions template to kernel.',
+    epilog='This script is part of FARGO3D.')
+parser.add_argument('input')
+parser.add_argument('-n', '--nfluids', default=1, type=int)
+parser.add_argument('-o', '--output', default='collisions.cu')
+args = parser.parse_args()
 
-ofile = open("collisions.cu","w")
+with open(args.input, 'r') as template_file, \
+        open(args.output, 'w') as kernel_file:
+    # read the entire template file
+    template = template_file.read()
 
-nfluids = int(sys.argv[1])
+    # form the function arguments (type + name)
+    entries = list()
+    for i in range(args.nfluids):
+        entries.append(f'real *rho{i:d}')
+        entries.append(f'real *v_input{i:d}')
+        entries.append(f'real *v_output{i:d}')
+    fluids_defs = ', '.join(entries)
 
-for line in lines:
-    if re.search("%FLUIDS0",line):
-        newline = ""
-        for i in range(nfluids):
-            newline += "real* rho"+str(i)+",\n"
-            newline += "real* v_input"+str(i)+",\n"
-            if i == nfluids-1:
-                newline += "real* v_output"+str(i)+"){\n"
-            else:
-                newline += "real* v_output"+str(i)+",\n"
-        ofile.write(newline)
-        continue
-    
-    if re.search("%FLUIDS1",line):
-        newline = "real *rho[NFLUIDS] = {"
-        for i in range(nfluids):
-            if i == nfluids-1:
-                newline += "rho"+str(i)
-            else:
-                newline += "rho"+str(i)+","
-        newline += "};\n"
-        ofile.write(newline)
-        newline = "real *velocities_input[NFLUIDS] = {"
-        for i in range(nfluids):
-            if i == nfluids-1:
-                newline += "v_input"+str(i)
-            else:
-                newline += "v_input"+str(i)+","
-        newline += "};\n"
-        ofile.write(newline)
-        newline = "real *velocities_output[NFLUIDS] = {"
-        for i in range(nfluids):
-            if i == nfluids-1:
-                newline += "v_output"+str(i)
-            else:
-                newline += "v_output"+str(i)+","
-        newline += "};\n"
-        ofile.write(newline)
-        continue
+    # form the input arguments (name + index)
+    entries = list()
+    for i in range(args.nfluids):
+        entries.append(f'rho[{i:d}]')
+        entries.append(f'velocities_input[{i:d}]')
+        entries.append(f'velocities_output[{i:d}]')
+    fluids_inputs = ', '.join(entries)
 
-    if re.search("%FLUIDS2",line):
-        newline = ""
-        for i in range(nfluids):
-            newline += "rho[{:d}],\n".format(i)
-            newline += "velocities_input[{:d}],\n".format(i)
-            if i == nfluids-1:
-                newline += "velocities_output[{:d}]);\n".format(i)
-            else:
-                newline += "velocities_output[{:d}],\n".format(i)
-        ofile.write(newline)
-        continue
+    # form the array assignments
+    rho_assign = ',\n  '.join([f'rho{i:d}' for i in range(args.nfluids)])
+    vin_assign = ',\n  '.join([f'v_input{i:d}' for i in range(args.nfluids)])
+    vout_assign = ',\n  '.join([f'v_output{i:d}' for i in range(args.nfluids)])
 
-    ofile.write(line)
+    fluids_assign = textwrap.dedent(f'''\
+        real *rho[NFLUIDS] = {{
+          {rho_assign}
+        }};
+        real *velocities_input[NFLUIDS] = {{
+          {vin_assign}
+        }};
+        real *velocities_output[NFLUIDS] = {{
+          {vout_assign}
+        }};
+        ''')
+
+    kernel_file.write(template.format(fluids_defs=fluids_defs,
+        fluids_inputs=fluids_inputs, fluids_assign=fluids_assign))
