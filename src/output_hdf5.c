@@ -556,20 +556,24 @@ int WriteFieldTimeDep(hid_t dset_id, void *buffer) {
   H5Sclose(filespace_id);
 
   /* increase the first dimension by 1 for this timestep */
-  file_start[rank++] = file_dims[0];
+  file_start[rank] = file_dims[0];
+  rank += 1;
   file_dims[0] += 1;
   H5Dset_extent(dset_id, file_dims);
   filespace_id = H5Dget_space(dset_id);
 
   /* other start indices are from precomputed arrays */
 #ifdef Z
-  file_start[rank++] = hdf5.global_file_start[rank];
+  file_start[rank] = hdf5.global_file_start[rank];
+  rank += 1;
 #endif
 #ifdef Y
-  file_start[rank++] = hdf5.global_file_start[rank];
+  file_start[rank] = hdf5.global_file_start[rank];
+  rank += 1;
 #endif
 #ifdef X
-  file_start[rank++] = 0;
+  file_start[rank] = 0;
+  rank += 1;
 #endif
 
   /* select this processor's slab and write the data */
@@ -596,10 +600,12 @@ int WriteFieldStatic(hid_t dset_id, void *buffer) {
   filespace_id = H5Dget_space(dset_id);
 
 #ifdef Z
-  file_start[rank++] = hdf5.global_file_start[rank];
+  file_start[rank] = hdf5.global_file_start[rank];
+  rank += 1;
 #endif
 #ifdef Y
-  file_start[rank++] = hdf5.global_file_start[rank];
+  file_start[rank] = hdf5.global_file_start[rank];
+  rank += 1;
 #endif
 
   /* select this processor's slab and write the data */
@@ -872,7 +878,7 @@ int WriteStringAttribute(const char *name, const char *val) {
 }
 
 int WriteParametersHdf5() {
-  for (int i = 0; i < Id_Var; i++) {
+  for (int i = 0; i < Id_Var; ++i) {
     char *var = Var_Set[i].variable;
     const char *name = Var_Set[i].name;
 
