@@ -441,8 +441,8 @@ int WriteDomainHdf5() {
   } else {
     /* to keep all other processors from writing, since H5Dwrite must be
      * collective, just clear the hyperslab selection */
-    H5Sselect_none(filespace);
-    H5Sselect_none(memspace);
+    H5Sselect_none(filespace_id);
+    H5Sselect_none(memspace_id);
   }
 
   /* do the write operation */
