@@ -423,7 +423,7 @@ int WriteDomainHdf5() {
   filesz = NZ + 2 * NGHZ + 1;
 
   dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
-  H5Pset_chunk(dcpl_id, 1, &memsz);
+  H5Pset_chunk(dcpl_id, 1, &filesz);
 
   filespace_id = H5Screate_simple(1, &filesz, NULL);
   memspace_id = H5Screate_simple(1, &memsz, NULL);
@@ -464,7 +464,7 @@ int WriteDomainHdf5() {
   filesz = NY + 2 * NGHY + 1;
 
   dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
-  H5Pset_chunk(dcpl_id, 1, &memsz);
+  H5Pset_chunk(dcpl_id, 1, &filesz);
 
   filespace_id = H5Screate_simple(1, &filesz, NULL);
   memspace_id = H5Screate_simple(1, &memsz, NULL);
@@ -500,11 +500,12 @@ int WriteDomainHdf5() {
   /* memory start index and memory total size for the x-coordinate data */
   memst = 0;
   memsz = Nx + 2 * NGHX + 1;
+  filesz = NX + 2 * NGHX + 1;
 
   dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
-  H5Pset_chunk(dcpl_id, 1, &memsz);
+  H5Pset_chunk(dcpl_id, 1, &filesz);
 
-  filespace_id = H5Screate_simple(1, &memsz, NULL);
+  filespace_id = H5Screate_simple(1, &filesz, NULL);
   memspace_id = H5Screate_simple(1, &memsz, NULL);
 
   dataset_id = H5Dcreate(group_id, "x", REALTYPE,
