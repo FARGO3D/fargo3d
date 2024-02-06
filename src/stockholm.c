@@ -36,8 +36,8 @@ void StockholmBoundary_cpu(real dt) {
 //<\USER_DEFINED>
 
 //<EXTERNAL>
+int i,j,k;
   real* rho  = Density->field_cpu;
-
   #ifndef STOCKHOLMAAV
     real* rho0 = Density0->field_cpu;
   #endif
@@ -58,8 +58,11 @@ void StockholmBoundary_cpu(real dt) {
     }
   #endif
   real* rho0 = Density0->field_cpu;
+  #endif
+
 #ifdef X
   real* vx  = Vx->field_cpu;
+  #ifdef STOCKHOLMAAV
   reduction_SUM(Vx, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
   #ifdef Z
   for (k = 0; k < Nz+2*NGHZ; k++) {
@@ -75,20 +78,36 @@ void StockholmBoundary_cpu(real dt) {
   #ifdef Z
     }
   #endif
-#endif
   #endif
-
+#endif
 #ifdef X
-  real* vx  = Vx->field_cpu;
   real* vx0 = Vx0->field_cpu;
 #endif
+
 #ifdef Y
   real* vy  = Vy->field_cpu;
-  #ifndef STOCKHOLMAAV
-    real* vy0 = Vy0->field_cpu;
+  #ifdef STOCKHOLMAAV
+  reduction_SUM(Vy, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
+  #ifdef Z
+  for (k = 0; k < Nz+2*NGHZ; k++) {
   #endif
-  
+  #ifdef Y
+      for (j = 0; j < Ny+2*NGHY; j++) {
+  #endif
+        int ll2D = l2D;
+        Vy0->field_cpu[ll2D] = Reduction2D->field_cpu[ll2D]/(real)Nx;
+  #ifdef Y
+      }
+  #endif
+  #ifdef Z
+    }
+  #endif
+  #endif
 #endif
+#ifdef X
+  real* vy0 = Vy0->field_cpu;
+#endif
+
 #ifdef Z
   real* vz  = Vz->field_cpu;
   real* vz0 = Vz0->field_cpu;
@@ -121,9 +140,7 @@ void StockholmBoundary_cpu(real dt) {
 //<\EXTERNAL>
 
 //<INTERNAL>
-  int i;
-  int j;
-  int k;
+  
   //  Similar to Benitez-Llambay et al. (2016), Eq. 7.
   #ifndef MANUALDAMPBOUNDY
   real Y_inf = y_min*pow(dampingzone, 2.0/3.0);

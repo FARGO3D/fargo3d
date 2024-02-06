@@ -11,7 +11,10 @@ void SubStep3_cpu (real dt) {
 
 //<USER_DEFINED>
   INPUT(Energy);
+
+#ifdef BETACOOLING
   INPUT2D(Energy0);
+#endif
 #ifdef X
   INPUT(Vx_temp);
 #endif
@@ -26,7 +29,9 @@ void SubStep3_cpu (real dt) {
 
 //<EXTERNAL>
   real* e   = Energy->field_cpu;
+#ifdef BETACOOLING
   real* e0   = Energy0->field_cpu;
+#endif
 #ifdef X
   real* vx  = Vx_temp->field_cpu;
 #endif
@@ -47,7 +52,7 @@ void SubStep3_cpu (real dt) {
   int i; //Variables reserved
   int j; //for the topology
   int k; //of the kernels
-  int ll;
+  int ll, ll2D;
 #ifdef X
   int llxp;
 #endif
@@ -59,6 +64,7 @@ void SubStep3_cpu (real dt) {
 #endif
   real term;
   real div_v;
+  real temp_p;
 //<\INTERNAL>
   
 //<CONSTANT>
@@ -89,6 +95,7 @@ void SubStep3_cpu (real dt) {
 //<#>
 
 	ll = l;
+  ll2D = l2D;
 #ifdef X
 	llxp = lxp;
 #endif
@@ -111,17 +118,18 @@ void SubStep3_cpu (real dt) {
 	term = 0.5 * dt * (GAMMA - 1.) * div_v * InvVol(i,j,k);
 	e[ll] *= (1.0-term)/(1.0+term);
 
-  //beta cooling
+//beta cooling
 
-  #ifdef BETACOOLING
-  temp_p = BETA * dt;
-  e[ll] = (e[ll] + temp_p * e0[ll])/(1 + temp_p);
-  #endif
+#ifdef BETACOOLING
+temp_p = BETA * dt;
+e[ll] = (e[ll] + temp_p * e0[ll2D])/(1.0 + temp_p);
+#endif
 
   //end beta cooling
 //<\#>
 #ifdef X
       }
+
 #endif
 #ifdef Y
     }

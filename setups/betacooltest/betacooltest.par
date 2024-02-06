@@ -1,15 +1,14 @@
-Setup			fargo
+Setup			betacooltest
 
 ### Disk parameters
 
 AspectRatio     	0.05            Thickness over Radius in the disc
 Sigma0			6.3661977237e-4	Surface Density at r=1
 Alpha			1.0e-4		Uniform kinematic viscosity
-SigmaSlope		1.0     	Slope for the surface density
-FlaringIndex		0.25		Slope for the aspect-ratio
-Beta                100.0
-Gamma           1.666667
-
+SigmaSlope		0.0		Slope for the surface density
+FlaringIndex		0.0		Slope for the aspect-ratio
+Gamma               1.66666667
+Beta                1.0e-2
 
 # Radial range for damping (in period-ratios). Values smaller than one
 # prevent damping.
@@ -23,12 +22,12 @@ TauDamp 0.3
 
 ### Planet parameters
 
-PlanetConfig		planets/zero.cfg
+PlanetConfig		planets/jupiter.cfg
 ThicknessSmoothing 	0.6
 RocheSmoothing 		0.0
 Eccentricity		0.0
 ExcludeHill		no
-IndirectTerm		Yes
+IndirectTerm	    no
 
 ### Mesh parameters
 
@@ -40,6 +39,7 @@ Ymin			0.4		Inner boundary radius
 Ymax			2.5		Outer boundary radius
 OmegaFrame     		0.0		Angular velocity for the frame of reference (If Frame is F).
 Frame			F		Method for moving the frame of reference
+Spacing         log
 
 ### Output control parameters
 
@@ -47,7 +47,7 @@ DT			0.314159265359	Physical time between fine-grain outputs
 Ninterm	 		20		Number of DTs between scalar fields outputs
 Ntot			1000		Total number of DTs
 
-OutputDir		@outputs/fargo_basic_a2
+OutputDir		@outputs/fargo
 
 ### Plotting parameters
 

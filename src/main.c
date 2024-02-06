@@ -311,7 +311,7 @@ if (*SPACING=='N'){
   MULTIFLUID(FillGhosts(PrimitiveVariables()));
 
   
-#ifdef STOCKHOLM 
+#if defined STOCKHOLM || defined BETACOOLING
   FARGO_SAFE(init_stockholm()); //ALREADY IMPLEMENTED MULTIFLUID COMPATIBILITY
 #endif
   
@@ -321,130 +321,128 @@ if (*SPACING=='N'){
   masterprint ("Standard version with no ghost zones in X\n");
 #endif
   
-  for (i = begin_i; i<=NTOT; i++) { // MAIN LOOP
-    if (NINTERM * (TimeStep = (i / NINTERM)) == i) {
+for (i = begin_i; i<=NTOT; i++) { // MAIN LOOP, 
 
-#if defined(MHD) && defined(DEBUG)
-      FARGO_SAFE(ComputeDivergence(Bx, By, Bz));
-#endif
-      if (ThereArePlanets)
-	WritePlanetSystemFile(TimeStep, NO);
-      
-#ifndef NOOUTPUTS
-      MULTIFLUID(WriteOutputs(ALL));
-      
-#ifdef MATPLOTLIB
+  //output 
+  if (NINTERM * (TimeStep = (i / NINTERM)) == i) {
+  #if defined(MHD) && defined(DEBUG)
+        FARGO_SAFE(ComputeDivergence(Bx, By, Bz));
+  #endif
+        if (ThereArePlanets)
+    WritePlanetSystemFile(TimeStep, NO);
+        
+  #ifndef NOOUTPUTS
+        MULTIFLUID(WriteOutputs(ALL));
+        
+  #ifdef MATPLOTLIB
+        Display();
+  #endif
+        
+        if(CPU_Master) printf("OUTPUTS %d at date t = %f OK\n", TimeStep, PhysicalTime);
+  #endif
+        
+        if (TimeInfo == YES) GiveTimeInfo (TimeStep);
+  }
+  if (NSNAP != 0) {
+    if (NSNAP * (TimeStep = (i / NSNAP)) == i) {
+	    MULTIFLUID(WriteOutputs(SPECIFIC));
+    #ifdef MATPLOTLIB
       Display();
-#endif
-      
-      if(CPU_Master) printf("OUTPUTS %d at date t = %f OK\n", TimeStep, PhysicalTime);
-#endif
-      
-      if (TimeInfo == YES) GiveTimeInfo (TimeStep);
-
+    #endif
     }
+  }
+
+  if (i==NTOT)
+    break;
     
-    if (NSNAP != 0) {
-      if (NSNAP * (TimeStep = (i / NSNAP)) == i) {
-	MULTIFLUID(WriteOutputs(SPECIFIC));
-#ifdef MATPLOTLIB
-	Display();
-#endif
+  dtemp = 0.0;
+    
+  while (dtemp<DT) { // DT LOOP
+      
+    /// AT THIS STAGE Vx IS THE INITIAL TOTAL VELOCITY IN X
+    #ifdef X
+    #ifndef STANDARD
+          MULTIFLUID(ComputeVmed(Vx)); // FARGO algorithm -- very important to have it here!
+    #endif
+    #endif
+          /// NOW THE 2D MESH VxMed CONTAINS THE AZIMUTHAL AVERAGE OF Vx in X
+          
+    #ifdef FLOOR
+          MULTIFLUID(Floor());
+    #endif
+
+    #ifdef MHD
+    #ifdef OHMICDIFFUSION
+          FARGO_SAFE(OhmicDiffusion_coeff());
+    #endif
+    #ifdef AMBIPOLARDIFFUSION
+          FARGO_SAFE(AmbipolarDiffusion_coeff());
+    #endif
+    #ifdef HALLEFFECT
+          FARGO_SAFE(HallEffect_coeff());
+    #endif for (i = begin_i; i<=NTOT; i++)
+    #endif
+
+    // CFL condition is applied below ----------------------------------------
+    MULTIFLUID(cfl());
+    
+    CflFluidsMin(); /*Fills StepTime with the " global min " of the
+    cfl, computed from each fluid.*/
+    dt = StepTime; //cfl works with the 'StepTime' global variable.
+
+    dtemp+=dt;
+    if(dtemp>DT)  dt = DT - (dtemp-dt); //updating dt
+    //------------------------------------------------------------------------
+    
+    //------------------------------------------------------------------------
+    /* We now compute the total density of the mesh. We need first
+    reset an array and then fill it by adding the density of each fluid */
+    FARGO_SAFE(Reset_field(Total_Density));
+    MULTIFLUID(ComputeTotalDensity()); 
+    //------------------------------------------------------------------------
+
+          
+    #ifdef COLLISIONPREDICTOR
+          FARGO_SAFE(Collisions(0.5*dt, 0)); // 0 --> V is used and we update v_half.
+    #endif
+          
+          MULTIFLUID(Sources(dt)); //v_half is used in the R.H.S
+
+    #ifdef DRAGFORCE
+          FARGO_SAFE(Collisions(dt, 1)); // 1 --> V_temp is used.
+    #endif
+
+    #ifdef DUSTDIFFUSION
+          FARGO_SAFE(DustDiffusion_Main(dt));
+    #endif
+          
+          MULTIFLUID(Transport(dt));
+
+          PhysicalTime+=dt;
+          Timestepcount++;
+
+    #ifdef STOCKHOLM
+          MULTIFLUID(StockholmBoundary(dt));
+    #endif
+
+          //We apply comms and boundaries at the end of the step
+          MULTIFLUID(FillGhosts(PrimitiveVariables()));
+
+          if(CPU_Master) {
+      if (FullArrayComms)
+        printf("%s", "!");
+      else {
+        if (ContourComms)
+          printf("%s", ":");
+        else
+          printf("%s", ".");
       }
-    }
-
-    if (i==NTOT)
-      break;
-    
-    dtemp = 0.0;
-    
-    while (dtemp<DT) { // DT LOOP
-      
-      /// AT THIS STAGE Vx IS THE INITIAL TOTAL VELOCITY IN X
-#ifdef X
-#ifndef STANDARD
-      MULTIFLUID(ComputeVmed(Vx)); // FARGO algorithm -- very important to have it here!
-#endif
-#endif
-      /// NOW THE 2D MESH VxMed CONTAINS THE AZIMUTHAL AVERAGE OF Vx in X
-      
-#ifdef FLOOR
-      MULTIFLUID(Floor());
-#endif
-
-#ifdef MHD
-#ifdef OHMICDIFFUSION
-      FARGO_SAFE(OhmicDiffusion_coeff());
-#endif
-#ifdef AMBIPOLARDIFFUSION
-      FARGO_SAFE(AmbipolarDiffusion_coeff());
-#endif
-#ifdef HALLEFFECT
-      FARGO_SAFE(HallEffect_coeff());
-#endif
-#endif
-
-      // CFL condition is applied below ----------------------------------------
-      MULTIFLUID(cfl());
-      
-      CflFluidsMin(); /*Fills StepTime with the " global min " of the
-			cfl, computed from each fluid.*/
-      dt = StepTime; //cfl works with the 'StepTime' global variable.
-
-      dtemp+=dt;
-      if(dtemp>DT)  dt = DT - (dtemp-dt); //updating dt
-      //------------------------------------------------------------------------
-      
-      //------------------------------------------------------------------------
-      /* We now compute the total density of the mesh. We need first
-	 reset an array and then fill it by adding the density of each
-	 fluid */
-      FARGO_SAFE(Reset_field(Total_Density)); 
-      MULTIFLUID(ComputeTotalDensity()); 
-      //------------------------------------------------------------------------
-
-      
-#ifdef COLLISIONPREDICTOR
-      FARGO_SAFE(Collisions(0.5*dt, 0)); // 0 --> V is used and we update v_half.
-#endif
-      
-      MULTIFLUID(Sources(dt)); //v_half is used in the R.H.S
-
-#ifdef DRAGFORCE
-      FARGO_SAFE(Collisions(dt, 1)); // 1 --> V_temp is used.
-#endif
-
-#ifdef DUSTDIFFUSION
-      FARGO_SAFE(DustDiffusion_Main(dt));
-#endif
-      
-      MULTIFLUID(Transport(dt));
-
-      PhysicalTime+=dt;
-      Timestepcount++;
-
-#ifdef STOCKHOLM
-      MULTIFLUID(StockholmBoundary(dt));
-#endif
-
-      //We apply comms and boundaries at the end of the step
-      MULTIFLUID(FillGhosts(PrimitiveVariables()));
-
-      if(CPU_Master) {
-	if (FullArrayComms)
-	  printf("%s", "!");
-	else {
-	  if (ContourComms)
-	    printf("%s", ":");
-	  else
-	    printf("%s", ".");
-	}
-#ifndef NOFLUSH
-	fflush(stdout);
-#endif
-      }
-      FullArrayComms = 0;
-      ContourComms = 0;
+    #ifndef NOFLUSH
+      fflush(stdout);
+    #endif
+          }
+          FullArrayComms = 0;
+          ContourComms = 0;
     }
     
     if(CPU_Master) printf("%s", "\n");
