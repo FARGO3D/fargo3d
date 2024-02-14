@@ -32,6 +32,7 @@ void Init() {
       
       rho[l] = SIGMA0*pow(r/R0,-SIGMASLOPE)*(1.0+NOISE*(drand48()-.5));
       soundspeed  = ASPECTRATIO*pow(r/R0,FLARINGINDEX)*omega*r;
+      
 
 #ifdef ISOTHERMAL
       cs[l] = soundspeed;
@@ -45,7 +46,7 @@ void Init() {
       vphi[l] -= OMEGAFRAME*r;
       vphi[l] *= (1.+ASPECTRATIO*NOISE*(drand48()-.5));
       
-      vr[l]    = soundspeed*NOISE*(drand48()-.5);
+      vr[l]    = -1.5*ALPHA*pow(ASPECTRATIO, 2)*pow(r/R0,2*FLARINGINDEX-0.5);
     }
   } 
 }

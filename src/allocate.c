@@ -86,14 +86,16 @@ Fluid *CreateFluid(char *name, int fluidtype) {
 #endif
 #endif
 
-#if defined STOCKHOLM || defined BETCOOLING
+#if defined STOCKHOLM || defined BETACOOLING
   f->Density0 = CreateField2D ("rho0", YZ);
   f->Energy0   = CreateField2D ("e0", YZ);
   f->Vx0  = CreateField2D ("vx0", YZ);
   f->Vy0  = CreateField2D ("vy0", YZ);
   f->Vz0  = CreateField2D ("vz0", YZ);
 #endif
-
+  #ifdef BETACOOLING
+  f->OmegaOverBeta = CreateField2D("OoB", YZ);
+  #endif
   return f;
 }
 

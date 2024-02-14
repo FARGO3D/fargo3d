@@ -588,6 +588,9 @@ void SelectFluid(int n) {
   Vx0 = Fluids[n]->Vx0;
   Vy0 = Fluids[n]->Vy0;
   Vz0 = Fluids[n]->Vz0;
+  #ifdef BETACOOLING
+  OmegaOverBeta = Fluids[n]->OmegaOverBeta;
+  #endif
 #endif
 }
 

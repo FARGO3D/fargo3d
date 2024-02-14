@@ -1,0 +1,109 @@
+#!/usr/bin/env python3.10
+
+import os
+import pandas as pd
+import argparse
+import re
+from tqdm import tqdm
+
+parser = argparse.ArgumentParser(description='SLURM SLINGSHOT for FARGO3D - launches batches of fargo3d simulations')
+parser.add_argument('--root', dest='root', action='store',
+                     default=os.getcwd(),
+                    help='Root directory that should contain the fargo3d folder with all its files')
+parser.add_argument('-p',  dest='par', action='store', default='para.par', 
+                    help='Template of the parameter file. Every $var$ will be replaced \
+                        with values in the csv table under the column with the same name (var)' )
+parser.add_argument('-s', dest='sub', action='store', default='run.sh' )
+parser.add_argument('-l', default='parameters.csv', dest='parfile')
+parser.add_argument('-t', dest='setup', action='store', default='fargo' )
+parser.add_argument('-c',  dest='cores', action='store', default=8)
+parser.add_argument('-n', dest='name', default='noname')
+parser.add_argument('-r',  dest='ram', action='store', default='8gb')
+parser.add_argument('--from', dest='start', default=0)
+parser.add_argument('--to', dest='end', default=-1)
+args = parser.parse_args()
+
+
+
+rootn = f'{args.root}/{args.name}'
+sim_para_file = args.par
+submit_file =args.sub
+
+if os.path.exists(args.parfile):
+        para_tab = pd.read_csv(args.parfile, index_col=0)
+else:
+        print('Error: table with parameters not found.')
+        exit(1)
+
+#regex for simulation folders
+sim_f = re.compile('^out_\d+$')
+
+if not os.path.exists(rootn):
+        print(f'Folder {rootn} not present, creating it')
+        os.mkdir(rootn)
+else:
+        print(f'Folder {rootn} already present, I will generate parameters and submission files only for the missing ids')
+
+#check files
+if not os.path.exists(args.par):
+        print('Error: parameter file template not found.')
+        exit(1)
+if not os.path.exists(args.sub):
+        print('Error: submission file template not found.')
+        exit(1)
+
+#preparing folders 
+if 'outputs' not in os.listdir(rootn):
+        os.mkdir(f'{rootn}/outputs')
+if 'submits' not in os.listdir(rootn):
+        os.mkdir(f'{rootn}/submits')
+if 'parafiles' not in os.listdir(rootn):
+        os.mkdir(f'{rootn}/parafiles')
+if 'slurm_log' not in os.listdir(rootn):
+        os.mkdir(f'{rootn}/slurm_log')
+
+print('Subdirectories created. I will now generate all the parameters and submission files.')
+#iterate on different simulations
+for current_sim_n, para in tqdm(para_tab.iloc[args.start:args.end].iterrows()):
+
+        #preparing folder of the single sim
+        current_sim_folder = f'{rootn}/outputs/out_{current_sim_n:05}'
+
+        if f'out_{current_sim_n:05}' in os.listdir(f'{rootn}/outputs/'):
+                print(f'simulation with id {current_sim_n} is already present, skipping...')
+        else:
+                os.mkdir(current_sim_folder)
+
+                # copy and set parameter file
+                # Read in the file
+                with open(sim_para_file, 'r') as file :
+                        filedata = file.read()
+                        # Replace the target string
+                        for key, value in para_tab.loc[current_sim_n].items():
+                                filedata = filedata.replace(f'${key}$', f'{value}')
+                        filedata = filedata.replace('$outf$', f'{rootn}/outputs/out_{current_sim_n:05}')
+                # Write the file out again
+                with open(f'{rootn}/parafiles/para_{current_sim_n:05}.par', 'w') as file:
+                        file.write(filedata)
+
+
+                # copy and set submit file
+                # Read in the file
+                with open(submit_file, 'r') as file :
+                        filedata = file.read()
+                        # Replace the target string
+                        filedata = filedata.replace(f'$simid$', f'{current_sim_n:05}')
+                        filedata = filedata.replace(f'$root$', args.root)
+                        filedata = filedata.replace('$blockname$', args.name)
+                        filedata = filedata.replace('$ram$', str(args.ram))
+                        filedata = filedata.replace('$cores$', str(args.cores))
+                        filedata = filedata.replace('$setup$', args.setup)
+                        
+                # Write the file out again
+                with open(f'{rootn}/submits/run{current_sim_n:05}.sub', 'w') as file:
+                        file.write(filedata)
+exit()
+#files prepared, time to run
+os.chdir(f'{rootn}/submits/')
+for file in os.listdir():
+        os.system(f'sbatch {file}')

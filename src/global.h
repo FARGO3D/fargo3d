@@ -190,6 +190,10 @@ Field2D *Vy0;
 Field2D *Vz0;
 Field2D *Energy0;
 
+//08.02.2024 - A.R.
+Field2D *OmegaOverBeta;
+////
+
 //Communications variables
 
 int Ncpu_x; // Numbers of cpus in x-axis;

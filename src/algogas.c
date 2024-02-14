@@ -32,15 +32,15 @@ void Sources(real dt) {
   SetupHook1 (); //Setup specific hook. Defaults to empty function.
   
   //Equations of state-----------------------------------------------------------
-#ifdef ADIABATIC
-  FARGO_SAFE(ComputePressureFieldAd());
-#endif
-#ifdef ISOTHERMAL
-  FARGO_SAFE(ComputePressureFieldIso());
-#endif
-#ifdef POLYTROPIC
-  FARGO_SAFE(ComputePressureFieldPoly());
-#endif
+  #ifdef ADIABATIC
+    FARGO_SAFE(ComputePressureFieldAd());
+  #endif
+  #ifdef ISOTHERMAL
+    FARGO_SAFE(ComputePressureFieldIso());
+  #endif
+  #ifdef POLYTROPIC
+    FARGO_SAFE(ComputePressureFieldPoly());
+  #endif
   //-----------------------------------------------------------------------------
     
   InitSpecificTime (&t_Hydro, "Eulerian Hydro (no transport) algorithms");

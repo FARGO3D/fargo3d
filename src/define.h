@@ -365,7 +365,7 @@
 //#define sxk(i) sxk[(i)]
 //#define syj(i) syj[(i)]
 //#define syk(i) syk[(i)]
-//#define szj(i) szj[(i)]
+//#define szj(i) szj[(i)]  
 //#define szk(i) szk[(i)]
 
 #endif

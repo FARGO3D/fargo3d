@@ -2,7 +2,7 @@
 #----------------------------------------------
 
 Density:
-	Ymin: KEPLERIAN2DDENS
+	Ymin: CUSTOMBCDENSINNER_GAS
 	Ymax: KEPLERIAN2DDENS
 
 Vx:
@@ -10,8 +10,8 @@ Vx:
 	Ymax: KEPLERIAN2DVAZIM
 
 Vy:
-	Ymin: SYMMETRIC
-	Ymax: SYMMETRIC
+	Ymin: NOBOUNDARY
+	Ymax: NOBOUNDARY
 
 Energy:
 	Ymin: SYMMETRIC

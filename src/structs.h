@@ -116,6 +116,9 @@ struct fluid {
   struct field2D *Vy0;
   struct field2D *Vz0;
 #endif
+#ifdef BETACOOLING
+  struct field2D *OmegaOverBeta;
+#endif
 };
 
 struct field2D { //Multiple 2D fields on code (azimuthal averages, etc.)

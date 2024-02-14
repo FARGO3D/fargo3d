@@ -8,8 +8,8 @@
 # END
 #-------------------------------------------------------------------------
 
-FLUIDS := 0
-NFLUIDS = 1
+FLUIDS := 0 1
+NFLUIDS = 2
 FARGO_OPT += -DNFLUIDS=${NFLUIDS}
 
 #Monitoring options
@@ -27,13 +27,17 @@ FARGO_OPT +=  -DY
 #Equation of State
 FARGO_OPT +=  -DADIABATIC
 FARGO_OPT +=  -DBETACOOLING
-#FARGO_OPT  += -DISOTHERMAL
+#FARGO_OPT +=  -DISOTHERMAL
+
+#Drag force between species
+FARGO_OPT += -DDRAGFORCE
+FARGO_OPT += -DSTOKESNUMBER
+FARGO_OPT += -DDUSTDIFFUSION
 
 #Coordinate System.
 FARGO_OPT +=  -DCYLINDRICAL
 
-#Legacy files for outputs
-FARGO_OPT += -DLEGACY
+FARGO_OPT += -DLONGSUMMARY
 
 FARGO_OPT += -DPOTENTIAL
 
