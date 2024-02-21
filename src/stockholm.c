@@ -151,7 +151,7 @@ void StockholmBoundary_cpu(real dt) {
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
 
-//<MAIN_LOOP>  
+//<MAIN_LOOP>
 
   i = j = k = 0;
 
