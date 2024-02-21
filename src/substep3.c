@@ -48,6 +48,12 @@ void SubStep3_cpu (real dt) {
   int size_x = XIP; 
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
+  real gamma = GAMMA;
+  int pitch2d = Pitch2D;
+  real y_min = YMIN;
+  real y_max = YMAX;
+  real z_min = ZMIN;
+  real z_max = ZMAX;
 //<\EXTERNAL>
 
 //<INTERNAL>
@@ -117,7 +123,7 @@ void SubStep3_cpu (real dt) {
 #ifdef Z
 	div_v += (vz[llzp]*SurfZ(i,j,k+1)-vz[ll]*SurfZ(i,j,k));
 #endif
-	term = 0.5 * dt * (GAMMA - 1.) * div_v * InvVol(i,j,k);
+	term = 0.5 * dt * (gamma - 1.) * div_v * InvVol(i,j,k);
 	e[ll] *= (1.0-term)/(1.0+term);
 
 //beta cooling
