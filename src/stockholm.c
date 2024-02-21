@@ -35,35 +35,30 @@ void StockholmBoundary_cpu(real dt) {
     OUTPUT(Vz);
   #endif
   #ifdef STOCKHOLMAAV
-      reduction_SUM(Density, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
-      copy_field(Density0, Reduction2D);
-    #endif
-
-    #ifdef STOCKHOLMAAV
+    reduction_SUM(Density, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
+    copy_field(Density0, Reduction2D);
+  #endif
+  #ifdef STOCKHOLMAAV
     reduction_SUM(Vx, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
     copy_field(Vx0, Reduction2D);
-    #endif
-
-    #ifdef STOCKHOLMAAV
+  #endif
+  #ifdef STOCKHOLMAAV
     reduction_SUM(Vy, 0, Ny+2*NGHY, 0, Nz+2*NGHZ);
     copy_field(Vy0, Reduction2D);
-    #endif
+  #endif
 //<\USER_DEFINED>
 
 //<EXTERNAL>
   real* rho  = Density->field_cpu;
   real* rho0 = Density0->field_cpu;
-
   #ifdef X
     real* vx  = Vx->field_cpu;
     real* vx0 = Vx0->field_cpu;
   #endif
-
   #ifdef Y
     real* vy  = Vy->field_cpu;
     real* vy0 = Vy0->field_cpu;
   #endif
-
   #ifdef Z
     real* vz  = Vz->field_cpu;
     real* vz0 = Vz0->field_cpu;
@@ -72,7 +67,6 @@ void StockholmBoundary_cpu(real dt) {
     real* e    = Energy->field_cpu;
     real* e0   = Energy0->field_cpu;
   #endif
-
   int pitch   = Pitch_cpu;
   int stride  = Stride_cpu;
   int size_x  = Nx+2*NGHX;
@@ -83,29 +77,24 @@ void StockholmBoundary_cpu(real dt) {
   real y_max = YMAX;
   real z_min = ZMIN;
   real z_max = ZMAX;
-
   #ifndef MANUALDAMPBOUNDY
   real dampingzone = DAMPINGZONE;
   #endif
-
   #ifdef MANUALDAMPBOUNDY
   real Y_inf = YDAMPINF;
   real Y_sup = YDAMPSUP;
   #endif
-
   real kbcol = KILLINGBCCOLATITUDE;
   real of    = OMEGAFRAME;
   real of0   = OMEGAFRAME0;
   real r0 = R0;
   real g = G;
   real mstar = MSTAR;
-
   #ifdef STOCKHOLMAAV
     real normfact = (real) Ny;
   #else
     real normfact = 1.;
   #endif
-
   real ds = TAUDAMP;
   int periodic_z = PERIODICZ;
 //<\EXTERNAL>
