@@ -12,8 +12,8 @@
 # If you need N-fluids, write: FLUIDS := 0 1 2 ... N-1
 # (replace "..." with a complete list) and NFLUIDS = N
 
-FLUIDS := 0 1 2 3
-NFLUIDS = 4
+FLUIDS := 0 1
+NFLUIDS = 2
 
 FARGO_OPT += -DNFLUIDS=${NFLUIDS}
 #-----------------------------------------------------------

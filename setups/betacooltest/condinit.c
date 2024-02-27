@@ -48,7 +48,7 @@ void _CondInit() {
           cs[l] = soundspeed;
     #endif
     #ifdef ADIABATIC
-          e[l] = pow(soundspeed,2)*rho[l]/(GAMMA-1.0);
+          e[l] = GAMMA*pow(soundspeed,2)*rho[l]/(GAMMA-1.0);
     #endif
     #ifdef BETACOOLING
           OoB[l2D] = omega/BETA;

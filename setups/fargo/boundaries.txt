@@ -38,6 +38,14 @@ NOBOUNDARY:		#Used for periodic runs
 	    Staggered:	       |a|a|a|
 
 
+VISCOUSVELOCITYIN:
+		Staggered: |-1.5*'ALPHA'*pow('ASPECTRATIO', 2)*pow(Ymin(jgh),2*'FLARINGINDEX'-0.5)|-1.5*'ALPHA'*pow('ASPECTRATIO', 2)*pow(Ymin(jact),2*'FLARINGINDEX'-0.5)|activev|
+
+VISCOUSVELOCITYOUT:
+		Staggered: |-1.5*'ALPHA'*pow('ASPECTRATIO', 2)*pow(Ymin(jgh+1),2*'FLARINGINDEX'-0.5)|-1.5*'ALPHA'*pow('ASPECTRATIO', 2)*pow(Ymin(jgh),2*'FLARINGINDEX'-0.5)|activev|
+
+
+
 ##############################################################
 ### BELOW: BOUNDARY CONDITIONS FOR THE ENERGY IN THE
 ### RAYLEIGH-TAYLOR TEST. HYDROSTATIC EQUILIBRIUM EXTRAPOLATED.
@@ -74,7 +82,7 @@ CUSTOMBCDENSOUTER_GAS:                       #Analytic extension of surface dens
             Centered:            |'SIGMA0'*pow(Ymed(jgh),-'SIGMASLOPE')|surfdens|
 
 KEPLERIAN2DVAZIM:    #Analytic Keplerian extrapolation of velocity profile
-  	    Centered: |(vt+Ymed(jact)*'OmegaFrame')*sqrt(Ymed(jact)/Ymed(jgh))-Ymed(jgh)*'OmegaFrame'|vt|
+  	    Centered:   |(vt+Ymed(jact)*'OmegaFrame')*sqrt(Ymed(jact)/Ymed(jgh))-Ymed(jgh)*'OmegaFrame'|vt|
   
 KEPLERIAN2DVAZIM_CORR:    #Analytic Keplerian extrapolation of velocity profile
             Centered: |sqrt(1/Ymed(jgh))*sqrt(1+pow('ASPECTRATIO', 2)*pow(Ymed(jgh), 2*'FLARINGINDEX')*(2*'FLARINGINDEX'-1-'SIGMASLOPE'))|vt|

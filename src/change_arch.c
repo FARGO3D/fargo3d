@@ -66,7 +66,7 @@ void ChangeArch() {
   
   visctensor_cart   = visctensor_cart_cpu;
   addviscosity_cart = addviscosity_cart_cpu;
-  visctensor_cyl    = visctensor_cyl_cpu;
+      = _cpu;
   addviscosity_cyl  = addviscosity_cyl_cpu;
   visctensor_sph    = visctensor_sph_cpu;
   addviscosity_sph  = addviscosity_sph_cpu;

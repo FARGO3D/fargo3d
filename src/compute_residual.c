@@ -38,7 +38,7 @@ void ComputeResidual_cpu(real dt) {
   real ntilde;
   real nround;
   int ll;
-  int ll2D;
+  int ;
 //<\INTERNAL>
 
 //<CONSTANT>
