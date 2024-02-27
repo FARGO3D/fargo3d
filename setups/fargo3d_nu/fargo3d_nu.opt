@@ -1,0 +1,38 @@
+# You may enter a description between the BEGIN and END labels.
+# BEGIN
+# The "fargo_nu" setup is similar to the setup fargo but on a non-uniform mesh generated
+# via a mesh density function. It also utilizes the RAM method.
+# In order to run it, do:
+# make SETUP=fargo3d_nu
+# fargo3d setups/fargo3d_nu/fargo3d_nu.par
+# END
+#-------------------------------------------------------------------------
+
+# Fluids
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
+
+# Dimensions
+FARGO_OPT +=  -DX
+FARGO_OPT +=  -DY
+FARGO_OPT +=  -DZ
+
+# Geometry
+FARGO_OPT += -DSPHERICAL
+
+# Physics
+FARGO_OPT += -DISOTHERMAL
+FARGO_OPT += -DPOTENTIAL
+FARGO_OPT += -DALPHAVISCOSITY
+
+# Buffer zones
+FARGO_OPT += -DSTOCKHOLM
+FARGO_OPT += -DRAM
+
+# Cuda blocks
+ifeq (${GPU}, 1)
+FARGO_OPT += -DBLOCK_X=16
+FARGO_OPT += -DBLOCK_Y=16
+FARGO_OPT += -DBLOCK_Z=1
+endif
