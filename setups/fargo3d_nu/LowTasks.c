@@ -308,59 +308,47 @@ void InitSpace() {
 #endif //Y
 
 #ifdef Z
-  // real* zmins[] = [pi/2-0.25,];
-  // for (int k; k=0; k<NZ+2*NGHZ) {
-  //   Zmin(k) = zmins[k];
-  // }
-
   // experimental RAM spacing in Z
   // Assumes spherical spacing with ZMZ0 = PI/2
+  masterprint("Ncpu_x = %d\n",Ncpu_x);
+  masterprint("Ncpu_y = %d\n",Ncpu_y);
+
   real zmin_global;
   zmin_global = ZMIN;
   Zmin(NGHZ)  = ZMIN;
   Zmin(NZ+NGHZ) = ZMAX;
 
+
   for (int k_global = NGHZ; k_global < NZ+NGHZ; k_global++) { //Global loop
-    if (k_global > NGHZ) zmin_global = bisect(zmin_global, 1*ZMAX, Nz+1, uz, 0);
+    if (k_global > NGHZ) zmin_global = bisect(zmin_global, 1*ZMAX, NZ+1, uz, 0);
     int k_local = k_global - Z0;
     if ( (k_local > 0) && (k_local <= Nz+2*NGHZ) )
       Zmin(k_local)  =  zmin_global;
   }
 
-  real dtheta_low = Zmin(NGHZ+1)-Zmin(NGHZ);
-  real dtheta_high = Zmin(NZ+NGHZ)-Zmin(NZ+NGHZ-1);
-  for (k = 0; k < NGHZ; k++) {
-     Zmin(NGHZ - (k+1)) = bisect(0.5*ZMIN, Zmin(NGHZ-k), NZ+1, uz, 1);
-     Zmin(NZ+NGHZ+k+1) = Zmin(NZ+NGHZ+k) + dtheta_high;
+  // Fill ghost zones using the fact that du is constant and we bisect in reverse order
+  if (K == 0) {
+    for (k = 0; k < NGHZ; k++) 
+      Zmin(NGHZ - (k+1)) = bisect(0.5*ZMIN, Zmin(NGHZ-k), NZ+1, uz, 1);
   }
-    
-
-
-  // // Fill ghost zones using the fact that du is constant and we bisect in reverse order
-  // if (J == 0) {
-  //   masterprint("I am J = %d",J);
-  //   masterprint("I have J==0\n");
-  //   for (k = 0; k < NGHZ; k++) 
-  //     Zmin(NGHZ - (k+1)) = bisect(0.5*ZMIN, Zmin(NGHZ-k), NZ+1, uz, 1);
-  // }
-  // masterprint("Ncpu_x = %d\n",Ncpu_x);
-  // masterprint("Ncpu_y = %d\n",Ncpu_y);
-  // if (J == Ncpu_x - 1) {
-  //   masterprint("And I have J == Ncpu_x - 1\n");
-  //   // constant dtheta around midplane
-  //   real dtheta = Zmin(NZ+NGHZ)-Zmin(NZ+NGHZ-1);
-  //   for (k = 0; k < NGHZ; k++) 
-  //     Zmin(Nz+NGHZ+k+1) = Zmin(Nz+NGHZ+k) + dtheta;
-  // }
+  
+  if (K == Ncpu_y - 1) {
+    // Need to define this as ZMAX since uz can't find the root here as it can't go above ZMAX
+    Zmin(Nz+NGHZ) = ZMAX;
+    // constant dtheta around midplane
+    real dtheta = Zmin(Nz+NGHZ)-Zmin(Nz+NGHZ-1);
+    for (k = 0; k < NGHZ; k++) 
+      Zmin(Nz+NGHZ+k+1) = Zmin(Nz+NGHZ+k) + dtheta;
+  }
 
   // check this is filled out right
-  masterprint("%f, %f\n", ZMIN,ZMAX);
-  for (k=0; k<NZ+2*NGHZ+1; k++) {
-    if ((k == NGHZ) || (k == (NZ+NGHZ+1))) {
-      masterprint("GHOST----------\n");
-    }
-    masterprint("%f\n", Zmin(k));
-  }
+  // masterprint("%f, %f\n", ZMIN,ZMAX);
+  // for (k=0; k<NZ+2*NGHZ+1; k++) {
+  //   if ((k == NGHZ) || (k == (NZ+NGHZ+1))) {
+  //     masterprint("GHOST----------\n");
+  //   }
+  //   masterprint("%f\n", Zmin(k));
+  // }
 
   // default even spacing for Z
   // dz = (ZMAX-ZMIN)/NZ;
