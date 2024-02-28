@@ -93,7 +93,7 @@ real psi_y(real y) { //Mesh density function
 
 
 real bisect(real a, real b, int N, real (*u)(real), int option) {
-
+  int i;
   if (a>b) prs_error("Error! a>b\n");
   
   real delta = 1e-16;
@@ -105,7 +105,7 @@ real bisect(real a, real b, int N, real (*u)(real), int option) {
   if (option == 0) rhs = u(a) + du;
   if (option == 1) rhs = u(b) - du; // Used to fill ghost zones
 
-  for (int i=0; i<nmax; i++) {
+  for (i=0; i<nmax; i++) {
     c = 0.5*(a + b);
 
     fa = u(a) - rhs;
