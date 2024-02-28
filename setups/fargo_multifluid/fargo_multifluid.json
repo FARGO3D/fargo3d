@@ -1,0 +1,29 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "fargo_multifluid",
+            "displayName": "FARGO multifluid two-dimensional disk",
+            "cacheVariables": {
+                "SETUP": "fargo_multifluid",
+                "NFLUIDS": "4",
+                "MONITOR_SCALAR": "MASS | MOM_X | TORQ",
+                "MONITOR_Y_RAW": "TORQ",
+                "STOCKHOLM": "ON",
+                "XDIM": "ON",
+                "YDIM": "ON",
+                "ZDIM": "OFF",
+                "EQNOFSTATE": "ISOTHERMAL",
+                "COORDSYS": "CYLINDRICAL",
+                "POTENTIAL": "ON",
+                "VISCOSITY": "ON",
+                "DRAGFORCE": "ON",
+                "STOKESNUMBER": "ON",
+                "DUSTDIFFUSION": "ON",
+                "BLOCK_X": "16",
+                "BLOCK_Y": "16",
+                "BLOCK_Z": "1"
+            }
+        }
+    ]
+}

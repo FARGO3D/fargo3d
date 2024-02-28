@@ -67,7 +67,7 @@ void HallEffect_emfy_cpu(){
 
 	etac = 0.25*( eta[ll] + eta[lzm] + eta[lxm] + eta[lxm-stride]);
 
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	emf[ll] =  etac*(j1*b2 - j2*b1)/bmod;
 #else
 	emf[ll] = -etac*(j1*b2 - j2*b1)/bmod;

@@ -84,7 +84,7 @@ real Xmc2;
 real Xmc3;
 real Xmc4;
 real X_mesh_I;
-				   
+
 //FIELDS VARIABLES
 
 Grid Gridd;
@@ -148,7 +148,7 @@ Field *PhiStarmin;
 Field *UStarmin;
 
 //MHD FIELDS
-//#ifdef MHD
+//#if MHD
 Field *Bx;
 Field *By;
 Field *Bz;
@@ -164,7 +164,7 @@ Field *Slope_v1;
 Field *Slope_b2;
 Field *Slope_v2;
 
-Field *Emfx; 
+Field *Emfx;
 Field *Emfy;
 Field *Emfz;
 
@@ -289,7 +289,7 @@ real OMEGAFRAME0;
 
 int Fscan;
 
-long VtkPosition = 0; 
+long VtkPosition = 0;
 
 //Multifluid variables
 int Timestepcount = 0;
@@ -319,8 +319,8 @@ void (*VanLeerZ_b)(real,Field*,Field*);
 void (*momenta_x)();
 void (*momenta_y)();
 void (*momenta_z)();
-void (*reduction_SUM)(Field*,int,int,int,int); 
-void (*reduction_MIN)(Field*,int,int,int,int); 
+void (*reduction_SUM)(Field*,int,int,int,int);
+void (*reduction_MIN)(Field*,int,int,int,int);
 void (*UpdateX)(real,Field*,Field*,Field*);
 void (*UpdateY)(real,Field*,Field*);
 void (*UpdateZ)(real,Field*,Field*);

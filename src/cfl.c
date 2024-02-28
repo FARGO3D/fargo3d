@@ -13,61 +13,61 @@ void cfl_cpu() {
   INPUT(Energy);
   INPUT(Density);
   OUTPUT(DensStar);
-#ifdef X
+#if XDIM
   INPUT(Vx);
   INPUT2D(VxMed);
 #endif
-#ifdef Y
+#if YDIM
   INPUT(Vy);
 #endif
-#ifdef Z
+#if ZDIM
   INPUT(Vz);
 #endif
-#ifdef MHD
+#if MHD
   INPUT(Bx);
   INPUT(By);
   INPUT(Bz);
 #endif
-#ifdef HALLEFFECT
+#if HALLEFFECT
   INPUT(EtaHall);
 #endif
-#ifdef AMBIPOLARDIFFUSION
+#if AMBIPOLARDIFFUSION
   INPUT(EtaAD);
 #endif
-#ifdef OHMICDIFFUSION
+#if OHMICDIFFUSION
   INPUT(EtaOhm);
 #endif
 
-  
+
 //<\USER_DEFINED>
 
 //<EXTERNAL>
   real* cs  = Energy->field_cpu;
   real* rho = Density->field_cpu;
   real* dtime = DensStar->field_cpu;
-#ifdef X
+#if XDIM
   real* vx = Vx->field_cpu;
   real* vxmed = VxMed->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* vy = Vy->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* vz = Vz->field_cpu;
-#endif 
-#ifdef MHD
+#endif
+#if MHD
   real* bx = Bx->field_cpu;
   real* by = By->field_cpu;
   real* bz = Bz->field_cpu;
 #endif
-#ifdef MHD
-#ifdef OHMICDIFFUSION
+#if MHD
+#if OHMICDIFFUSION
   real* etao = EtaOhm->field_cpu;
 #endif
-#ifdef HALLEFFECT
+#if HALLEFFECT
   real* etahall = EtaHall->field_cpu;
 #endif
-#ifdef AMBIPOLARDIFFUSION
+#if AMBIPOLARDIFFUSION
   real* etaad   = EtaAD->field_cpu;
 #endif
 #endif
@@ -124,18 +124,18 @@ void cfl_cpu() {
 // real ALPHA(1);
 // real NU(1);
 //<\CONSTANT>
- 
+
 //<MAIN_LOOP>
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=NGHZ; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=NGHY; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=NGHX; i<size_x; i++) {
 #endif
 //<#>
@@ -143,8 +143,8 @@ void cfl_cpu() {
 	llxp = lxp;
 	llyp = lyp;
 	llzp = lzp;
-#ifdef X
-#ifdef STANDARD
+#if XDIM
+#if STANDARD
 	vxx = vx[ll];
 	vxxp= vx[llxp];
 #else
@@ -153,13 +153,13 @@ void cfl_cpu() {
 #endif
 #endif
 
-#ifdef ISOTHERMAL
+#if ISOTHERMAL
 	soundspeed2 = cs[ll]*cs[ll];
 #endif
 
 
-#ifdef ALPHAVISCOSITY
-#ifdef ISOTHERMAL
+#if ALPHAVISCOSITY
+#if ISOTHERMAL
 	viscosity = ALPHA*cs[l]*cs[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
 #else //ADIABATIC
 	viscosity = ALPHA*GAMMA*(GAMMA-1.0)*cs[l]/rho[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR)); //cs means internal energy.
@@ -168,15 +168,15 @@ void cfl_cpu() {
 	viscosity = NU;
 #endif //END ALPHAVISCOSITY
 
-#ifdef ADIABATIC
+#if ADIABATIC
 	soundspeed2 = GAMMA*(GAMMA-1)*cs[ll]/rho[ll];
 #endif
 
-#ifdef POLYTROPIC
+#if POLYTROPIC
 	soundspeed2 = GAMMA*cs[ll]*pow(rho[ll],GAMMA-1.0); //In polytropic setups we use cs[] to store the entropy
 #endif
 
-#ifdef MHD
+#if MHD
 	if (fluidtype == GAS) {
 	  soundspeed2 += ((bx[ll]*bx[ll]+by[ll]*by[ll]+bz[ll]*bz[ll])/(MU0*rho[ll]));
 	}
@@ -184,82 +184,82 @@ void cfl_cpu() {
 
 	soundspeed = sqrt(soundspeed2);
 
-#ifdef X
+#if XDIM
 	cfl1_a = soundspeed/zone_size_x(i,j,k);
 #endif
-#ifdef Y
+#if YDIM
 	cfl1_b = soundspeed/zone_size_y(j,k);
 #endif
-#ifdef Z
+#if ZDIM
 	cfl1_c = soundspeed/zone_size_z(j,k);
 #endif
 	cfl1 = max3(cfl1_a, cfl1_b, cfl1_c);
-	
 
-#ifdef X
+
+#if XDIM
 	cfl2 = (max2(fabs(vxx),fabs(vxxp)))/zone_size_x(i,j,k);
 #endif
-#ifdef Y
+#if YDIM
 	cfl3 = (max2(fabs(vy[ll]),fabs(vy[llyp])))/zone_size_y(j,k);
 #endif
-#ifdef Z
+#if ZDIM
 	cfl4 = (max2(fabs(vz[ll]),fabs(vz[llzp])))/zone_size_z(j,k);
 #endif
 
-#ifndef NOSUBSTEP2
-#ifdef X	
+#if (!NOSUBSTEP2)
+#if XDIM
 	cfl5_a = fabs(vx[llxp]-vx[ll])/zone_size_x(i,j,k);
 #endif
-#ifdef Y
+#if YDIM
 	cfl5_b = fabs(vy[llyp]-vy[ll])/zone_size_y(j,k);
 #endif
-#ifdef Z
+#if ZDIM
 	cfl5_c = fabs(vz[llzp]-vz[ll])/zone_size_z(j,k);
 #endif
 	cfl5 = max3(cfl5_a, cfl5_b, cfl5_c)*4.0*CVNR;
 #endif
 
-#ifdef STRONG_SHOCK
+#if STRONG_SHOCK
 	cfl6 = cfl5/CVNR*CVNL;
 #endif
 
-#ifdef X	
-	cfl7_a = 1.0/zone_size_x(i,j,k);	
+#if XDIM
+	cfl7_a = 1.0/zone_size_x(i,j,k);
 #endif
-#ifdef Y
+#if YDIM
 	cfl7_b = 1.0/zone_size_y(j,k);
 #endif
-#ifdef Z
+#if ZDIM
 	cfl7_c = 1.0/zone_size_z(j,k);
-#endif      
+#endif
 	cfl7 = 4.0*viscosity*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
 
-#ifdef MHD
-#ifdef OHMICDIFFUSION
+#if MHD
+#if OHMICDIFFUSION
 	cfl8 = 4.0*etao[ll]*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
 #endif
-#ifdef HALLEFFECT
+#if HALLEFFECT
 	cfl9 = 6.0*fabs(etahall[ll])*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
 #endif
-#ifdef AMBIPOLARDIFFUSION
+#if AMBIPOLARDIFFUSION
 	cfl10 = 4.0*etaad[ll]*pow(max3(cfl7_a,cfl7_b,cfl7_c),2);
 #endif
 #endif
-	  
-	dtime[ll] = CFL/sqrt(cfl1*cfl1 + cfl2*cfl2 + 
-			     cfl3*cfl3 + cfl4*cfl4 + 
-			     cfl5*cfl5 + cfl6*cfl6 + 
+
+	dtime[ll] = CFL/sqrt(cfl1*cfl1 + cfl2*cfl2 +
+			     cfl3*cfl3 + cfl4*cfl4 +
+			     cfl5*cfl5 + cfl6*cfl6 +
 			     cfl7*cfl7 + cfl8*cfl8 +
 			     cfl9*cfl9 + cfl10*cfl10 );
 
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 //<\MAIN_LOOP>
 #endif

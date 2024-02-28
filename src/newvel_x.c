@@ -11,7 +11,7 @@ void NewVelocity_x_cpu () {
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef X
+#if XDIM
   INPUT(Mmx);
   INPUT(Mpx);
   OUTPUT(Vx);
@@ -20,7 +20,7 @@ void NewVelocity_x_cpu () {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef X
+#if XDIM
   real* vx  = Vx->field_cpu;
   real* mmx = Mmx->field_cpu;
   real* mpx = Mpx->field_cpu;
@@ -38,7 +38,7 @@ void NewVelocity_x_cpu () {
   int k; //of the kernels
   int ll;
   int llxm;
-#ifdef SPHERICAL
+#if SPHERICAL
   real rcyl;
 #endif
 //<\INTERNAL>
@@ -57,42 +57,42 @@ void NewVelocity_x_cpu () {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=XIM; i<size_x; i++) {
 #endif
 //<#>
-#ifdef X
+#if XDIM
 	ll = l;
 	llxm = lxm;
 
-#ifdef CARTESIAN
+#if CARTESIAN
 	vx[ll] = (mmx[ll]*Vol(i,j,k) + mpx[llxm]*Vol(ixm,j,k) )/(rho[ll]*Vol(i,j,k)+rho[llxm]*Vol(ixm,j,k));
-#ifdef SHEARINGBOX
+#if SHEARINGBOX
 	vx[ll] -= 2.0*OMEGAFRAME*ymed(j);
 #endif
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	vx[ll] = (mmx[ll]*Vol(i,j,k) + mpx[llxm]*Vol(ixm,j,k) )/((rho[ll]*Vol(i,j,k)+rho[llxm]*Vol(ixm,j,k))*ymed(j))-OMEGAFRAME*ymed(j);
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	rcyl = ymed(j) * sin(zmed(k));
 	vx[ll] = (mmx[ll]*Vol(i,j,k) + mpx[llxm]*Vol(ixm,j,k) )/((rho[ll]*Vol(i,j,k)+rho[llxm]*Vol(ixm,j,k))*rcyl)-OMEGAFRAME*rcyl;
 #endif
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

@@ -10,15 +10,15 @@
 void DustDiffusion_Coefficients_cpu() {
 
 //<USER_DEFINED>
-#ifdef ALPHAVISCOSITY
+#if ALPHAVISCOSITY
   INPUT(Energy);
-#ifdef ADIABATIC
+#if ADIABATIC
   INPUT(Density);
 #endif
 #endif
   OUTPUT(Sdiffyczc);
   OUTPUT(Sdiffyfzc);
-#ifdef Z
+#if ZDIM
   OUTPUT(Sdiffyczf);
   OUTPUT(Sdiffyfzf);
 #endif
@@ -27,15 +27,15 @@ void DustDiffusion_Coefficients_cpu() {
 //<EXTERNAL>
   real* sdiff_yfzc = Sdiffyfzc->field_cpu;
   real* sdiff_yczc = Sdiffyczc->field_cpu;
-#ifdef Z
+#if ZDIM
   real* sdiff_yczf = Sdiffyczf->field_cpu;
   real* sdiff_yfzf = Sdiffyfzf->field_cpu;
 #endif
-#ifdef ALPHAVISCOSITY  
-#ifdef ISOTHERMAL
+#if ALPHAVISCOSITY
+#if ISOTHERMAL
   real* cs = Fluids[0]->Energy->field_cpu;
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
   real* e = Fluids[0]->Energy->field_cpu;
   real* rhog = Fluids[0]->Density->field_cpu;
   real gamma = GAMMA;
@@ -50,7 +50,7 @@ void DustDiffusion_Coefficients_cpu() {
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
 //<\EXTERNAL>
-  
+
 //<INTERNAL>
   int i;
   int j;
@@ -58,7 +58,7 @@ void DustDiffusion_Coefficients_cpu() {
   int ll;
   int llym;
   int llzm;
-#ifdef ALPHAVISCOSITY
+#if ALPHAVISCOSITY
   real r3yczc;
   real r3yfzc;
   real soundspeed2;
@@ -73,38 +73,38 @@ void DustDiffusion_Coefficients_cpu() {
 
 //<MAIN_LOOP>
   i = j = k = 0;
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++ ) {
 #endif
 //<#>
 	ll = l;
-#ifdef Y
+#if YDIM
 	llym = lym;
 #endif
-#ifdef Z
+#if ZDIM
 	llzm = lzm;
 #endif
-#ifdef ALPHAVISCOSITY
-#ifdef ISOTHERMAL
+#if ALPHAVISCOSITY
+#if ISOTHERMAL
 	soundspeed2 = cs[ll]*cs[ll];
 	if(j==0)
 	  soundspeedf2 = soundspeed2;
 	else
 	  soundspeedf2 = 0.5*(cs[ll]+cs[llym])*0.5*(cs[ll]+cs[llym]);
-#ifdef Z
+#if ZDIM
 	if(k==0)
           soundspeedfz2 = soundspeed2;
         else
           soundspeedfz2 = 0.5*(cs[ll]+cs[llzm])*0.5*(cs[ll]+cs[llzm]);
 #endif //Z
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
 	soundspeed2 = gamma*(gamma-1.0)*e[ll]/rhog[ll];
 	if(j==0)
 	  soundspeedf2 = soundspeed2;
@@ -116,27 +116,27 @@ void DustDiffusion_Coefficients_cpu() {
 
 	sdiff_yczc[ll] = alphavisc*soundspeed2/sqrt(G*MSTAR/r3yczc);
 	sdiff_yfzc[ll] = alphavisc*soundspeedf2/sqrt(G*MSTAR/r3yfzc);
-#ifdef Z
+#if ZDIM
 	sdiff_yczf[ll] = alphavisc*soundspeedfz2/sqrt(G*MSTAR/r3yczc);
 	sdiff_yfzf[ll] = alphavisc*soundspeedfz2/sqrt(G*MSTAR/r3yfzc);
 #endif //Z
 #endif
-#ifdef VISCOSITY
+#if VISCOSITY
 	sdiff_yczc[ll] = nu;
 	sdiff_yfzc[ll] = nu;
-#ifdef Z
+#if ZDIM
 	sdiff_yczf[ll] = nu;
 	sdiff_yfzf[ll] = nu;
 #endif
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

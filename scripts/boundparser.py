@@ -1,481 +1,274 @@
-from __future__ import print_function
 import re
-import copy
-import sys
 import os
+import argparse
+import textwrap
 
-STDDIR = "../std/" #Where "boundary_template.c" is located
+parser = argparse.ArgumentParser(prog="boundparser.py",
+    description="Compile .bound files to corresponding sources",
+    epilog="This script is part of FARGO3D.")
+parser.add_argument("inputs", nargs="+")
+parser.add_argument("-t", "--template", default="boundary_template.c")
+parser.add_argument("-b", "--boundaries", default="boundaries.txt")
+parser.add_argument("-c", "--centering", default="centering.txt")
+parser.add_argument("-o", "--outdir", default="")
+args = parser.parse_args()
 
-def pformat_read(name,dataformat):
+def pformat_read(datafile, dataformat):
+    """Case-insensitive p-format reader.
+
+    datafile -- name of a file to open
+    dataformat -- regex for the data to extract
+
+    Returns a dictionary of dictionaries.
     """
-    p-format reader. "Case insensitive version"
 
-    Input:
-    ------
-    
-    name: string
-          data filename
+    fields = dict()
 
-    dataformat: string
-                regular expresion for the data.
-                
-    Output:
-    -------
-    A list of field dictionaries. The main key is the name,
-    the rest is a collection of parameters
-    """
+    # These nasty-looking regex patterns will match an entire
+    # file entry (pat1) and each sub-entry thereof (pat2). Comments
+    # will be skipped naturally because they won't match. This is
+    # more succinct than reading line-by-line, at the expense of being
+    # a little terrifying to read. For future reference:
+    #   [^\S\r\n] matches non-newline whitespace
+    #   (?:#.*)? will match without capturing a #-leading comment or nothing
+    pat2 = r'[^\S\r\n]*(\w+)[^\S\r\n]*:[^\S\r\n]*(' + dataformat + r')[^\S\r\n]*(?:#.*)?'
+    pat1 = r'[^\S\r\n]*(\w+)[^\S\r\n]*:[^\S\r\n]*(?:#.*)?((?:\n' + pat2 + r')+)'
 
-    datafile = open(name,'r')
-    lines = datafile.readlines()
-    datafile.close()
-    temp_field = ''
-    field_name = ''
-    field = {}
-    fields = []
-    init = 0
-    for line in lines:
-        search = None
-        skip = re.match("\s*#+",line) #Comment line
-        if skip != None:
-            continue
-        search1 = re.match("\s*(\w+)\s*:\s*\n",line)    #without comment
-        search2 = re.match("\s*(\w+)\s*:\s*#.*\n",line) #with a comment
-        if search1 != None:
-            search = search1
-        if search2 != None:
-            search = search2
-        if search != None:
-            field_name = search.group(1).lower()
-            temp_field = field_name
-            if init != 0:
-                fields.append(field)
-                field = {}
-            init = 1
-            continue
-        if temp_field == field_name:
-            field['name'] = field_name #ugly but it works! It can be improved
-            search = re.match("\s*(\w+)\s*:\s*("+dataformat+")",line)
-            if search != None:
-                prop  = search.group(1).lower()
-                value = search.group(2).lower()
-                field[prop] = value
-                continue
-    if len(field) != 0:
-        fields.append(field)
+    rgx1 = re.compile(pat1)
+    rgx2 = re.compile(pat2)
+
+    with open(datafile, 'r') as dat:
+        alldat = dat.read()
+
+    for m1 in rgx1.finditer(alldat):
+        field_name = m1.group(1).lower()
+        field_props = dict()
+
+        for m2 in rgx2.finditer(m1.group(2)):
+            prop_name  = m2.group(1).lower()
+            prop_value = m2.group(2).lower()
+            field_props[prop_name] = prop_value
+
+        fields[field_name] = field_props
+
     return fields
 
-class Library():
-    """
-    Centering and boundaries library.
-    """
-    def __init__(self,boundaries, centering):
-        self.boundaries = pformat_read(boundaries,"\|.*\|")
-        self.centering  = pformat_read(centering,"\w+")
-        
-class Field():
-    def __init__(self,name,library):
-        self.library = library
-        self.name = name.lower()
-        self.centered = self.determine_centered()
+def get_indices(side):
+    indices_lines = ""
+    if side == 'ymin':
+        indices_lines = """\
+            lgh = l;
+            lghs = l;
+            lact = i + (2*nghy-j-1)*pitch + k*stride;
+            lacts = i + (2*nghy-j)*pitch + k*stride;
+            lacts_null = i + nghy*pitch + k*stride;
+            lacts_null_mirror = i + (nghy+1)*pitch + k*stride;
+            jgh = j;
+            jact = (2*nghy-j-1);
+            """
+    if side == 'ymax':
+        indices_lines = """\
+            lgh = i + (ny+nghy+j)*pitch + k*stride;
+            lghs = i + (ny+nghy+1+j)*pitch + k*stride;
+            lact = i + (ny+nghy-1-j)*pitch + k*stride;
+            lacts = i + (ny+nghy-1-j)*pitch + k*stride;
+            lacts_null = i + (ny+nghy)*pitch + k*stride;
+            lacts_null_mirror = i + (ny+nghy-1)*pitch + k*stride;
+            jgh = (ny+nghy+j);
+            jact = (ny+nghy-1-j);
+            """
+    if side == 'zmin':
+        indices_lines = """\
+            lgh = l;
+            lghs = l;
+            lact = i + j*pitch + (2*nghz-k-1)*stride;
+            lacts = i + j*pitch + (2*nghz-k)*stride;
+            lacts_null = i + j*pitch + nghz*stride;
+            lacts_null_mirror = i + j*pitch + (nghz+1)*stride;
+            kgh = k;
+            kact = (2*nghz-k-1);
+            """
+    if side == 'zmax':
+        indices_lines = """\
+            lgh = i + j*pitch + (nz+nghz+k)*stride;
+            lghs = i + j*pitch + (nz+nghz+1+k)*stride;
+            lact = i + j*pitch + (nz+nghz-1-k)*stride;
+            lacts = i + j*pitch + (nz+nghz-1-k)*stride;
+            lacts_null = i + j*pitch + (nz+nghz)*stride;
+            lacts_null_mirror = i + j*pitch + (nz+nghz-1)*stride;
+            kgh = (nz+nghz+k);
+            kact = (nz+nghz-1-k);
+            """
+    return textwrap.dedent(indices_lines)
 
-    def determine_centered(self):
-        for field in self.library.centering:
-            if field['name'] == self.name:
-                centered = field['staggering']
-                break
-        return centered
+def parse_boundary(side, name, field, boundary, stagger):
+    output = ""
+    bound = False
 
-class Setup():
-    def __init__(self,setup,boundaries,centering):
-        self.fields = pformat_read(setup,"\w+")
-        self.library = Library(boundaries,centering)
-        fields = []
-        for field in self.fields:
-            f = Field(field['name'],self.library)
-            f.field = field['name'].capitalize()
-            f.variable = field['name']
-            f.boundaries = {}
-            try:
-                f.boundaries['ymin'] = field['ymin']
-                f.boundaries['ymax'] = field['ymax']
-            except:
-                pass
-            try:
-                f.boundaries['zmin'] = field['zmin']
-                f.boundaries['zmax'] = field['zmax']
-            except:
-                pass
-            fields.append(f)
-        self.fields = fields
+    bnd = boundary[field[side]]
+    stag = centering[name]['staggering']
 
-class Template():
-    def __init__(self,name=STDDIR+"boundary_template.c"):
-        self.template = self.read_template(name)
-        self.stones = self.get_stones() #Dictionary
+    if side[0] in stag:
+        # boundaries of form |a|x|a|
+        try:
+            bound = bnd['staggered']
+        except KeyError:
+            fieldname = name.upper()
+            bndname = field[side].upper()
+            msg = f"{fieldname} is staggered in {stag} but you are trying " \
+                "to use a centered condition for it. Please review the " \
+                "definition of {bndname} if you want to use this condition."
+            raise ValueError(msg)
 
-    def read_template(self,name):
-        template_file = open(name,"r")
-        template = template_file.readlines()
-        template_file.close()
-        return template
+        m = re.match(r"\|(.*)\|(.*)\|(\w*)\|", bound)
+        g1, g2, g3 = m.group(1, 2, 3)
+        active = g1.replace(g3, name + "[lacts]")
+        ghosts = g2.replace(g3, name + "[lacts]")
+        ghostsm = g2.replace(g3, name + "[lacts_null_mirror]")
+        output +=  f"{active};"
+        if (name[0] != 'b') or (name[1] != side[0]):
+            output += f"\n{name}[lacts_null] = {ghostsm};"
+    else:
+        # boundaries of form |a|a|
+        try:
+            bound = bnd['centered']
+        except KeyError:
+            fieldname = name.upper()
+            bndname = field[side].upper()
+            msg = f"{fieldname} is centered in {stag} but you are trying " \
+                "to use a staggered condition for it. Please review the " \
+                "definition of {bndname} if you want to use this condition."
+            raise ValueError(msg)
 
-    def get_stones(self):
-        n = 0
-        stones = {}
-        for line in self.template:
-            stone = re.match(".*(%\w+)\s*",line)
-            if stone != None:
-                stones[stone.group(1)] = n
-            n += 1
-        return stones
+        m = re.match(r"\|(.*)\|(\w*)\|", bound)
+        g1, g2 = m.group(1, 2)
+        active = g1.replace(g2, name + "[lact]")
+        output += f"{active};"
 
-class Boundary():
-    """
-    Main class of boundparser.py.
-    It is the core of the data. The programmer does not need
-    to go to another place, everything is managed from here...
-    """
-    def __init__(self,side,number,Setup,Template):
-        self.name = side+"_bound.c"
-        self.side = side
-        self.template = Template
-        self.setup = Setup
-        self.stones = self.template.stones
-        self.number = number
-        
-        self.process_side()
-        self.process_ifields()
-        self.process_ofields()
-        self.process_internal()
-        self.process_external()
-        self.process_boundaries()
-        self.process_indices()
+    if not bound:
+        fieldname = name.upper()
+        bndname = field[side].upper()
+        sidename = side.upper()
+        msg = f"{bndname} boundary for {fieldname} applied on {sidename} " \
+            "does not exist! Verify that it is defined in the boundaries file."
+        raise ValueError(msg)
 
-        self.write_output()
+    return output
 
-    def write_output(self):
-        output = open(self.side+"_bound_{:d}.c".format(self.number),"w")
-        for line in self.template.template:
-            output.write(line)
+def format_template(template, number, side, fields, boundaries, centering):
+    globs = set()
 
-    def process_side(self):
-        string = "%side"
-        n = self.stones[string]
-        self.template.template[n] = \
-            self.template.template[n].replace(string,self.side+"_{:d}_cpu".format(self.number))
+    def gen_substitutions():
+        nonlocal globs
 
-    def process_ifields(self):
-        ifields_lines = ""
-        string = "%ifields"
-        for field in self.setup.fields:
-            if self.side == 'ymin' : direction = "LEFT"
-            if self.side == 'ymax' : direction = "RIGHT"
-            if self.side == 'zmin' : direction = "DOWN"
-            if self.side == 'zmax' : direction = "UP"
-            ifields_lines += "INPUT(" + field.field + ");\n"
-        n = self.stones[string]
-        self.template.template[n] = \
-            self.template.template[n] = ifields_lines
+        for name, field in fields.items():
+            namecap = name.capitalize()
+            ifield = f'INPUT({namecap});'
+            ofield = f'OUTPUT({namecap});'
+            pfield = f'real *{name} = {namecap}->field_cpu;'
 
-    def process_ofields(self):
-        ofields_lines = ""
-        string = "%ofields"
-        for field in self.setup.fields:
-            if self.side == 'ymin' : direction = "LEFT"
-            if self.side == 'ymax' : direction = "RIGHT"
-            if self.side == 'zmin' : direction = "DOWN"
-            if self.side == 'zmax' : direction = "UP"
-            ofields_lines += "OUTPUT(" + field.field + ");\n"
-        n = self.stones[string]
-        self.template.template[n] = \
-            self.template.template[n] = ofields_lines
+            bnd = boundaries[field[side]]
+            stag = centering[name]['staggering']
 
-    def process_internal(self):
-        internal_lines = ""
-        string = "%internal"
-        n = self.stones[string]
-        internal_lines = "  int lgh;\n"+ \
-            "  int lghs;\n" + \
-            "  int lact;\n" + \
-            "  int lacts;\n" + \
-            "  int lacts_null_mirror;\n" + \
-            "  int lacts_null;\n"
-        self.template.template[n] = internal_lines
-        
-    def process_external(self):
-        pointerfield_lines = ""
-        string = "%pointerfield"
+            rhs = parse_boundary(side, name, field, boundaries, centering)
 
-        for field in self.setup.fields:
-            pointerfield_lines += "  real* "+ \
-                field.name + \
-                " = "+field.field + \
-                "->field_cpu;\n"
+            # any variables appearing in rhs should be added to the growing set
+            for m in re.finditer(r"'([a-z0-9]+)'", rhs):
+                globs.add(m.group(1))
+            rhs = rhs.replace("'", "")
 
-        n = self.stones[string]
-        self.template.template[n] = \
-            self.template.template[n] = pointerfield_lines
-        
-        string = "%size_y"
-        n = self.stones[string]
-        if self.side[0] == "y":
-            self.template.template[n] = \
-                self.template.template[n].replace(string,"NGHY")
-        else:
-            self.template.template[n] = \
-                self.template.template[n].replace(string,"Ny+2*NGHY")
-
-        string = "%size_z"
-        n = self.stones[string]
-        if self.side[0] == "z":
-            self.template.template[n] = \
-                self.template.template[n].replace(string,"NGHZ")
-        else:
-            self.template.template[n] = \
-                self.template.template[n].replace(string,"Nz+2*NGHZ")
-
-    def process_boundaries(self):
-        boundaries_lines = ""
-        global_variables = []
-        for field in self.setup.fields:
-            if field.centered[-1] == self.side[0]:
-                if self.side[:] == "ymax":
-                    left_hand = "\t" + "if (j<size_y-1)\n"
-                    left_hand += "\t\t" + field.variable + "[lghs] = "
-                elif self.side[:] == "zmax":
-                    left_hand = "\t" + "if (k<size_z-1)\n"
-                    left_hand += "\t\t" + field.variable + "[lghs] = "
+            if stag == side[0]:
+                # field is face-centered in this direction
+                if side == 'ymax':
+                    expr = f'''\
+                        if (j<size_y-1) {{
+                          {name}[lghs] = {rhs}
+                        }}
+                        '''
+                elif side == 'zmax':
+                    expr = f'''\
+                        if (k<size_z-1) {{
+                          {name}[lghs] = {rhs}
+                        }}
+                        '''
                 else:
-                    left_hand = "\t" + field.variable + "[lghs] = "
+                    expr = f'{name}[lghs] = {rhs}'
             else:
-                left_hand = "\t" + field.variable + "[lgh] = "
-            right_hand = self.parsing_boundary(field)
+                # field is cell-centered in this direction
+                expr = f'{name}[lgh] = {rhs}'
 
-#Parsing global variables
-            gvariables = re.findall("'[a-z0-9]+'",right_hand)
-            for variable in gvariables:
-                global_variables.append(variable.replace("'",""))
+            ifield = textwrap.indent(textwrap.dedent(ifield), " " * 2)
+            ofield = textwrap.indent(textwrap.dedent(ofield), " " * 2)
+            pfield = textwrap.indent(textwrap.dedent(pfield), " " * 2)
 
-                
-            right_hand = right_hand.replace("'","")
-            boundaries_lines += left_hand + right_hand
-        
-        string = "%boundaries"
-        n = self.stones[string]
-        self.template.template[n] = boundaries_lines
+            inds = get_indices(side)
+            expr = '\n'.join([inds, textwrap.dedent(expr)])
+            expr = textwrap.indent(expr, " " * 8)
 
-#Parsing global variables
-        string = "%global"
-        n = self.stones[string]
-        global_variables = set(global_variables)
-        variables = ""
-        for variable in global_variables:
-            variables += "  real " + variable + " = " + variable.upper() + ";\n"
-        self.template.template[n] = variables
-        
+            yield ifield, ofield, pfield, expr
 
-    def parsing_boundary(self,field):
-        output = ""
-        boundaries = self.setup.library.boundaries
-        bound = False
-        for boundary in boundaries:
-            if boundary['name'] == field.boundaries[self.side]:
-                bound = True
-                if re.search(self.side[0],field.centered) != None:
-                    """
-                    Boundaries of the form |a|x|a|
-                    """
-                    try:
-                        bound = boundary['staggered']
-                    except KeyError:
-                        print("Be careful!", field.name.upper(), "is staggered in", field.centered[-1],
-                              "but you are trying to use a centered condition for it. Please review the "
-                              "definition of", boundary['name'].upper(), "if you want to use this condition.")
-                        exit()                        
-                    groups = re.match("\|(.*)\|(.*)\|(\w*)\|",bound)
-                    active = groups.group(1).replace(groups.group(3),field.variable+"[lacts]")
-                    ghosts = groups.group(2).replace(groups.group(3),field.variable+"[lacts]")
-                    ghostsm = groups.group(2).replace(groups.group(3),field.variable+"[lacts_null_mirror]")
-                    output +=  active + ";\n"
-                    if ((field.variable[0] != 'b') or (field.variable[1] != self.side[0])):
-                        output += "\t" + field.variable + "[lacts_null] = " + ghostsm + ";\n"
-                else:
-                    """
-                    Boundaries of the form |a|a|
-                    """
-                    try:
-                        bound = boundary['centered']
-                    except KeyError:
-                        print("Be careful!", field.name.upper(), "is centered in", field.centered[-1],
-                              "but you are trying to use a staggered condition for it. Please review the "
-                              "definition of", boundary['name'].upper(), "if you want to use this condition.")
-                        exit()
-                    groups = re.match("\|(.*)\|(\w*)\|",bound)
-                    active = groups.group(1).replace(groups.group(2),field.variable+"[lact]")  
-                    output += active + ";\n"
-        if bound == False:
-            print(field.boundaries[self.side].upper(),"boundary for",
-                  field.name.upper(), "applied on",self.side.upper(),
-                  "does not exist! Please, verify if it is defined in boundaries.txt")
-            exit()
-        return output
+    ifields, ofields, pfields, exprs = list(zip(*list(gen_substitutions())))
 
-    def process_indices(self):
-        indices_lines = ""
-        if self.side == 'ymin':
-            indices_lines += "\n\t" +"lgh = l;\n"            
-            indices_lines += "\t" +"lghs = l;\n"
-            indices_lines += "\t" +"lact = i + (2*nghy-j-1)*pitch + k*stride;\n"
-            indices_lines += "\t"+"lacts = i + (2*nghy-j)*pitch + k*stride;\n"
-            indices_lines += "\t"+"lacts_null = i + nghy*pitch + k*stride;\n"
-            indices_lines += "\t"+"lacts_null_mirror = i + (nghy+1)*pitch + k*stride;\n"
-            indices_lines += "\t" +"jgh = j;\n"
-            indices_lines += "\t" +"jact = (2*nghy-j-1);\n\n"
-        if self.side == 'ymax':
-            indices_lines += "\n\t" +"lgh = i + (ny+nghy+j)*pitch + k*stride;\n"
-            indices_lines += "\t" +"lghs = i + (ny+nghy+1+j)*pitch + k*stride;\n"
-            indices_lines += "\t" +"lact = i + (ny+nghy-1-j)*pitch + k*stride;\n"
-            indices_lines += "\t" +"lacts = i + (ny+nghy-1-j)*pitch + k*stride;\n"
-            indices_lines += "\t" +"lacts_null = i + (ny+nghy)*pitch + k*stride;\n"
-            indices_lines += "\t" +"lacts_null_mirror = i + (ny+nghy-1)*pitch + k*stride;\n"
-            indices_lines += "\t" +"jgh = (ny+nghy+j);\n"
-            indices_lines += "\t" +"jact = (ny+nghy-1-j);\n\n"
-        if self.side == 'zmin':
-            indices_lines += "\n\t" +"lgh = l;\n"            
-            indices_lines += "\t" +"lghs = l;\n"
-            indices_lines += "\t" +"lact = i + j*pitch + (2*nghz-k-1)*stride;\n"
-            indices_lines += "\t"+"lacts = i + j*pitch + (2*nghz-k)*stride;\n"
-            indices_lines += "\t"+"lacts_null = i + j*pitch + nghz*stride;\n"
-            indices_lines += "\t"+"lacts_null_mirror = i + j*pitch + (nghz+1)*stride;\n"
-            indices_lines += "\t" +"kgh = k;\n"
-            indices_lines += "\t" +"kact = (2*nghz-k-1);\n\n"
-        if self.side == 'zmax':
-            indices_lines += "\n\t" +"lgh = i + j*pitch + (nz+nghz+k)*stride;\n"
-            indices_lines += "\t" +"lghs = i + j*pitch + (nz+nghz+1+k)*stride;\n"
-            indices_lines += "\t" +"lact = i + j*pitch + (nz+nghz-1-k)*stride;\n"
-            indices_lines += "\t" +"lacts = i + j*pitch + (nz+nghz-1-k)*stride;\n"
-            indices_lines += "\t" +"lacts_null = i + j*pitch + (nz+nghz)*stride;\n"
-            indices_lines += "\t" +"lacts_null_mirror = i + j*pitch + (nz+nghz-1)*stride;\n"
-            indices_lines += "\t" +"kgh = (nz+nghz+k);\n"
-            indices_lines += "\t" +"kact = (nz+nghz-1-k);\n\n"
-        string = "%boundaries"
-        n = self.stones[string]
-        self.template.template[n] = indices_lines + self.template.template[n]
+    ifields = '\n'.join(ifields)
+    ofields = '\n'.join(ofields)
+    pfields = '\n'.join(pfields)
+    exprs = '\n'.join(exprs)
 
-def write_mute(side, number, template):
+    def gen_globals(globs):
+        for name in globs:
+            uppername = name.upper()
+            yield f'real {name} = {uppername};'
 
-    template1 = copy.deepcopy(template)
-    template2 = copy.deepcopy(template)
-    stones = template.stones
+    globs = textwrap.indent('\n'.join(list(gen_globals(globs))), " " * 2)
 
-    output1 = open(side+"min_bound_{:d}.c".format(number),"w")
-    template1.template[stones['%side']] = \
-        template1.template[stones['%side']].replace("%side",side+"min_{:d}_cpu".format(number))
-    for key in stones.keys():
-        if key == "%size_y":
-            template1.template[stones['%size_y']] = \
-                template1.template[stones['%size_y']].replace("%size_y","1")
-            continue
-        if key == "%size_z":
-            template1.template[stones['%size_z']] = \
-                template1.template[stones['%size_z']].replace("%size_z","1")
-            continue
-        if key != "%side":
-            n = template1.stones[key]
-            template1.template[n] = ""
-    for line in template1.template:
-        output1.write(line)
-    output1.close()
+    internal = """\
+        int lgh;
+        int lghs;
+        int lact;
+        int lacts;
+        int lacts_null_mirror;
+        int lacts_null;
+        """
+    internal = textwrap.indent(textwrap.dedent(internal), "  ")
 
-    output2 = open(side+"max_bound_{:d}.c".format(number),"w")
-    template2.template[stones['%side']] = \
-        template2.template[stones['%side']].replace("%side",side+"max_{:d}_cpu".format(number))
-    for key in stones.keys():
-        if key == "%size_y":
-            template2.template[stones['%size_y']] = \
-                template2.template[stones['%size_y']].replace("%size_y","1")
-            continue
-        if key == "%size_z":
-            template2.template[stones['%size_z']] = \
-                template2.template[stones['%size_z']].replace("%size_z","1")
-            continue
-        if key != "%side":
-            n = template2.stones[key]
-            template2.template[n] = ""
-            continue
-    for line in template2.template:
-        output2.write(line)
-    output2.close()
+    size_y = 'NGHY' if side[0] == 'y' else 'Ny+2*NGHY'
+    size_z = 'NGHZ' if side[0] == 'z' else 'Nz+2*NGHZ'
 
-def process_arguments(arguments):
-    SETUP = FLUIDNUMBER = BOUNDARIES = CENTERING = None
-    for argument in arguments:
-        search = re.search(".*\.bound.(\d+)",argument)
-        if search!=None:
-            SETUP = search.group(0)
-            FLUIDNUMBER = int(search.group(1))
-        search = re.search(".*boundaries.txt",argument)
-        if search!=None:
-            BOUNDARIES = search.group(0)
-        search = re.search(".*centering.txt",argument)
-        if search!=None:
-            CENTERING = search.group(0)            
-    return SETUP, FLUIDNUMBER, BOUNDARIES, CENTERING
+    # for the function name only, need a more explicit descriptor
+    sideex = f'{side}_{number:d}_cpu'
 
-if __name__ == '__main__':
+    tfmt = template.format(side=sideex, ifields=ifields, ofields=ofields,
+        internal=internal, pointerfield=pfields, size_y=size_y, size_z=size_z,
+        globals=globs, boundaries=exprs)
 
-    SETUP, FLUIDNUMBER, BOUNDARIES, CENTERING = process_arguments(sys.argv[1:4])
+    with open(os.path.join(args.outdir, f'{side}_bound_{number:d}.c'), 'w') as outfile:
+        outfile.write(tfmt)
 
-    if (FLUIDNUMBER == 0):
-        print("PARSING BOUNDARIES...")
-        print("Note: This process can be suppressed by declaring HARDBOUNDARIES in the .opt file.")
-    
-    if SETUP == None:
-        print("Check your setup.bound file...")
-    if BOUNDARIES == None:
-        print("Check your boundaries.txt file...")
-    if SETUP == None:
-        print("Check your centering.txt file...")
-    if SETUP == None or BOUNDARIES == None or CENTERING == None:
-        exit()
+# read the template once
+with open(args.template, "r") as tfile:
+    template = tfile.read()
 
-    template = Template()
+# read the boundary and centering files
+boundaries = pformat_read(args.boundaries, r"\|.*\|")
+centering  = pformat_read(args.centering, r"\w+")
+
+for arg in args.inputs:
+    m = re.search(r".*\.bound.(\d+)", arg)
+    if m is None:
+        raise ValueError("Unexpected filename {}; should be " \
+                         "[setup].bound.[number]".format(arg))
+
+    number = int(m.group(1))
+    fields = pformat_read(arg, r"\w+")
 
     try:
-        setup = Setup(SETUP, BOUNDARIES, CENTERING)
-    except:
-        write_mute("y",FLUIDNUMBER,copy.deepcopy(template))
-        write_mute("z",FLUIDNUMBER,copy.deepcopy(template))
-        if (FLUIDNUMBER == 0):
-            print("=================================")
-            print("Warning: Some file is missing..."
-                  "\nCheck the files: \n" + SETUP + "\n"
-                  + BOUNDARIES + "\n" + CENTERING +
-                  "\nThis version was compiled with"
-                  "periodic boundaries.")
-            print("=================================")
-        exit()
-
-    try:
-        left  = Boundary("ymin", FLUIDNUMBER,
-                         copy.deepcopy(setup),
-                         copy.deepcopy(template))
-        right = Boundary("ymax", FLUIDNUMBER,
-                         copy.deepcopy(setup), 
-                         copy.deepcopy(template))
+        left  = format_template(template, number, "ymin", fields, boundaries, centering)
+        right = format_template(template, number, "ymax", fields, boundaries, centering)
     except KeyError:
-        write_mute("y", FLUIDNUMBER, copy.deepcopy(template))
-        if (FLUIDNUMBER == 0):
-            print("Warning: Y boundaries are not defined.")
+        pass
 
     try:
-        down  = Boundary("zmin", FLUIDNUMBER,
-                         copy.deepcopy(setup),
-                         copy.deepcopy(template))
-        up    = Boundary("zmax", FLUIDNUMBER,
-                         copy.deepcopy(setup), 
-                         copy.deepcopy(template))
+        up    = format_template(template, number, "zmin", fields, boundaries, centering)
+        down  = format_template(template, number, "zmax", fields, boundaries, centering)
     except KeyError:
-        write_mute("z", FLUIDNUMBER, copy.deepcopy(template))
-        if (FLUIDNUMBER == 0):
-            print("Warning: Z boundaries are not defined.")
+        pass

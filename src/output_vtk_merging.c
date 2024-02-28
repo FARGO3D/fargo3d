@@ -1,4 +1,4 @@
-#include <fargo3d.h>
+#include "fargo3d.h"
 
 void WriteVTKMerging(Field *f, int n) {
   int i,j,k,m,p;
@@ -21,21 +21,21 @@ void WriteVTKMerging(Field *f, int n) {
 
   if (CPU_Master) {
     fprintf(ofile, "# vtk DataFile Version 2.0\n");
-#ifdef FLOAT
+#if FLOAT
     fprintf(ofile, "Output %d - Field: %s - Physical time %f\n",
-	    n, f->name, PhysicalTime);  
+	    n, f->name, PhysicalTime);
 #else
     fprintf(ofile, "Output %d - Field: %s - Physical time %lf\n",
 	    n, f->name, PhysicalTime);
 #endif
     fprintf(ofile, "BINARY\n");
     fprintf(ofile, "DATASET RECTILINEAR_GRID\n");
-#ifndef SPHERICAL
+#if (!SPHERICAL)
     fprintf(ofile, "DIMENSIONS %d %d %d\n", NY, NX, NZ);
 #else
     fprintf(ofile, "DIMENSIONS %d %d %d\n", NY, NZ, NX);
 #endif
-#ifdef FLOAT
+#if FLOAT
     fprintf(ofile, "X_COORDINATES %d FLOAT\n", NY);
 #else
     fprintf(ofile, "X_COORDINATES %d DOUBLE\n", NY);
@@ -54,14 +54,14 @@ void WriteVTKMerging(Field *f, int n) {
   }
   if (CPU_Master)
     fprintf(ofile, "\n");
-  
-#ifndef SPHERICAL
+
+#if (!SPHERICAL)
   if (CPU_Master) {
-#ifdef FLOAT
+#if FLOAT
     fprintf(ofile, "Y_COORDINATES %d FLOAT\n", NX);
 #else
     fprintf(ofile, "Y_COORDINATES %d DOUBLE\n", NX);
-#endif  
+#endif
 
     for (i=0;i<NX;i++) {
       temp = Swap(f->x[i]);
@@ -71,16 +71,16 @@ void WriteVTKMerging(Field *f, int n) {
   }
   fflush(ofile);
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
   if (CPU_Master)
-#ifdef FLOAT
+#if FLOAT
     fprintf(ofile, "Z_COORDINATES %d FLOAT\n", NZ);
 #else
     fprintf(ofile, "Z_COORDINATES %d DOUBLE\n", NZ);
-#endif  
+#endif
 
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
   for (i=0;i<NZ;i++) {
     for (j = 0; j<Ncpu_y; j++) {
       if ((K==j) && (J==0) && (i>=Z0) && (i<(Z0+Nz))) {
@@ -95,9 +95,9 @@ void WriteVTKMerging(Field *f, int n) {
     fprintf(ofile, "\n");
 
 #else
-  
+
   if (CPU_Master) {
-#ifdef FLOAT
+#if FLOAT
     fprintf(ofile, "Y_COORDINATES %d FLOAT\n", NZ);
 #else
     fprintf(ofile, "Y_COORDINATES %d DOUBLE\n", NZ);
@@ -105,7 +105,7 @@ void WriteVTKMerging(Field *f, int n) {
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
   for (i=0;i<NZ;i++) {
     for (j = 0; j<Ncpu_y; j++) {
       if ((K==j) && (J==0) && (i>=Z0) && (i<(Z0+Nz))) {
@@ -118,10 +118,10 @@ void WriteVTKMerging(Field *f, int n) {
   }
   if (CPU_Master)
     fprintf(ofile, "\n");
-  
-  
+
+
   if (CPU_Master) {
-#ifdef FLOAT
+#if FLOAT
     fprintf(ofile, "Z_COORDINATES %d FLOAT\n", NX);
 #else
     fprintf(ofile, "Z_COORDINATES %d DOUBLE\n", NX);
@@ -136,13 +136,13 @@ void WriteVTKMerging(Field *f, int n) {
   fflush(ofile);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
-  
+
   fflush(stdout);
 
   if (CPU_Master) {
     fprintf(ofile, "POINT_DATA %d\n", NX*NY*NZ);
-    
-#ifdef FLOAT
+
+#if FLOAT
     fprintf(ofile, "SCALARS %s FLOAT\n", f->name);
 #else
     fprintf(ofile, "SCALARS %s DOUBLE\n", f->name);
@@ -156,8 +156,8 @@ void WriteVTKMerging(Field *f, int n) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   i = j = k = 0;
-  
-#ifndef SPHERICAL
+
+#if (!SPHERICAL)
   for (k=0; k<NZ; k++) {
     for (i=0; i<NX; i++) {
       for (j = 0; j<Ncpu_x; j++) {

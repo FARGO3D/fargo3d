@@ -44,7 +44,7 @@ void Write2D (Field2D *f, char *filename, char *dir, int kind) {
 	  profile[jg] = value;
       }
     }
-#ifndef FLOAT
+#if (!FLOAT)
     MPI_Reduce (profile, gprofile, NY+2*NGHY, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 #else
     MPI_Reduce (profile, gprofile, NY+2*NGHY, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -84,7 +84,7 @@ boolean Read2D (Field2D *f, char *filename, char *dir, int kind) {
     sz = ftell(in);
     fseek (in, 0, SEEK_SET);
     // We check that the file has the right size in order to avoid reading an older file
-    if (sz != filesize) error_occured = TRUE; 
+    if (sz != filesize) error_occured = TRUE;
     jmin = (kind == GHOSTINC ? 0 : NGHY);
     jmax = (kind == GHOSTINC ? NY+2*NGHY : NY+NGHY);
     kmin = (kind == GHOSTINC ? 0 : NGHZ);

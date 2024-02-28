@@ -24,7 +24,7 @@ void UpdateX_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t) {
   real* rho_s = DensStar->field_cpu;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
 //<\EXTERNAL>
@@ -52,13 +52,13 @@ void UpdateX_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t) {
 
   i = j = k = 0;
 
-#ifdef Z  
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++) {
 #endif
 //<#>
@@ -69,13 +69,13 @@ void UpdateX_cpu(real dt, Field *Q, Field *Qs, Field *Vx_t) {
 		   vx[llxp]*qs[llxp]*rho_s[llxp])*	\
 		  SurfX(j,k)*dt*InvVol(i,j,k));
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

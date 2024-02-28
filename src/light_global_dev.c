@@ -3,7 +3,7 @@
 //WARNING, ALL THESE VARIABLES MUST BE DEFINED IN DEFINE.H WITHOUT CAPITAL
 
 void LightGlobalDev(){
-#ifdef GPU
+#if GPU
   DevMemcpyH2D(Xmin_d,Xmin,sizeof(real)*(Nx+2*NGHX+1));
   DevMemcpyH2D(Ymin_d,Ymin,sizeof(real)*(Ny+2*NGHY+1));
   DevMemcpyH2D(Zmin_d,Zmin,sizeof(real)*(Nz+2*NGHZ+1));

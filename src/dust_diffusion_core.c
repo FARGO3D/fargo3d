@@ -8,11 +8,11 @@
 //<\INCLUDES>
 
 void DustDiffusion_Core_cpu(real dt) {
-  
+
 //<USER_DEFINED>
   INPUT(Sdiffyczc);
   INPUT(Sdiffyfzc);
-#ifdef Z
+#if ZDIM
   INPUT(Sdiffyczf);
   INPUT(Sdiffyfzf);
 #endif
@@ -22,11 +22,11 @@ void DustDiffusion_Core_cpu(real dt) {
 //<\USER_DEFINED>
 
   //Arrays Mmx, Mpx, Mmy and Mpy were filled with the dust diffusion coefficients in DustDiffusion_Coefficients()
-  
+
 //<EXTERNAL>
   real* sdiff_yfzc = Sdiffyfzc->field_cpu;
   real* sdiff_yczc = Sdiffyczc->field_cpu;
-#ifdef Z
+#if ZDIM
   real* sdiff_yczf = Sdiffyczf->field_cpu;
   real* sdiff_yfzf = Sdiffyfzf->field_cpu;
 #endif
@@ -47,7 +47,7 @@ void DustDiffusion_Core_cpu(real dt) {
   int ll;
   real c;
   real update;
-#ifdef X
+#if XDIM
   real d1;
   real d2;
   real cxp;
@@ -55,7 +55,7 @@ void DustDiffusion_Core_cpu(real dt) {
   int llxm;
   int llxp;
 #endif
-#ifdef Y
+#if YDIM
   real cyp;
   real cym;
   real d3;
@@ -63,7 +63,7 @@ void DustDiffusion_Core_cpu(real dt) {
   int llyp;
   int llym;
 #endif
-#ifdef Z
+#if ZDIM
   real czp;
   real czm;
   real d5;
@@ -87,105 +87,105 @@ void DustDiffusion_Core_cpu(real dt) {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++ ) {
 #endif
 //<#>
-#ifdef X
+#if XDIM
 	ll = l;
 	llxm = lxm;
 	llxp = lxp;
 #endif
-#ifdef Y
+#if YDIM
 	llyp = lyp;
 	llym = lym;
 #endif
-#ifdef Z
+#if ZDIM
 	llzp = lzp;
 	llzm = lzm;
 #endif
 
 	update = 0.0;
 	c    = rhod[ll]/(rhod[ll] + rhog[ll]); //Cell centered
-	
+
 	// DUST DIFFUSION ALONG X-DIRECTION
 	dxmin  = xmin(i+1)-xmin(i);
 	dxmedp = InvDiffXmed(ixp);
 	dxmedm = InvDiffXmed(i);
-	
-#ifdef X
+
+#if XDIM
         d1   = 0.25*(rhod[ll] + rhog[ll] + rhod[llxp] + rhog[llxp])*(sdiff_yczc[llxp]+sdiff_yczc[ll]); //face centered in X
         d2   = 0.25*(rhod[ll] + rhog[ll] + rhod[llxm] + rhog[llxm])*(sdiff_yczc[llxm]+sdiff_yczc[ll]); //face centered in X
 	cxp  = rhod[llxp]/(rhod[llxp] + rhog[llxp]);                                                   //Cell centered
         cxm  = rhod[llxm]/(rhod[llxm] + rhog[llxm]);                                                   //Cell centered
-	
-#ifdef CARTESIAN
+
+#if CARTESIAN
 	update += 1.0/(dxmin)*(d1*(cxp-c)/(dxmedp) - (d2*(c-cxm))/(dxmedm));
 #endif
-	
-#ifdef CYLINDRICAL
+
+#if CYLINDRICAL
         update += 1.0/ymed(j)/ymed(j)/(dxmin)*(d1*(cxp-c)/(dxmedp) - (d2*(c-cxm))/(dxmedm));
 #endif
-	
-#ifdef SPHERICAL
+
+#if SPHERICAL
         update += 1.0/ymed(j)/ymed(j)/sin(zmed(k))/sin(zmed(k))/(dxmin)*(d1*(cxp-c)/(dxmedp) - (d2*(c-cxm))/(dxmedm));
 #endif
 #endif //X
-	
+
 	// DUST DIFFUSION ALONG Y-DIRECTION
-#ifdef Y
+#if YDIM
 	d3   = 0.5*(rhod[ll] + rhog[ll] + rhod[llyp] + rhog[llyp])*sdiff_yfzc[llyp];//face centered in Y
 	d4   = 0.5*(rhod[ll] + rhog[ll] + rhod[llym] + rhog[llym])*sdiff_yfzc[ll];  //face centered in Y
 	cyp  = rhod[llyp]/(rhod[llyp] + rhog[llyp]);                                //Cell centered
 	cym  = rhod[llym]/(rhod[llym] + rhog[llym]);                                //Cell centered
-	
-#ifdef CARTESIAN
+
+#if CARTESIAN
 	update += 1.0/(ymin(j+1)-ymin(j))*(d3*(cyp-c)/(ymed(j+1)-ymed(j)) - (d4*(c-cym))/(ymed(j)-ymed(j-1)));
 #endif
-	
-#ifdef CYLINDRICAL
+
+#if CYLINDRICAL
         update += 1.0/ymed(j)/(ymin(j+1)-ymin(j))*(ymin(j+1)*d3*(cyp-c)/(ymed(j+1)-ymed(j)) -
 						   (ymin(j)*d4*(c-cym))/(ymed(j)-ymed(j-1)));
 #endif
-	
-#ifdef SPHERICAL
+
+#if SPHERICAL
 	update += 1.0/ymed(j)/ymed(j)/(ymin(j+1)-ymin(j))*(ymin(j+1)*ymin(j+1)*d3*(cyp-c)/(ymed(j+1)-ymed(j)) -
 							   (ymin(j)*ymin(j)*d4*(c-cym))/(ymed(j)-ymed(j-1)));
 #endif
 #endif //Y
 
         // DUST DIFFUSION ALONG Z-DIRECTION
-#ifdef Z
+#if ZDIM
 	d5   = 0.5*(rhod[ll] + rhog[ll] + rhod[llzp] + rhog[llzp])*sdiff_yczf[llzp]; // face centered in Z
 	d6   = 0.5*(rhod[ll] + rhog[ll] + rhod[llzm] + rhog[llzm])*sdiff_yczf[ll];   // face centered in Z
 	czp  = rhod[llzp]/(rhod[llzp] + rhog[llzp]);                                 // Cell centered
 	czm  = rhod[llzm]/(rhod[llzm] + rhog[llzm]);                                 // Cell centered
-#ifdef CARTESIAN
+#if CARTESIAN
 	update += 1.0/(zmin(k+1)-zmin(k))*(d5*(czp-c)/(zmed(k+1)-zmed(k)) - (d6*(c-czm))/(zmed(k)-zmed(k-1)));
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
         update += 1.0/(zmin(k+1)-zmin(k))*(d5*(czp-c)/(zmed(k+1)-zmed(k)) - (d6*(c-czm))/(zmed(k)-zmed(k-1)));
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	update += 1.0/ymed(j)/ymed(j)/sin(zmed(k))/(zmin(k+1)-zmin(k))*(sin(zmin(k+1))*d5*(czp-c)/(zmed(k+1)-zmed(k)) -
 									(sin(zmin(k))*d6*(c-czm))/(zmed(k)-zmed(k-1)));
 #endif
 #endif // Z
       	temp[ll] = rhod[ll] + dt*update; // Density update
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

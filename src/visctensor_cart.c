@@ -11,8 +11,8 @@ void visctensor_cart_cpu(){
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef X
-#ifdef COLLISIONPREDICTOR
+#if XDIM
+#if COLLISIONPREDICTOR
   INPUT(Vx_half);
 #else
   INPUT(Vx);
@@ -20,8 +20,8 @@ void visctensor_cart_cpu(){
   OUTPUT(Mmx);
   OUTPUT(Mpx);
 #endif
-#ifdef Y
-#ifdef COLLISIONPREDICTOR
+#if YDIM
+#if COLLISIONPREDICTOR
   INPUT(Vy_half);
 #else
   INPUT(Vy);
@@ -29,8 +29,8 @@ void visctensor_cart_cpu(){
   OUTPUT(Mmy);
   OUTPUT(Mpy);
 #endif
-#ifdef Z
-#ifdef COLLISIONPREDICTOR
+#if ZDIM
+#if COLLISIONPREDICTOR
   INPUT(Vz_half);
 #else
   INPUT(Vz);
@@ -42,48 +42,48 @@ void visctensor_cart_cpu(){
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef X
-#ifdef COLLISIONPREDICTOR
+#if XDIM
+#if COLLISIONPREDICTOR
   real* vx = Vx_half->field_cpu;
 #else
   real* vx = Vx->field_cpu;
 #endif
 #endif
-#ifdef Y
-#ifdef COLLISIONPREDICTOR
+#if YDIM
+#if COLLISIONPREDICTOR
   real* vy = Vy_half->field_cpu;
 #else
   real* vy = Vy->field_cpu;
 #endif
 #endif
-#ifdef Z
-#ifdef COLLISIONPREDICTOR
+#if ZDIM
+#if COLLISIONPREDICTOR
   real* vz = Vz_half->field_cpu;
 #else
   real* vz = Vz->field_cpu;
 #endif
 #endif
-#ifdef X
+#if XDIM
   real* tauxx = Mmx->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* tauyy = Mmy->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* tauzz = Mmz->field_cpu;
 #endif
-#if defined(X) && defined(Z)
+#if (XDIM && ZDIM)
   real* tauxz = Mpx->field_cpu;
 #endif
-#if defined(Y) && defined(X)
+#if (YDIM && XDIM)
   real* tauyx = Mpy->field_cpu;
 #endif
-#if defined(Z) && defined(Y)
+#if (ZDIM && YDIM)
   real* tauzy = Mpz->field_cpu;
 #endif
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
 //<\EXTERNAL>
@@ -115,58 +115,58 @@ void visctensor_cart_cpu(){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for(k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=XIM; i<size_x; i++) {
 #endif
 //<#>
 //Evaluate centered divergence.
 	div_v = 0.0;
-#ifdef X
+#if XDIM
 	div_v += (vx[lxp]-vx[l])*SurfX(j,k);
 #endif
-#ifdef Y
+#if YDIM
 	div_v += (vy[lyp]*SurfY(i,j+1,k)-vy[l]*SurfY(i,j,k));
 #endif
-#ifdef Z
+#if ZDIM
 	div_v += (vz[lzp]*SurfZ(i,j,k+1)-vz[l]*SurfZ(i,j,k));
 #endif
 	div_v *= 2.0/3.0*InvVol(i,j,k);
 
-#ifdef X
+#if XDIM
 	tauxx[l] = NU*rho[l]*(2.0*(vx[lxp]-vx[l])/(xmin(i+1)-xmin(i)) - div_v);
 #endif
-#ifdef Y
+#if YDIM
 	tauyy[l] = NU*rho[l]*(2.0*(vy[lyp]-vy[l])/(ymin(j+1)-ymin(j)) - div_v);
 #endif
-#ifdef Z
+#if ZDIM
 	tauzz[l] = NU*rho[l]*(2.0*(vz[lzp]-vz[l])/(zmin(k+1)-zmin(k)) - div_v);
 #endif
 
-#if defined(X) && defined(Z)
+#if (XDIM && ZDIM)
 	tauxz[l] = NU*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]-vx[lzm])/(zmed(k)-zmed(k-1)) + (vz[l]-vz[lxm])*Inv_zone_size_xmed(i,j,k)); //centered on lower, left "radial" edge in y
 #endif
 
-#if defined(Y) && defined(X)
+#if (YDIM && XDIM)
 	tauyx[l] = NU*.25*(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*((vy[l]-vy[lxm])*Inv_zone_size_xmed(i,j,k) + (vx[l]-vx[lym])/(ymed(j)-ymed(j-1))); //centered on left, inner vertical edge in z
 #endif
 
-#if defined(Z) && defined(Y)
+#if (ZDIM && YDIM)
 	tauzy[l] = NU*.25*(rho[l]+rho[lym]+rho[lzm]+rho[lym-stride])*((vz[l]-vz[lym])/(ymed(j)-ymed(j-1)) + (vy[l]-vy[lzm])/(zmed(k)-zmed(k-1))); //centered on lower, inner edge in x ("azimuthal")
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

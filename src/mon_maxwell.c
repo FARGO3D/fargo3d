@@ -46,26 +46,26 @@ void mon_maxwell_cpu () {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++ ) {
 #endif
 //<#>
 	ll = l;
 	interm[ll] = .25*(bx[ll]+bx[lxp])*(by[ll]+by[lyp])/MU0*Vol(i,j,k);
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

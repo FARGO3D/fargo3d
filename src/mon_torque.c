@@ -64,36 +64,36 @@ void mon_torq_cpu () {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++ ) {
 #endif
 //<#>
 	ll = l;
 	cellmass = Vol(i,j,k)*dens[ll];
-#ifdef CARTESIAN
+#if CARTESIAN
 	dx = xmed(i)-Xplanet;
 	dy = ymed(j)-Yplanet;
-#ifdef Z
+#if ZDIM
 	dz = zmed(k)-Zplanet;
 #endif
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	dx = ymed(j)*cos(xmed(i))-Xplanet;
 	dy = ymed(j)*sin(xmed(i))-Yplanet;
-#ifdef Z
+#if ZDIM
 	dz = zmed(k)-Zplanet;
 #endif
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	dx = ymed(j)*cos(xmed(i))*sin(zmed(k))-Xplanet;
 	dy = ymed(j)*sin(xmed(i))*sin(zmed(k))-Yplanet;
-#ifdef Z
+#if ZDIM
 	dz = ymed(j)*cos(zmed(k))-Zplanet;
 #endif
 #endif
@@ -102,18 +102,18 @@ void mon_torq_cpu () {
 	distance = sqrt(dist2);
 	InvDist3 = 1.0/(dist2*distance);
 	InvDist3 *= G*cellmass;
-	
+
 	fxi  = dx*InvDist3;
 	fyi  = dy*InvDist3;
 	interm[ll] = Xplanet*fyi-Yplanet*fxi;
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

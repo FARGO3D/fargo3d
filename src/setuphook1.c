@@ -19,7 +19,7 @@ void SetupHook1_cpu() {  // Empty function. May be used as a template for custom
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
 //<\EXTERNAL>
-  
+
 //<INTERNAL>
   int __attribute__((unused))i; //Variables reserved
   int __attribute__((unused))j; //for the topology
@@ -32,24 +32,24 @@ void SetupHook1_cpu() {  // Empty function. May be used as a template for custom
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for(k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=0; i<size_x; i++) {
 #endif
 //<#>
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

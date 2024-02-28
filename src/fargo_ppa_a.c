@@ -12,14 +12,14 @@ void VanLeerX_PPA_a_cpu(Field *Q){
 //<USER_DEFINED>
   INPUT(Q);
   OUTPUT(Slope);
-#ifdef PPA_STEEPENER
+#if PPA_STEEPENER
   OUTPUT(LapPPA);
 #endif
 //<\USER_DEFINED>
 
 //<EXTERNAL>
   real* slope = Slope->field_cpu;
-#ifdef PPA_STEEPENER
+#if PPA_STEEPENER
   real* lapla = LapPPA->field_cpu;
 #endif
   real* q = Q->field_cpu;
@@ -43,10 +43,10 @@ void VanLeerX_PPA_a_cpu(Field *Q){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
       for (i=XIM; i<size_x; i++) {
@@ -62,15 +62,15 @@ void VanLeerX_PPA_a_cpu(Field *Q){
 	  if (slope[l] < 0) slope[l] = -work;
 	  else slope[l] = work;
 	}
-#ifdef PPA_STEEPENER
+#if PPA_STEEPENER
 	lapla[l] = (q[lxp]+q[lxm]-2.0*q[l])*.1666666666666666666666;
 #endif
 //<\#>
       }
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

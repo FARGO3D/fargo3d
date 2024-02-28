@@ -87,7 +87,7 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
   sys->FeelDisk = feeldisk;
   sys->FeelOthers = feelothers;
 
-#ifdef GPU
+#if GPU
   int status;
   status = DevMalloc(&(sys->x_gpu),(sizeof(real)*(nb+1)));
   status = DevMalloc(&(sys->y_gpu),(sizeof(real)*(nb+1)));
@@ -126,10 +126,10 @@ real ComputeInnerMass(real r) {
 	if(Ymed(j)<r) {
 	  mass+=rho[l]*Vol(i,j,k);
 	}
-      }	
+      }
     }
   }
-#ifdef FLOAT
+#if FLOAT
   MPI_Allreduce (&mass, &innermass, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 #else
   MPI_Allreduce (&mass, &innermass, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -150,14 +150,14 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
   real summass=0.0;
   real e_bin, a_bin, period_bin;
   int status;
-  
+
   if (ThereArePlanets == NO) {
     sys = AllocPlanetSystem (1);
     sys->nb = 0;
     sys->x = sys->vx = sys->y = sys->vy = NULL;
     return sys;
   }
-  
+
   nb = FindNumberOfPlanets (filename);
   if (CPU_Master) {
     if(nb > 1) printf  ("%d planets found.\n", nb);
@@ -170,7 +170,7 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
     sscanf(s, "%s ", nm);
     if (isalpha(s[0])) {
       s1 = s + strlen(nm);
-#ifdef FLOAT
+#if FLOAT
       sscanf(s1 + strspn(s1, "\t :=>_"), "%f %f %f %s %s", &dist, &mass, &accret, test1, test2);
 #else
       sscanf(s1 + strspn(s1, "\t :=>_"), "%lf %lf %lf %s %s", &dist, &mass, &accret, test1, test2);
@@ -182,7 +182,7 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
 	dist = SEMIMAJORAXIS;
       if (ORBITALRADIUS > 1e-30)
 	dist *= ORBITALRADIUS;
-#ifdef RESCALE
+#if RESCALE
       dist *= R0;
       accret *= sqrt(G*MSTAR/(R0*R0*R0));
       mass *= MSTAR;
@@ -228,24 +228,24 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
     mastererr ("WARNING --- In this file, you want to edit the flavor of MSTAR which\n");
     mastererr ("WARNING --- corresponds to the unit system you are presently working with.\n");
     mastererr ("WARNING --- The current unit system is: ");
-#if !(defined(MKS) || defined (CGS))
+#if !(MKS || CGS)
     mastererr ("scale free (code units).\n");
 #endif
-#ifdef CGS
+#if CGS
     mastererr ("cgs\n");
 #endif
-#ifdef MKS
+#if MKS
     mastererr ("MKS\n");
 #endif
     mastererr ("WARNING --- So we suggest you edit src/fondam.h to have:\n");
     mastererr ("\n    #define MSTAR_");
-#if !(defined(MKS) || defined (CGS))
+#if !(MKS || CGS)
     mastererr ("SF");
 #endif
-#ifdef CGS
+#if CGS
     mastererr ("CGS");
 #endif
-#ifdef MKS
+#if MKS
     mastererr ("MKS");
 #endif
     mastererr (" %g\n\n", summass);
@@ -254,7 +254,7 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
     mastererr ("WARNING ---   * Roche radii, wherever needed, are correctly estimated.\n");
     mastererr ("WARNING ---   * Wave-killing BCs have the correct strength.\n\n");
   }
-#ifndef NODEFAULTSTAR
+#if (!NODEFAULTSTAR)
   if (summass > 0.0) {
     mastererr("WARNING --- Some of your planets appear to be stars.\n");
     mastererr("WARNING --- Their total mass is %g.\n", summass);
@@ -268,7 +268,7 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
   }
 #endif
 
-#ifdef NODEFAULTSTAR
+#if NODEFAULTSTAR
   /* We now properly re-initialize the stars */
   if (nbstars > 2) {
     mastererr ("ERROR --- at the present time you cannot have more than two stars in your .cfg file.\n");
@@ -392,7 +392,7 @@ real GetPsysInfo (boolean action) {
   }
 
   switch (action) {
-  case MARK: 
+  case MARK:
     X_planet = xc;
     Y_planet = yc;
     return 0.;

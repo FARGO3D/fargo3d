@@ -31,7 +31,7 @@ BROWN=\033[0;33m
 LIGHT_GRAY=\033[0;37m
 END_COLOR=\033[0m
 
-ifdef FARGO_COLOR
+if FARGO_COLOR
 	FARGO_OPT += -DFARGO_COLOR
 endif
 
@@ -77,7 +77,7 @@ endif
 ifeq (${GPU}, 1)
 	FARGO_OPT += -DGPU
 endif
-ifdef SETUP
+if SETUP
 	FARGO_OPT_FILE = ${SETUPSDIR}/${SETUP}/${SETUP}.opt
 	VARFILE = ${SETUPSDIR}/${SETUP}/${SETUP}.var
 	PARFILE = ${SETUPSDIR}/${SETUP}/${SETUP}.par
@@ -109,11 +109,11 @@ endif
 #----------------------SYSTEM VARIABLES-------------------------------
 # CUDA
 ifndef CUDA
-ifdef CUDA_HOME # select cuda path
+if CUDA_HOME # select cuda path
 CUDA = ${CUDA_HOME}
-else ifdef CUDA_DIR
+else if CUDA_DIR
 CUDA = ${CUDA_DIR}
-else ifdef CUDA_PATH
+else if CUDA_PATH
 CUDA = ${CUDA_PATH}
 else
 CUDA = /usr/local/cuda
@@ -493,7 +493,7 @@ all:
 
 allp:  ${EXENAME}
 	@echo ""
-ifdef FARGO_COLOR
+if FARGO_COLOR
 	@echo "${BLUE}"
 endif
 	@echo "          FARGO3D SUMMARY:           "
@@ -561,7 +561,7 @@ ifeq (${FULLDEBUG}, 1)
 	@echo '(Use "make nofulldebug" to change that)'
 	@echo ""
 endif
-ifdef FARGO_COLOR
+if FARGO_COLOR
 	@echo "${END_COLOR}"
 endif
 
@@ -577,7 +577,7 @@ ${EXENAME} : ${SCRIPTSDIR}/bound_proto.code ${OBJECTS}
 	@/bin/cp -f ${BINDIR}/*.h $(ARCHDIR)
 	@cd $(ARCHDIR)/..;/bin/rm -f temparch; tar jcf temparch $(SHORTARCH) 2> /dev/null
 	@mv $(ARCHDIR)/../temparch $(ARCHDIR)/$(ARCHNAME)
-ifdef LONGSUMMARY
+if LONGSUMMARY
 	@cat ${SETUPSDIR}/${SETUP}/${SETUP}.bound.* >> $(EXENAME)
 	@cat ${SETUPSDIR}/${SETUP}/${SETUP}.bound.* | wc -c | xargs printf "%012d" >> ${EXENAME}
 	@cat $(ARCHDIR)/$(ARCHNAME) >> $(EXENAME)
@@ -585,7 +585,7 @@ ifdef LONGSUMMARY
 	@cat $(STDDIR)/.lastflags >> ${EXENAME}
 	@wc -c $(STDDIR)/.lastflags | sed -e "s|$(STDDIR).*$$||" | xargs printf "%012d" >> ${EXENAME}
 endif
-ifdef FARGO_COLOR
+if FARGO_COLOR
 	@echo -n "${GREEN}"
 	@echo "The executable file has been created."
 	@echo -n "${END_COLOR}"

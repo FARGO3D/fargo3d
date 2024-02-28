@@ -7,13 +7,13 @@
 #include "fargo3d.h"
 //<\INCLUDES>
 
-void ComputeStar(real dt, int idx1, int idy1, int idz1,			 
+void ComputeStar(real dt, int idx1, int idy1, int idz1,
 		 int idx2, int idy2, int idz2, int index,
-		 Field* Bs, Field* Vs, Field* Slope_b,	
+		 Field* Bs, Field* Vs, Field* Slope_b,
 		 Field* Slope_v, Field* Slope_bvl, Field* Slope_vvl) {
-  
+
   /* This function is an intermediate stage to the wrapper function _ComputeStar */
-  
+
   Field* B1;
   Field* B2;
   Field* V1;
@@ -29,17 +29,17 @@ void ComputeStar(real dt, int idx1, int idy1, int idz1,
   if(idy1 == 1) {
     B1  = By;
     V1  = Vy;
-#ifdef GPU
+#if GPU
     if (_ComputeStar == _ComputeStar_gpu)
-      stride1 = Pitch_gpu;    
+      stride1 = Pitch_gpu;
     else
 #endif
-      stride1 = Nx+2*NGHX;    
+      stride1 = Nx+2*NGHX;
   }
   if(idz1 == 1) {
     B1  = Bz;
     V1  = Vz;
-#ifdef GPU
+#if GPU
     if (_ComputeStar == _ComputeStar_gpu)
       stride1 = Stride_gpu;
     else
@@ -55,7 +55,7 @@ void ComputeStar(real dt, int idx1, int idy1, int idz1,
   if(idy2 == 1) {
     B2  = By;
     V2  = Vy;
-#ifdef GPU
+#if GPU
     if (_ComputeStar == _ComputeStar_gpu)
       stride2 = Pitch_gpu;
     else
@@ -65,19 +65,19 @@ void ComputeStar(real dt, int idx1, int idy1, int idz1,
   if(idz2 == 1) { //------------------------------
     B2  = Bz;
     V2  = Vz;
-#ifdef GPU
+#if GPU
     if (_ComputeStar == _ComputeStar_gpu)
       stride2 = Stride_gpu;
     else
 #endif
       stride2 = (Nx+2*NGHX)*(Ny+2*NGHY);
-  } 
+  }
   FARGO_SAFE(_ComputeStar(dt, idx1,idy1,idz1,idx2,idy2,idz2,index,stride1,stride2,B1,B2,V1,V2,Bs,Vs,Slope_b,Slope_v,Slope_bvl,Slope_vvl));
 }
 
 
 void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, int idz2, int index, int stride1, int stride2, Field* B1, Field* B2, Field* V1, Field* V2, Field* Bs, Field* Vs, Field* Slope_b, Field* Slope_v, Field* Slope_bvl, Field* Slope_vvl) {
-  
+
 //<USER_DEFINED>
 
   /* This function computes the star fields for the Method of
@@ -89,7 +89,7 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
      and the integers idx2,idy2 and idz2 are for the direction of the
      field of which we want the star value
   */
-  
+
   INPUT(B1);
   INPUT(B2);
   INPUT(V1);
@@ -113,7 +113,7 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
   real* v2  = V2->field_cpu;
   real* bs  = Bs->field_cpu;
   real* vs  = Vs->field_cpu;
-  real* slope_b   = Slope_b->field_cpu;	
+  real* slope_b   = Slope_b->field_cpu;
   real* slope_v   = Slope_v->field_cpu;
   real* slope_bvl = Slope_bvl->field_cpu;
   real* slope_vvl = Slope_vvl->field_cpu;
@@ -169,10 +169,10 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
 	ll = l;
 
 	lpropm  = lxm*idx1 + lym*idy1 + lzm*idz1; //Propagation index minus
-	lperpm  = lxm*idx2 + lym*idy2 + lzm*idz2; //Minus along vectors	
+	lperpm  = lxm*idx2 + lym*idy2 + lzm*idz2; //Minus along vectors
 	lmperpm = lpropm - stride2;  //direction! (l plus perpendicular minus)
 
-#ifndef GHOSTSX
+#if (!GHOSTSX)
 	if(idx2 == 1) {
 	  if(i == 0)
 	    lmperpm = lpropm + nx -1; //passes permutation test
@@ -190,9 +190,9 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
 	delta2 = (zone_size_x(i,j,k)*idx2 +
 		  zone_size_y(j,k)*idy2 +
 		  zone_size_z(j,k)*idz2);
-	
+
 	v2_mean = 0.5*(v2[ll] + v2[lpropm]);
-	
+
 	if(v2_mean>0.0){	/* van Leer upwind estimate below */
 	  temp = (delta2-v2_mean*dt);
 	  v1_mean = v1[lperpm]+.5*slope_vvl[lperpm]*temp;
@@ -203,7 +203,7 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
 	  v1_mean = v1[ll]-0.5*slope_vvl[ll]*temp;
 	  b1_mean = b1[ll]-0.5*slope_bvl[ll]*temp;
 	}
-#ifdef STRICTSYM
+#if STRICTSYM
 	if (fabs(v2_mean)*dt/delta2 < 1e-9) {
 	  v1_mean = 0.5*(v1[ll]+v1[lperpm]);
 	  b1_mean = 0.5*(b1[ll]+b1[lperpm]);
@@ -213,8 +213,8 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
 	temp = b1_mean/sqrt(MU0*rho_mean);
 	cp = v1_mean*(real)index + temp;
 	cm = v1_mean*(real)index - temp;
-	
-	
+
+
 	if(cp>0.0) {
 	  temp = 0.5*(delta1-cp*dt);
 	  bp = b2[lpropm] + temp*slope_b[lpropm];
@@ -225,7 +225,7 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
 	  bp = b2[ll] - temp*slope_b[ll];
 	  vp = v2[ll] - temp*slope_v[ll];
 	}
-#ifdef STRICTSYM
+#if STRICTSYM
 	if (fabs(cp)*dt/delta2 < 1e-9) {
 	  bp = .5*(b2[lpropm]+b2[ll]);
 	  vp = .5*(v2[lpropm]+v2[ll]);
@@ -241,12 +241,12 @@ void _ComputeStar_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2,
 	  bm = b2[ll] - temp*slope_b[ll];
 	  vm = v2[ll] - temp*slope_v[ll];
 	}
-#ifdef STRICTSYM
+#if STRICTSYM
 	if (fabs(cm)*dt/delta2 < 1e-9) {
 	  bm = .5*(b2[lpropm]+b2[ll]);
 	  vm = .5*(v2[lpropm]+v2[ll]);
 	}
-#endif	
+#endif
 	temp = sqrt(MU0*rho_mean);
 	bs[ll] = 0.5 * ((bp+bm) - (vp-vm)*temp);
 	vs[ll] = 0.5 * ((vp+vm) - (bp-bm)/temp);

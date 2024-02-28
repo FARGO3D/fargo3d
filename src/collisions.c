@@ -8,7 +8,7 @@
 //<\INCLUDES>
 
 void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
-  
+
 //<USER_DEFINED>
 
   real *rho[NFLUIDS];
@@ -21,9 +21,9 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
 
     INPUT(Fluids[ii]->Density);
     rho[ii]  = Fluids[ii]->Density->field_cpu;
-    
+
     //Collisions along X
-    #ifdef X
+    #if XDIM
     if (id1 == 1) {
       if (option == 1) {
 	INPUT(Fluids[ii]->Vx_temp);
@@ -39,9 +39,9 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
       }
     }
     #endif
-    
+
     //Collisions along Y
-    #ifdef Y
+    #if YDIM
     if (id2 == 1) {
       if (option == 1) {
 	INPUT(Fluids[ii]->Vy_temp);
@@ -57,9 +57,9 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
       }
     }
     #endif
-    
+
     //Collisions along Z
-    #ifdef Z
+    #if ZDIM
     if (id3 == 1) {
       if (option == 1) {
 	INPUT(Fluids[ii]->Vz_temp);
@@ -81,7 +81,7 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
 //<EXTERNAL>
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY;
   int size_z = Nz+2*NGHZ;
   real* alpha = Alpha;
@@ -106,7 +106,7 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
   real sum;
   int idm;
   real b[NFLUIDS];
-  real m[NFLUIDS*NFLUIDS];  
+  real m[NFLUIDS*NFLUIDS];
   real omega;
   real rho_p;
   real rho_o;
@@ -117,37 +117,37 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
 // real Alpha(NFLUIDS*NFLUIDS);
 //<\CONSTANT>
 
-  
+
 //<MAIN_LOOP>
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for(k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=XIM; i<size_x; i++) {
 #endif
 //<#>
-	
+
 #include  "collision_kernel.h"
 #include  "gauss.h"
-	
+
 	for (o=0; o<NFLUIDS; o++) {
 	  velocities_output[o][l] = b[o];
 	}
 
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>
@@ -157,31 +157,31 @@ void Collisions(real dt, int option) {
 
   //Input and output velocities are the same Fields
   if (option == 1) {
-#ifdef X
+#if XDIM
     //Collisions along the X direction
     FARGO_SAFE(_collisions(dt,1,0,0,option));
 #endif
-#ifdef Y
+#if YDIM
     //Collisions along the Y direction
     FARGO_SAFE(_collisions(dt,0,1,0,option));
 #endif
-#ifdef Z
+#if ZDIM
     //Collisions along the Z direction
     FARGO_SAFE(_collisions(dt,0,0,1,option));
 #endif
   }
-  
+
   //Input and output velocities are not the same Fields
   if (option == 0) {
-#ifdef X
+#if XDIM
     //Collisions along the X direction
     FARGO_SAFE(_collisions(dt,1,0,0,option));
 #endif
-#ifdef Y
+#if YDIM
     //Collisions along the Y direction
     FARGO_SAFE(_collisions(dt,0,1,0,option));
 #endif
-#ifdef Z
+#if ZDIM
     //Collisions along the Z direction
     FARGO_SAFE(_collisions(dt,0,0,1,option));
 #endif

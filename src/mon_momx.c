@@ -48,40 +48,40 @@ void mon_momx_cpu () {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++ ) {
 #endif
 //<#>
 	ll = l;
-#ifdef CARTESIAN
+#if CARTESIAN
 	mom[ll] = dens[ll]*.5*(vx[ll]+vx[lxp])*Vol(i,j,k);
-#ifdef SHEARINGBOX //SHEARINGBOX is an option for the CARTESIAN geometry
+#if SHEARINGBOX //SHEARINGBOX is an option for the CARTESIAN geometry
 	mom[ll] += 2.0*OMEGAFRAME*ymed(j)*dens[ll]*Vol(i,j,k);
 #endif
 #endif
 
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	mom[ll] = (.5*(vx[ll]+vx[lxp])+ymed(j)*OMEGAFRAME)*ymed(j)*dens[ll]*Vol(i,j,k);
 #endif
 
-#ifdef SPHERICAL
+#if SPHERICAL
 	rcyl = ymed(j) * sin(zmed(k));
 	mom[ll] = (.5*(vx[ll]+vx[lxp]) + rcyl*OMEGAFRAME)*rcyl*dens[ll]*Vol(i,j,k);
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

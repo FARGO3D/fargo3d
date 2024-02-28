@@ -1,17 +1,17 @@
-#include <fargo3d.h>
+#include "fargo3d.h"
 
 void write_vtk_header(FILE *ofile, Field *field, int n) {
   fprintf(ofile, "# vtk DataFile Version 2.0\n");
-#ifdef FLOAT
+#if FLOAT
   fprintf(ofile, "Output %d - Field: %s - Physical time %f\n",
-	  n, field->name, PhysicalTime);  
+	  n, field->name, PhysicalTime);
 #else
   fprintf(ofile, "Output %d - Field: %s - Physical time %lf\n",
-	  n, field->name, PhysicalTime);  
+	  n, field->name, PhysicalTime);
 #endif
   fprintf(ofile, "BINARY\n");
   fprintf(ofile, "DATASET RECTILINEAR_GRID\n");
-#ifndef SPHERICAL
+#if (!SPHERICAL)
   fprintf(ofile, "DIMENSIONS %d %d %d\n", Ny, Nx, Nz);
 #else
   fprintf(ofile, "DIMENSIONS %d %d %d\n", Ny, Nz, Nx);
@@ -26,7 +26,7 @@ void write_vtk_coordinates(FILE *ofile, Field *field) {
   int i;
   real temp;
 
-#ifdef FLOAT
+#if FLOAT
   fprintf(ofile, "X_COORDINATES %d FLOAT\n", Ny);
 #else
   fprintf(ofile, "X_COORDINATES %d DOUBLE\n", Ny);
@@ -38,8 +38,8 @@ void write_vtk_coordinates(FILE *ofile, Field *field) {
   }
   fprintf(ofile, "\n");
 
-#ifndef SPHERICAL
-#ifdef FLOAT
+#if (!SPHERICAL)
+#if FLOAT
   fprintf(ofile, "Y_COORDINATES %d FLOAT\n", Nx);
 #else
   fprintf(ofile, "Y_COORDINATES %d DOUBLE\n", Nx);
@@ -50,7 +50,7 @@ void write_vtk_coordinates(FILE *ofile, Field *field) {
   }
   fprintf(ofile, "\n");
 
-#ifdef FLOAT
+#if FLOAT
   fprintf(ofile, "Z_COORDINATES %d FLOAT\n", Nz);
 #else
   fprintf(ofile, "Z_COORDINATES %d DOUBLE\n", Nz);
@@ -61,7 +61,7 @@ void write_vtk_coordinates(FILE *ofile, Field *field) {
   }
   fprintf(ofile, "\n");
 #else
-#ifdef FLOAT
+#if FLOAT
   fprintf(ofile, "Y_COORDINATES %d FLOAT\n", Nz);
 #else
   fprintf(ofile, "Y_COORDINATES %d DOUBLE\n", Nz);
@@ -72,7 +72,7 @@ void write_vtk_coordinates(FILE *ofile, Field *field) {
   }
   fprintf(ofile, "\n");
 
-#ifdef FLOAT
+#if FLOAT
   fprintf(ofile, "Z_COORDINATES %d FLOAT\n", Nx);
 #else
   fprintf(ofile, "Z_COORDINATES %d DOUBLE\n", Nx);
@@ -89,7 +89,7 @@ void write_vtk_coordinates(FILE *ofile, Field *field) {
 void write_vtk_scalar(FILE *ofile, Field *f) {
   int i, j, k;
   real temp;
-#ifdef FLOAT
+#if FLOAT
   fprintf(ofile, "SCALARS %s FLOAT\n", f->name);
 #else
   fprintf(ofile, "SCALARS %s DOUBLE\n", f->name);
@@ -100,36 +100,36 @@ void write_vtk_scalar(FILE *ofile, Field *f) {
 
   i = j = k = 0;
 
-#ifndef SPHERICAL
-#ifdef Z
+#if (!SPHERICAL)
+#if ZDIM
   for (k=NGHZ; k<Nz+NGHZ; k++) {
 #endif
-#ifdef X
+#if XDIM
     for (i=0; i<Nx; i++) {
 #endif
-#ifdef Y
+#if YDIM
       for (j=NGHY; j<Ny+NGHY; j++) {
 #endif
 #else
-#ifdef X
+#if XDIM
   for (i=0; i<Nx; i++) {
 #endif
-#ifdef Z
+#if ZDIM
     for (k=NGHZ; k<Nz+NGHZ; k++) {
 #endif
-#ifdef Y
+#if YDIM
       for (j=NGHY; j<Ny+NGHY; j++) {
 #endif
 #endif
 	temp = Swap(f->field_cpu[l]);
 	fwrite(&temp, sizeof(real), 1, ofile);
-#ifdef Y
+#if YDIM
       }
 #endif
-#ifdef X
+#if XDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 }
@@ -141,7 +141,7 @@ void WriteVTK(Field *f, int n) {
   INPUT (f);
   sprintf(filename, "%s%s%d_%d.vtk", OUTPUTDIR, f->name, n, CPU_Rank);
   ofile = fopen(filename,"w");
-  
+
   write_vtk_header(ofile, f, n);
   write_vtk_coordinates(ofile, f);
   write_vtk_scalar(ofile, f);

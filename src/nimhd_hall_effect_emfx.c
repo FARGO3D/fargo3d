@@ -49,7 +49,7 @@ void HallEffect_emfx_cpu(){
   real eps = 1.0e-30;
 //<\INTERNAL>
 
-  
+
 //<MAIN_LOOP>
   for (k=1; k<size_z; k++) {
     for (j=1; j<size_y; j++) {
@@ -68,12 +68,12 @@ void HallEffect_emfx_cpu(){
 	j2 = 0.25*(jz[ll] + jz[lzm] + jz[lxp] + jz[lxp-stride]);
 
 	etac = 0.25*(eta[ll]+eta[lym]+eta[lzm]+eta[lym-stride]);
-	
-#ifdef CYLINDRICAL 
+
+#if CYLINDRICAL
 	emf[ll]  = etac*(j1*b2 - j2*b1)/bmod;
 #else
 	emf[ll]  = -etac*(j1*b2 - j2*b1)/bmod;
-#endif	
+#endif
 //<\#>
       }
     }

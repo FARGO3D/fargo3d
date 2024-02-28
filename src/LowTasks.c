@@ -12,20 +12,20 @@ void prs_error(char *string){
 
 int PrimitiveVariables () {
   int var=DENS;
-#ifdef ADIABATIC
+#if ADIABATIC
   var |= ENERGY;
 #endif
-#ifdef X
+#if XDIM
   var |= VX;
 #endif
-#ifdef Y
+#if YDIM
   var |= VY;
 #endif
-#ifdef Z
-  var |= VZ;  
+#if ZDIM
+  var |= VZ;
 #endif
 
-#ifdef MHD
+#if MHD
   if(Fluidtype==GAS){
     var |= BX|BY|BZ;
     var |= EMFX|EMFY|EMFZ;
@@ -38,7 +38,7 @@ int PrimitiveVariables () {
 inline real Swap(real f) {
   union {
     real value;
-#ifndef FLOAT
+#if (!FLOAT)
     char b[8];
 #else
     char b[4];
@@ -46,7 +46,7 @@ inline real Swap(real f) {
   } value1, value2;
 
   value1.value = f;
-#ifdef FLOAT
+#if FLOAT
   value2.b[0] = value1.b[3];
   value2.b[1] = value1.b[2];
   value2.b[2] = value1.b[1];
@@ -66,8 +66,8 @@ inline real Swap(real f) {
 
 void Check_CUDA_Blocks_Consistency () {
   boolean problem = NO;
-#ifdef GPU
-  #ifndef X
+#if GPU
+#if (!XDIM)
   if (BLOCK_X > 1) {
     mastererr ("ERROR  ---  ERROR   ---- ERROR\n");
     mastererr ("ERROR  ---  ERROR   ---- ERROR\n");
@@ -76,8 +76,8 @@ void Check_CUDA_Blocks_Consistency () {
     mastererr ("but the dimension X does not exist in your setup. Fix this !!\n");
     problem = YES;
   }
-  #endif
-  #ifndef Y
+#endif
+#if (!YDIM)
   if (BLOCK_Y > 1) {
     mastererr ("ERROR  ---  ERROR   ---- ERROR\n");
     mastererr ("ERROR  ---  ERROR   ---- ERROR\n");
@@ -86,8 +86,8 @@ void Check_CUDA_Blocks_Consistency () {
     mastererr ("but the dimension Y does not exist in your setup. Fix this !!\n");
     problem = YES;
   }
-  #endif
-  #ifndef Z
+#endif
+#if (!ZDIM)
   if (BLOCK_Z > 1) {
     mastererr ("ERROR  ---  ERROR   ---- ERROR\n");
     mastererr ("ERROR  ---  ERROR   ---- ERROR\n");
@@ -96,7 +96,7 @@ void Check_CUDA_Blocks_Consistency () {
     mastererr ("but the dimension Z does not exist in your setup. Fix this !!\n");
     problem = YES;
   }
-  #endif
+#endif
   if (problem == YES) {
     mastererr ("The code would produce undetermined  results in this case.\n");
     mastererr ("You must edit the file setups/%s/%s.opt\n", xstr(SETUPNAME), xstr(SETUPNAME));
@@ -116,7 +116,7 @@ void MakeDir (char *string) {
   /* If all processes see the same partition, only the first process
      will create the directory. Alternatively, they will create as
      many directories as necessary. For instance, if we have say 4 PEs per node
-     and each node sees its own scratchdir, nbprocesses/4 
+     and each node sees its own scratchdir, nbprocesses/4
      mkdir() commands will be issued */
   if (CPU_Rank) MPI_Recv (&foo, 1, MPI_INT, CPU_Rank-1, 53, MPI_COMM_WORLD, &fargostat);
   dir = opendir (string);
@@ -199,7 +199,7 @@ void InitSpace() {
   real dx,dy, dz;
   real x0;
   int  i,j,k;
-  
+
   FILE *domain;
   char domain_out[512];
   real ymin, zmin, xmin;
@@ -211,9 +211,9 @@ void InitSpace() {
   int temp, relay;
   int init = 0;
 
- 
+
   if (*SPACING=='F') { //Fixed spacing
-#ifdef X
+#if XDIM
     masterprint("Warning: zone spacing will be taken from the files domain_i.dat.\n");
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_x.dat");
     domain = fopen(domain_out, "r");
@@ -221,7 +221,7 @@ void InitSpace() {
       masterprint("Warning: x spacing taken from domain_x.dat file!\n");
       init = 0;
       for (i=0; i<NX+2*NGHX+1; i++) {
-#ifdef FLOAT
+#if FLOAT
 	temp = fscanf(domain, "%f\n", &temp1);
 #else
 	temp = fscanf(domain, "%lf\n", &temp1);
@@ -231,14 +231,14 @@ void InitSpace() {
       already_x = YES;
     }
     fclose(domain);
-#endif    
-#ifdef Y
+#endif
+#if YDIM
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_y.dat");
     domain = fopen(domain_out, "r");
     if(domain != NULL){
       masterprint("Warning: y spacing taken from domain_y.dat file!\n");
       for (j=0; j<NY+2*NGHY+1; j++) {
-#ifdef FLOAT
+#if FLOAT
 	temp = fscanf(domain, "%f\n", &temp1);
 #else
 	temp = fscanf(domain, "%lf\n", &temp1);
@@ -249,16 +249,16 @@ void InitSpace() {
       }
       already_y = YES;
     }
-    
+
     fclose(domain);
 #endif
-#ifdef Z
+#if ZDIM
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_z.dat");
     domain = fopen(domain_out, "r");
     if(domain != NULL) {
       masterprint("Warning: z spacing taken from domain_z.dat file!\n");
       for (k=0; k<NZ+2*NGHZ+1; k++) {
-#ifdef FLOAT
+#if FLOAT
 	temp = fscanf(domain, "%f\n", &temp1);
 #else
 	temp = fscanf(domain, "%lf\n", &temp1);
@@ -275,7 +275,7 @@ void InitSpace() {
 
  else if (*SPACING=='N') {
 
-#ifdef X
+#if XDIM
     Xmin(0) = XMIN;
     for (i = 1; i<Nx+2*NGHX+1; i++) {
       Xmin(i) = bisect(Xmin(i-1), 1.1*XMAX, Nx+2*NGHX+1, ux, 0);
@@ -283,7 +283,7 @@ void InitSpace() {
     // calcualte constants to optimize RamComputeUstar.c
     compute_ux_constants();
 #endif //X
-#ifdef Y
+#if YDIM
   real ymin_global;
   ymin_global = YMIN;
   Ymin(NGHY)  = YMIN;
@@ -296,43 +296,43 @@ void InitSpace() {
   }
   // Fill ghost zones using the fact that du is constant and we bisect in reverse order
   if (J == 0) {
-    for (j = 0; j < NGHY; j++) 
+    for (j = 0; j < NGHY; j++)
       Ymin(NGHY - (j+1)) = bisect(0.5*YMIN, Ymin(NGHY-j), NY+1, uy, 1);
   }
   if (J == Ncpu_x - 1) {
-    for (j = 0; j < NGHY; j++) 
+    for (j = 0; j < NGHY; j++)
       Ymin(Ny+NGHY+j+1) = bisect(Ymin(Ny+NGHY+j), 1.5*YMAX, NY+1, uy, 0);
   }
 
 #endif //Y
 
-#ifdef Z
+#if ZDIM
   dz = (ZMAX-ZMIN)/NZ;
   for (k = 0; k<Nz+2*NGHZ+1; k++) {
       Zmin(k) = ZMIN + dz*(k+Z0-NGHZ);
   }
 #endif //Z
  }
- 
+
 
   else {
 
-#ifdef X
+#if XDIM
   dx  = (XMAX-XMIN)/NX;
 #else
   dx  = 0;
 #endif
-#ifdef Y
+#if YDIM
     dy = (YMAX-YMIN)/NY;
 #else
     dy = 0;
 #endif
-#ifdef Z
+#if ZDIM
     dz = (ZMAX-ZMIN)/NZ;
 #else
     dz = 0;
 #endif
-    
+
   if (((toupper(*SPACING)) == 'L') && ((toupper(*(SPACING+1))) == 'O')) { //Logarithmic
       masterprint("Warning: The Y spacing is logarithmic.\n");
       dy = (log(YMAX)-log(YMIN))/NY;
@@ -343,7 +343,7 @@ void InitSpace() {
     else {  //Linear
       masterprint("Warning: The Y spacing is linear (default).\n");
       for (j = 0; j<Ny+2*NGHY+1; j++) {
-#ifdef Y
+#if YDIM
 	Ymin(j) = YMIN + dy*(j+Y0-NGHY);
 #else
 	Ymin(j) = 0.0;
@@ -351,18 +351,18 @@ void InitSpace() {
       }
     }
       for (k = 0; k<Nz+2*NGHZ+1; k++) {
-#ifdef Z
+#if ZDIM
 	Zmin(k) = ZMIN + dz*(k+Z0-NGHZ);
 #else
 	Zmin(k) = 0.0;
 #endif
       }
       for (i = 0; i<Nx+2*NGHX+1; i++) {
-#ifdef X
+#if XDIM
 	Xmin(i) = XMIN + dx*(i-NGHX);
 #else
 	Xmin(i) = 0.0;
-#endif	
+#endif
       }
   }
 
@@ -380,10 +380,10 @@ void InitSpace() {
     InvDiffXmed(i) = 1./(Xmed(i)-Xmed(i-1));
   }
   InvDiffXmed(0) = 1./( Xmed(0)- (Xmed(Nx-1)-(XMAX-XMIN) ));
-  
+
 
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
   if (!already_x) {
     if(CPU_Master) {
       sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_x.dat");
@@ -394,17 +394,17 @@ void InitSpace() {
       }
     }
   }
-  
+
   if (!already_y) {
     if (CPU_Rank > 0) { // Force sequential write
       MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
-    
+
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_y.dat");
     if(CPU_Master)  {
       domain = fopen(domain_out, "w");
       jmin = 0;
-      jmax = Ny+NGHY+1; 
+      jmax = Ny+NGHY+1;
     }
     else {
       if (CPU_Rank < Ncpu_x) {
@@ -427,7 +427,7 @@ void InitSpace() {
   }
 
   MPI_Barrier (MPI_COMM_WORLD);
-  
+
   if (!already_z) {
     if (CPU_Rank > 0) { // Force sequential read
       MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 43, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -437,7 +437,7 @@ void InitSpace() {
       domain = fopen(domain_out, "w");
       jmin = 0;
       jmax = Nz+NGHZ+1;
-    } 
+    }
     else {
       if (J == 0) {
 	domain = fopen(domain_out, "a");
@@ -456,7 +456,7 @@ void InitSpace() {
     if (CPU_Rank < CPU_Number-1) {  // Force sequential read
       MPI_Send (&relay, 1, MPI_INT, CPU_Rank+1, 43, MPI_COMM_WORLD);
     }
-    
+
     MPI_Barrier (MPI_COMM_WORLD);
   }
 }
@@ -467,7 +467,7 @@ void InitSurfaces() {
   int i,j,k;
 
 for (i = 0; i<Nx+2*NGHX; i++){
-#ifdef X
+#if XDIM
   Sxi(i) = Xmin(i+1)-Xmin(i);
 #else
   Sxi(i) = 1.0;
@@ -479,37 +479,37 @@ for(i=1;i<Nx+2*NGHX; i++) {
     if(Sxi(i)<Mindx) Mindx = Sxi(i);
 }
 
-#ifdef CARTESIAN
+#if CARTESIAN
     for (j = 0; j<Ny+2*NGHY; j++) {
-#ifdef Y
+#if YDIM
       Sxj(j) = Ymin(j+1)-Ymin(j);
 #else
       Sxj(j) = 1.0;
 #endif
       Syj(j) = 1.0;
-#ifdef Y
+#if YDIM
       Szj(j) = Ymin(j+1)-Ymin(j);
 #else
       Szj(j) = 1.0;
 #endif
       InvVj(j)  = 1./(Sxj(j));
-    }    
+    }
     for (k = 0; k<Nz+2*NGHZ; k++) {
-#ifdef Z
+#if ZDIM
       Sxk(k) = Zmin(k+1)-Zmin(k);
 #else
       Sxk(k) = 1.0;
 #endif
-#ifdef Z
+#if ZDIM
       Syk(k) = Zmin(k+1)-Zmin(k);
-#else 
+#else
       Syk(k) = 1.0;
 #endif
       Szk(k) = 1.0;
     }
 #endif
-#ifdef CYLINDRICAL
-#if !defined(Y)
+#if CYLINDRICAL
+#if (!YDIM)
     masterprint("Error! In simulations w/ cylindrical geometry, Y must be activated!\n");
     exit(0);
 #endif
@@ -521,7 +521,7 @@ for(i=1;i<Nx+2*NGHX; i++) {
       InvVj(j) = 1.0/Szj(j);
     }
     for (k = 0; k<Nz+2*NGHZ; k++) {
-#ifdef Z
+#if ZDIM
       Sxk(k) = Zmin(k+1)-Zmin(k);
 #else
       Sxk(k) = 1.0;
@@ -530,8 +530,8 @@ for(i=1;i<Nx+2*NGHX; i++) {
       Szk(k) = 1.0;
     }
 #endif
-#ifdef SPHERICAL
-#if !defined(Y)
+#if SPHERICAL
+#if (!YDIM)
     masterprint("Error! In simulations w/ spherical geometry, Y must be activated!\n");
     exit(0);
 #endif
@@ -540,23 +540,23 @@ for(i=1;i<Nx+2*NGHX; i++) {
 		    -Ymin(j)*Ymin(j));
       Syj(j) = Ymin(j)*Ymin(j);
       Szj(j) = 0.5*(Ymin(j+1)*Ymin(j+1)
-		    -Ymin(j)*Ymin(j)); 
-      InvVj(j) = 3./((Ymin(j+1)*Ymin(j+1)*Ymin(j+1) - 
+		    -Ymin(j)*Ymin(j));
+      InvVj(j) = 3./((Ymin(j+1)*Ymin(j+1)*Ymin(j+1) -
 		      Ymin(j)*Ymin(j)*Ymin(j)));
     }
     for (k = 0; k<Nz+2*NGHZ; k++) {
-#ifdef Z
+#if ZDIM
       Sxk(k) = Zmin(k+1)-Zmin(k);
       Syk(k) = cos(Zmin(k))-cos(Zmin(k+1));
       Szk(k) = sin(Zmin(k));
 #else
       Sxk(k) = 1.0;
       Syk(k) = 1.0;
-      Szk(k) = 1.0; 
+      Szk(k) = 1.0;
 #endif
     }
 #endif
-#ifdef DEBUG
+#if DEBUG
     masterprint("SURFACES OK\n");
 #endif
 }
@@ -567,22 +567,22 @@ void SelectFluid(int n) {
   Density = Fluids[n]->Density;
   Energy = Fluids[n]->Energy;
   VxMed = Fluids[n]->VxMed;
-#ifdef X
+#if XDIM
   Vx = Fluids[n]->Vx;
   Vx_temp = Fluids[n]->Vx_temp;
   Vx_half = Fluids[n]->Vx_half;
 #endif
-#ifdef Y
+#if YDIM
   Vy = Fluids[n]->Vy;
   Vy_temp = Fluids[n]->Vy_temp;
   Vy_half = Fluids[n]->Vy_half;
 #endif
-#ifdef Z
+#if ZDIM
   Vz = Fluids[n]->Vz;
   Vz_temp = Fluids[n]->Vz_temp;
   Vz_half = Fluids[n]->Vz_half;
 #endif
-#ifdef STOCKHOLM
+#if STOCKHOLM
   Density0 = Fluids[n]->Density0;
   Energy0 = Fluids[n]->Energy0;
   Vx0 = Fluids[n]->Vx0;
@@ -595,11 +595,11 @@ void CreateFields() {
 
   Reduction2D = CreateField2D ("Reduction2D", YZ);
 
-#if (defined(X) || defined(MHD))
-  
+#if (XDIM || MHD)
+
   Mpx              = CreateField   ("Moment_Plus_X" , 0, 1,0,0);
   Mmx              = CreateField   ("Moment_Minus_X", 0, 1,0,0);
-  
+
   Vxhy             = CreateField2D ("Vxhy"    , YZ);
   Vxhyr            = CreateField2D ("Vxhyr"   , YZ);
   Vxhz             = CreateField2D ("Vxhz"    , YZ);
@@ -610,12 +610,12 @@ void CreateFields() {
   Nxhz   = CreateFieldInt2D ("Nxhz");
 #endif
 
-#if (defined(Y) || defined(MHD))
+#if (YDIM || MHD)
   Mpy     = CreateField("Moment_Plus_Y" , 0,0,1,0);
   Mmy     = CreateField("Moment_Minus_Y", 0,0,1,0);
 #endif
-  
-#if (defined(Z) || defined(MHD))
+
+#if (ZDIM || MHD)
   Mpz     = CreateField("Moment_Plus_Z" , 0,0,0,1);
   Mmz     = CreateField("Moment_Minus_Z", 0,0,0,1);
 #endif
@@ -626,35 +626,35 @@ void CreateFields() {
 						// be aliased wherever
 						// reductions are
 						// needed
-  
+
   DensStar      = CreateField("DensStar"     , 0,0,0,0);
   Qs            = CreateField("Qs"           , 0,0,0,0);
   Pressure      = CreateField("Pressure"     , 0,0,0,0);
   Total_Density = CreateField("Total_Density", 0,0,0,0);
-  
+
   QL      = CREATEFIELDALIAS("QLeft", Pressure, 0);
   QR      = CreateField("QRight", 0,0,0,0);
 
-#ifdef RAM  
+#if RAM
   PhiStarmin = CreateField("PhiStarmin", 0,0,0,0);
   UStarmin   = CreateField("UStarmin", 0,0,0,0);
 #endif
 
 
-#ifdef PPA_STEEPENER
+#if PPA_STEEPENER
   LapPPA  = CreateField("LapPPA", 0,0,0,0);
 #endif
 
-#ifdef DUSTDIFFUSION
+#if DUSTDIFFUSION
   Sdiffyczc = CREATEFIELDALIAS("Sdiffyczc",Mpx,0);
   Sdiffyfzc = CREATEFIELDALIAS("Sdiffyfzc",Mmx,0);
-#ifdef Z
+#if ZDIM
   Sdiffyczf = CREATEFIELDALIAS("Sdiffyczf",Mmy,0);
   Sdiffyfzf = CREATEFIELDALIAS("Sdiffyfzf",Mpy,0);
 #endif
 #endif
-  
-#ifdef MHD
+
+#if MHD
   Bx      = CreateField("bx", BX,1,0,0);
   By      = CreateField("by", BY,0,1,0);
   Bz      = CreateField("bz", BZ,0,0,1);
@@ -672,16 +672,16 @@ void CreateFields() {
   Emfy    = CREATEFIELDALIAS("Emfy", Slope , EMFY);
   Emfz    = CREATEFIELDALIAS("Emfz", DivRho, EMFZ); // Legal ?? we cannot alise DivRho it seems...
 
-#if (defined(HALLEFFECT) || defined(AMBIPOLARDIFFUSION))
+#if (HALLEFFECT || AMBIPOLARDIFFUSION)
   Jx      = CreateField("Jx"     ,0,0,0,0);
   Jy      = CreateField("Jy"     ,0,0,0,0);
   Jz      = CreateField("Jz"     ,0,0,0,0);
 #endif
 
-#ifdef OHMICDIFFUSION
+#if OHMICDIFFUSION
   EtaOhm = CreateField("EtaOhm",0,0,0,0);
 #endif
-#ifdef HALLEFFECT
+#if HALLEFFECT
   EmfxH   = CreateField("EmfxH"  ,0,0,0,0);
   EmfyH   = CreateField("EmfyH"  ,0,0,0,0);
   EmfzH   = CreateField("EmfzH"  ,0,0,0,0);
@@ -690,16 +690,16 @@ void CreateFields() {
   BzH     = CreateField("BzH"    ,0,0,0,0);
   EtaHall = CreateField("EtaHall",0,0,0,0);
 #endif
-#ifdef AMBIPOLARDIFFUSION
+#if AMBIPOLARDIFFUSION
   EtaAD = CreateField("EtaAD",0,0,0,0);
 #endif
-  
+
   //Claim ownership of storage area
   *(Emfx->owner) = Emfx;
   *(Emfy->owner) = Emfy;
   *(Emfz->owner) = Emfz;
-  
-  Divergence = CreateField("divb", 0, 0,0,0);  
+
+  Divergence = CreateField("divb", 0, 0,0,0);
 
 #endif
 
@@ -711,32 +711,32 @@ real ComputeMass() {
   real totalmass;
 
   real *rho;
-  
+
   INPUT (Density);
 
   rho = Density->field_cpu;
 
   i = j = k = 0;
-#ifdef Z
+#if ZDIM
   for (k=NGHZ;k<Nz+NGHZ;k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=NGHY;j<Ny+NGHY;j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=NGHX;i<Nx+NGHX;i++) {
 #endif
 	mass += rho[l]*Vol(i,j,k);
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
-#ifdef FLOAT
+#if FLOAT
   MPI_Allreduce(&mass, &totalmass, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
   masterprint("TotalMass = %3.10f \n", totalmass );
 #else
@@ -817,12 +817,12 @@ int RestartSimulation(int n) {
   int begin;
   masterprint("Restarting simulation...\n");
 
-#ifndef MPIIO
+#if (!MPIIO)
   if (VTK)
     __Restart = RestartVTK;
   else
     __Restart = RestartDat;
-  
+
   if (Dat2vtk) {
     Merge = YES;
     __Restart = RestartDat;
@@ -832,47 +832,47 @@ int RestartSimulation(int n) {
     __Restart = RestartVTK;
   }
   __Restart(Density, n);
-#ifdef X
+#if XDIM
   __Restart(Vx, n);
 #endif
-#ifdef Y
+#if YDIM
   __Restart(Vy, n);
 #endif
-#ifdef Z
+#if ZDIM
   __Restart(Vz, n);
 #endif
       if(Fluidtype != DUST) __Restart(Energy, n);
-#ifdef MHD
+#if MHD
   __Restart(Bx, n);
   __Restart(By, n);
   __Restart(Bz, n);
 #endif
 #endif
-  
-#ifdef MPIIO
+
+#if MPIIO
   MPI_Offset offset;
   offset = 0; //We start at the begining of the file
-  
+
   offset = ParallelIO(Density, n, MPI_MODE_RDONLY, offset,FALSE);
   if(Fluidtype != DUST)  offset = ParallelIO(Energy, n, MPI_MODE_RDONLY, offset,FALSE);
-#ifdef X
+#if XDIM
   offset = ParallelIO(Vx, n, MPI_MODE_RDONLY, offset,FALSE);
 #endif
-#ifdef Y
+#if YDIM
   offset = ParallelIO(Vy, n, MPI_MODE_RDONLY, offset,FALSE);
 #endif
-#ifdef Z
+#if ZDIM
   offset = ParallelIO(Vz, n, MPI_MODE_RDONLY, offset,FALSE);
 #endif
-#ifdef MHD //MHD is 3D.
+#if MHD //MHD is 3D.
   if(Fluidtype == GAS){
     offset = ParallelIO(Bx, n, MPI_MODE_RDONLY, offset,FALSE);
     offset = ParallelIO(By, n, MPI_MODE_RDONLY, offset,FALSE);
-    offset = ParallelIO(Bz, n, MPI_MODE_RDONLY, offset,FALSE);    
+    offset = ParallelIO(Bz, n, MPI_MODE_RDONLY, offset,FALSE);
   }
 #endif
 #endif
-  
+
   begin = n*NINTERM;
   if (PostRestart)
     PostRestartHook ();
@@ -902,9 +902,9 @@ void RestartVTK(Field *f, int n) {
       masterprint("Error reading %s\n", filename);
       exit(1);
     }
-    
+
     masterprint("Reading %s\n", filename);
-    
+
     while(1) {
       temp = fscanf(fi, "%s\n", line);
       if (strcmp(line,"LOOKUP_TABLE") == 0){
@@ -912,10 +912,10 @@ void RestartVTK(Field *f, int n) {
 	break;
       }
     }
-    
+
     i = j = k = 0;
 
-#ifndef SPHERICAL
+#if (!SPHERICAL)
     for (k=NGHZ; k<Nz+NGHZ; k++) {
       for (i=NGHX; i<Nx+NGHX; i++) {
 	for (j=NGHY; j<Ny+NGHY; j++) {
@@ -944,9 +944,9 @@ void RestartVTK(Field *f, int n) {
       masterprint("Error reading %s\n", filename);
       exit(1);
     }
-    
+
     masterprint("Reading %s\n", filename);
-    
+
     while(1) {
       temp = fscanf(fi, "%s\n", line);
       if (strcmp(line,"LOOKUP_TABLE") == 0){
@@ -955,12 +955,12 @@ void RestartVTK(Field *f, int n) {
 	break;
       }
     }
-    
+
     i = j = k = 0;
 
     origin = Y0+Z0*NX*NY;
 
-#ifndef SPHERICAL
+#if (!SPHERICAL)
     for (k=NGHZ; k<Nz+NGHZ; k++) {
       for (i=NGHX;i<Nx+NGHX;i++) {
 	fseek(fi, curpos+(origin+(i-NGHX)*NY+(k-NGHZ)*NX*NY)*sizeof(real), SEEK_SET);
@@ -1008,7 +1008,7 @@ void RestartDat(Field *field, int n) {
       exit(1);
     }
     masterprint("Reading %s\n", filename);
-    
+
     for (k=NGHZ; k<Nz+NGHZ; k++) {
       for (j=NGHY; j<Ny+NGHY; j++) {
 	temp = fread(f+j*(Nx+2*NGHX)+k*Stride+NGHX, sizeof(real), Nx, fi);
@@ -1021,7 +1021,7 @@ void RestartDat(Field *field, int n) {
       MPI_Finalize();
     }
   }
-  
+
   MPI_Barrier(MPI_COMM_WORLD);
   if(Restart_Full == YES) {
     sprintf(filename, "%s%s%d.dat", OUTPUTDIR, name, n);
@@ -1031,7 +1031,7 @@ void RestartDat(Field *field, int n) {
       exit(1);
     }
     masterprint("Reading %s\n", filename);
-    
+
     origin = (z0cell)*NX*NY + (y0cell)*NX; //z0cell and y0cell are global variables.
     for (k=NGHZ; k<Nz+NGHZ; k++) {
       fseek(fi, (origin+(k-NGHZ)*NX*NY)*sizeof(real), SEEK_SET); // critical part

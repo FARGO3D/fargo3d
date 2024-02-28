@@ -11,11 +11,11 @@ void visctensor_sph_cpu(){
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef ALPHAVISCOSITY
+#if ALPHAVISCOSITY
   INPUT(Energy);
 #endif
-#ifdef X
-#ifdef COLLISIONPREDICTOR
+#if XDIM
+#if COLLISIONPREDICTOR
   INPUT(Vx_half);
 #else
   INPUT(Vx);
@@ -23,8 +23,8 @@ void visctensor_sph_cpu(){
   OUTPUT(Mmx);
   OUTPUT(Mpx);
 #endif
-#ifdef Y
-#ifdef COLLISIONPREDICTOR
+#if YDIM
+#if COLLISIONPREDICTOR
   INPUT(Vy_half);
 #else
   INPUT(Vy);
@@ -32,8 +32,8 @@ void visctensor_sph_cpu(){
   OUTPUT(Mmy);
   OUTPUT(Mpy);
 #endif
-#ifdef Z
-#ifdef COLLISIONPREDICTOR
+#if ZDIM
+#if COLLISIONPREDICTOR
   INPUT(Vz_half);
 #else
   INPUT(Vz);
@@ -45,51 +45,51 @@ void visctensor_sph_cpu(){
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef ALPHAVISCOSITY
+#if ALPHAVISCOSITY
   real* energy = Energy->field_cpu;
 #endif
-#ifdef X
-#ifdef COLLISIONPREDICTOR
+#if XDIM
+#if COLLISIONPREDICTOR
   real* vx = Vx_half->field_cpu;
 #else
   real* vx = Vx->field_cpu;
 #endif
 #endif
-#ifdef Y
-#ifdef COLLISIONPREDICTOR
+#if YDIM
+#if COLLISIONPREDICTOR
   real* vy = Vy_half->field_cpu;
 #else
   real* vy = Vy->field_cpu;
 #endif
 #endif
-#ifdef Z
-#ifdef COLLISIONPREDICTOR
+#if ZDIM
+#if COLLISIONPREDICTOR
   real* vz = Vz_half->field_cpu;
 #else
   real* vz = Vz->field_cpu;
 #endif
 #endif
-#ifdef X
+#if XDIM
   real* tauxx = Mmx->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* tauyy = Mmy->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* tauzz = Mmz->field_cpu;
 #endif
-#if defined(X) && defined(Z)
+#if (XDIM && ZDIM)
   real* tauxz = Mpx->field_cpu;
 #endif
-#if defined(Y) && defined(X)
+#if (YDIM && XDIM)
   real* tauyx = Mpy->field_cpu;
 #endif
-#if defined(Z) && defined(Y)
+#if (ZDIM && YDIM)
   real* tauzy = Mpz->field_cpu;
 #endif
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
 //<\EXTERNAL>
@@ -127,24 +127,24 @@ void visctensor_sph_cpu(){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for(k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=XIM; i<size_x; i++) {
 #endif
 //<#>
-#ifdef ALPHAVISCOSITY
-#ifdef ISOTHERMAL
+#if ALPHAVISCOSITY
+#if ISOTHERMAL
 	viscosity     = ALPHA*energy[l]*energy[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
 	viscositym    = ALPHA*0.0625*(energy[l]+energy[lxm]+energy[lym]+energy[lxm-pitch])*(energy[l]+energy[lxm]+energy[lym]+energy[lxm-pitch])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 	viscosityzm   = ALPHA*0.0625*(energy[l]+energy[lzm]+energy[lxm]+energy[lxm-stride])*(energy[l]+energy[lzm]+energy[lxm]+energy[lxm-stride])*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
 	viscosityzmym = ALPHA*0.0625*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*(energy[l]+energy[lzm]+energy[lym]+energy[lym-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 #else
-	viscosity     = ALPHA*GAMMA*(GAMMA-1.0)*energy[l]/rho[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));	
+	viscosity     = ALPHA*GAMMA*(GAMMA-1.0)*energy[l]/rho[l]*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
 	viscositym    = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lxm]+energy[lym]+energy[lxm-pitch])/(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
 	viscosityzm   = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lzm]+energy[lxm]+energy[lxm-stride])/(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
 	viscosityzmym = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lym]+energy[lzm]+energy[lym-stride])/(rho[l]+rho[lym]+rho[lzm]+rho[lym-stride])*sqrt(ymin(j)*ymin(j)*ymin(j)/(G*MSTAR));
@@ -152,59 +152,59 @@ void visctensor_sph_cpu(){
 #else
 	viscosityzmym =  viscosityzm = viscositym = viscosity = NU;
 #endif
-	
+
 //Evaluate centered divergence.
 	div_v = 0.0;
-#ifdef X
+#if XDIM
 	div_v += (vx[lxp]-vx[l])*SurfX(j,k);
 #endif
-#ifdef Y
+#if YDIM
 	div_v += (vy[lyp]*SurfY(i,j+1,k)-vy[l]*SurfY(i,j,k));
 #endif
-#ifdef Z
+#if ZDIM
 	div_v += (vz[lzp]*SurfZ(i,j,k+1)-vz[l]*SurfZ(i,j,k));
 #endif
 	div_v *= 2.0/3.0*InvVol(i,j,k);
 
 	// Computing taus. Diagonal terms are zone centered
-#if defined(X)
+#if XDIM
 	tauxx[l] = viscosity*rho[l]*(2.0*(vx[lxp]-vx[l])/zone_size_x(i,j,k) - div_v);
 #endif
-#if defined(Y) && defined(X)
+#if (YDIM && XDIM)
 	tauxx[l] += viscosity*rho[l]*(vy[lyp]+vy[l])/ymed(j);
 #endif
-#if defined(Z) && defined(X)
+#if (ZDIM && XDIM)
 	tauxx[l] += viscosity*rho[l]*(vz[lzp]+vz[l])*cos(zmed(k))/(sin(zmed(k))*ymed(j));
 #endif
-#ifdef Y
+#if YDIM
 	tauyy[l] = viscosity*rho[l]*(2.0*(vy[lyp]-vy[l])/(ymin(j+1)-ymin(j)) - div_v);
 #endif
-#ifdef Z
+#if ZDIM
 	tauzz[l] = viscosity*rho[l]*(2.0*(vz[lzp]-vz[l])/(ymed(j)*(zmin(k+1)-zmin(k))) - div_v);
 #endif
-#if defined(Y) && defined(Z)
+#if (YDIM && ZDIM)
 	tauzz[l] += viscosity*rho[l]*(vy[l]+vy[lyp])/ymed(j);
 #endif
 
-#if defined(X) && defined(Z)
+#if (XDIM && ZDIM)
 	tauxz[l] = viscosityzm*.25*(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*((vx[l]/sin(zmed(k))-vx[lzm]/sin(zmed(k-1)))*sin(zmin(k))/(ymed(j)*(zmed(k)-zmed(k-1))) + ((vz[l]-vz[lxm])*InvDiffXmed(i)/(sin(zmin(k))*ymed(j)))); //centered on lower, left "radial" edge in y
 #endif
-	
-#if defined(Y) && defined(X)
+
+#if (YDIM && XDIM)
 	tauyx[l] = viscositym*.25*(rho[l]+rho[lxm]+rho[lym]+rho[lxm-pitch])*((vy[l]-vy[lxm])*InvDiffXmed(i)/(ymin(j)*sin(zmed(k))) + (vx[l]-vx[lym])/(ymed(j)-ymed(j-1))-.5*(vx[l]+vx[lym])/ymin(j)); //centered on left, inner vertical edge in z
 #endif
-	
-#if defined(Z) && defined(Y)
+
+#if (ZDIM && YDIM)
 	tauzy[l] = viscosityzmym*.25*(rho[l]+rho[lym]+rho[lzm]+rho[lym-stride])*((vz[l]-vz[lym])/(ymed(j)-ymed(j-1)) -.5*(vz[l]+vz[lym])/ymin(j) + (vy[l]-vy[lzm])/(ymin(j)*(zmed(k)-zmed(k-1)))); //centered on lower, inner edge in x ("azimuthal")
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

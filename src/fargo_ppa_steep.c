@@ -58,10 +58,10 @@ void VanLeerX_PPA_steep_cpu(Field *Q){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
       for (i=XIM; i<size_x; i++)	{// Now we compute q_j+1/2
@@ -86,10 +86,10 @@ void VanLeerX_PPA_steep_cpu(Field *Q){
 	  
 //<\#>
       }
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

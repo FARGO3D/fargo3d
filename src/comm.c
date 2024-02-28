@@ -75,20 +75,20 @@ void MakeCommunicator (int src, int dest, int direction,			\
 void ResetBuffers() {
   int j, k, rank, rankdest;
   int extraz = 0, extray = 0;
-#ifdef Z
+#if ZDIM
   extraz = 1;
 #endif
-#ifdef Y
+#if YDIM
   extray = 1;
 #endif
   for (j = 0; j < Ncpu_x; j++) { /* We scan all CPUs */
     for (k = 0; k < Ncpu_y; k++) {
       rank = j+k*Ncpu_x;
-      
+
       /* ****************************************************** */
       /* ******************  EDGES  *************************** */
       /* ****************************************************** */
-      
+
       /* Do we have a neighbor on our right side ? */
       if ((j < Ncpu_x-1) || PERIODICY) {
 	MakeCommunicator (rank,						\
@@ -148,7 +148,7 @@ void ResetBuffers() {
 			    0, 0, NGHY, NGHZ,		\
 			    j%2);
 	}
-      
+
       /* Do we have a left-top neighbor ? */
       if ((j + PERIODICY > 0) && (k < Ncpu_y-1 + PERIODICZ))
 	{
@@ -162,7 +162,7 @@ void ResetBuffers() {
 			    Ny+NGHY, 0, Ny+2*NGHY, NGHZ,\
 			    j%2);
 	}
-      
+
       /* Do we have a left-bottom neighbor ? */
       if ((j + PERIODICY > 0) && (k + PERIODICZ > 0))
 	{
@@ -176,7 +176,7 @@ void ResetBuffers() {
 			    Ny+NGHY, Nz+NGHZ, Ny+2*NGHY, Nz+2*NGHZ,	\
 			    j%2);
 	}
-      
+
       /* Do we have a right-bottom neighbor ? */
       if ((j < Ncpu_x-1 + PERIODICY) && (k + PERIODICZ > 0))
 	{
@@ -192,7 +192,7 @@ void ResetBuffers() {
 	}
     }
   }
-}      
+}
 
 void comm_cpu (int options) {
   static boolean comm_init = NO;
@@ -214,29 +214,29 @@ void comm_cpu (int options) {
     f[nvar++] = Density;
   if (options & ENERGY)
     f[nvar++] = Energy;
-#ifdef X
+#if XDIM
   if (options & VX)
     f[nvar++] = Vx;
   if (options & VXTEMP)
     f[nvar++] = Vx_temp;
 #endif
-#ifdef Y
+#if YDIM
   if (options & VY)
     f[nvar++] = Vy;
   if (options & VYTEMP)
     f[nvar++] = Vy_temp;
 #endif
-#ifdef Z
+#if ZDIM
   if (options & VZ)
     f[nvar++] = Vz;
   if (options & VZTEMP)
     f[nvar++] = Vz_temp;
 #endif
-#ifdef MHD
+#if MHD
   if (options & BX)
     f[nvar++] = Bx;
   if (options & BY) {
-#ifdef SHEARINGBC
+#if SHEARINGBC
     if (J == Ncpu_x-1) {
       special[nvar] = 1;
     }
@@ -274,7 +274,7 @@ void comm_cpu (int options) {
       comm = comm->next;
     }
   }
-  
+
   for (parity = 0; parity < 2; parity++) {
     for (direction = 0; direction < 8; direction++) {
       comm = ListStart;
@@ -291,7 +291,7 @@ void comm_cpu (int options) {
 	      }
 	    }
 	    if (comm->src != comm->dst) {
-#ifdef FLOAT
+#if FLOAT
 	      MPI_Isend (comm->buffer, comm->size*nvar*(Nx+2*NGHX), MPI_FLOAT, comm->dst, comm->direction, \
 			 MPI_COMM_WORLD, reqs+nbreqs++);
 #else
@@ -302,7 +302,7 @@ void comm_cpu (int options) {
 	  }
 	  if (comm->dst == CPU_Rank) {
 	    if (comm->dst != comm->src) {
-#ifdef FLOAT
+#if FLOAT
 	      MPI_Irecv (comm->buffer, comm->size*nvar*(Nx+2*NGHX), MPI_FLOAT, comm->src, comm->direction, \
 			 MPI_COMM_WORLD, reqr+nbreqr);
 #else
@@ -357,7 +357,7 @@ void comm_cpu (int options) {
   for (n = 0; n < nbreqs; n++)
     MPI_Wait (reqs+n, MPI_STATUS_IGNORE);
   MPI_Barrier (MPI_COMM_WORLD);
-#ifdef SHEARINGBC
+#if SHEARINGBC
   FARGO_SAFE(ShearBC (options));
-#endif  
+#endif
 }

@@ -11,8 +11,8 @@ void SubStep2_b_cpu (real dt) {
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef X
-#ifdef COLLISIONPREDICTOR
+#if XDIM
+#if COLLISIONPREDICTOR
   INPUT(Vx_half);
 #else
   INPUT(Vx);
@@ -21,8 +21,8 @@ void SubStep2_b_cpu (real dt) {
   INPUT(Mpx);
   OUTPUT(Vx_temp);
 #endif
-#ifdef Y
-#ifdef COLLISIONPREDICTOR
+#if YDIM
+#if COLLISIONPREDICTOR
   INPUT(Vy_half);
 #else
   INPUT(Vy);
@@ -31,8 +31,8 @@ void SubStep2_b_cpu (real dt) {
   INPUT(Mpy);
   OUTPUT(Vy_temp);
 #endif
-#ifdef Z
-#ifdef COLLISIONPREDICTOR
+#if ZDIM
+#if COLLISIONPREDICTOR
   INPUT(Vz_half);
 #else
   INPUT(Vz);
@@ -41,7 +41,7 @@ void SubStep2_b_cpu (real dt) {
   INPUT(Mpz);
   OUTPUT(Vz_temp);
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
   INPUT(Energy);
   OUTPUT(Energy);
 #endif
@@ -49,8 +49,8 @@ void SubStep2_b_cpu (real dt) {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef X
-#ifdef COLLISIONPREDICTOR
+#if XDIM
+#if COLLISIONPREDICTOR
   real* vx = Vx_half->field_cpu;
 #else
   real* vx = Vx->field_cpu;
@@ -58,8 +58,8 @@ void SubStep2_b_cpu (real dt) {
   real* vx_temp = Vx_temp->field_cpu;
   real* pres_x = Mpx->field_cpu;
 #endif
-#ifdef Y
-#ifdef COLLISIONPREDICTOR
+#if YDIM
+#if COLLISIONPREDICTOR
   real* vy = Vy_half->field_cpu;
 #else
   real* vy = Vy->field_cpu;
@@ -67,8 +67,8 @@ void SubStep2_b_cpu (real dt) {
   real* vy_temp = Vy_temp->field_cpu;
   real* pres_y = Mpy->field_cpu;
 #endif
-#ifdef Z
-#ifdef COLLISIONPREDICTOR
+#if ZDIM
+#if COLLISIONPREDICTOR
   real* vz = Vz_half->field_cpu;
 #else
   real* vz = Vz->field_cpu;
@@ -76,36 +76,36 @@ void SubStep2_b_cpu (real dt) {
   real* vz_temp = Vz_temp->field_cpu;
   real* pres_z = Mpz->field_cpu;
 #endif
-#ifdef ADIABATIC
+#if ADIABATIC
   real* e = Energy->field_cpu;
-#endif  
+#endif
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
   int fluidtype = Fluidtype;
 //<\EXTERNAL>
-  
+
 //<INTERNAL>
   int i;
   int j;
   int k;
   int ll;
-#ifdef X
+#if XDIM
   int llxm;
   int llxp;
   real dxmed;
   real dxrho1;
   real dxrho2;
 #endif
-#ifdef Y
+#if YDIM
   int llym;
   int llyp;
   real dyrho1;
   real dyrho2;
 #endif
-#ifdef Z
+#if ZDIM
   int llzm;
   int llzp;
   real dzmed;
@@ -127,30 +127,30 @@ void SubStep2_b_cpu (real dt) {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for(k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=XIM; i<size_x; i++) {
-#endif	
+#endif
 //<#>
 	ll = l;
-#ifdef X
+#if XDIM
 	llxm = lxm;
 	llxp = lxp;
 #endif
-#ifdef Y
+#if YDIM
 	llym = lym;
 	llyp = lyp;
 #endif
-#ifdef Z
+#if ZDIM
 	llzp = lzp;
 	llzm = lzm;
 #endif
-#ifdef X
+#if XDIM
 
 	dxrho1 = Sxi(i);
 	dxrho2 = Sxi(ixm);
@@ -158,13 +158,13 @@ void SubStep2_b_cpu (real dt) {
 
 	vx_temp[ll] += - 2.0*dt*dxmed*(pres_x[ll]-pres_x[llxm])/(rho[ll]*dxrho1+rho[llxm]*dxrho2)*Inv_zone_size_xmed(i,j,k);
 
-#ifdef ADIABATIC
+#if ADIABATIC
 	e[ll] += -dt*(pres_x[ll]*(vx[llxp]-vx[ll])/zone_size_x(i,j,k));
 #endif
 #endif
 
 
-#ifdef Y
+#if YDIM
 
 	dyrho1 = ymin(j+1)-ymin(j);
 	dyrho2 = ymin(j)-ymin(j-1);
@@ -173,37 +173,37 @@ void SubStep2_b_cpu (real dt) {
 	vy_temp[ll] += - 2.0*(pres_y[ll]-pres_y[llym])/(rho[ll]*dyrho1+rho[llym]*dyrho2)*dt;
 
 
-#ifdef ADIABATIC
+#if ADIABATIC
 	e[ll] += -dt*(pres_y[ll]*(vy[llyp]-vy[ll])/zone_size_y(j,k));
 #endif
 #endif
 
 
-#ifdef Z
+#if ZDIM
 	dzmed  = zmed(k)-zmed(k-1);
 	dzrho1 = zmin(k+1)-zmin(k);
 	dzrho2 = zmin(k)-zmin(k-1);
 
 
-#ifdef SPHERICAL
+#if SPHERICAL
 	vz_temp[ll] += -2.0*dzmed*(pres_z[ll]-pres_z[llzm])/(rho[ll]*dzrho1+rho[llzm]*dzrho2)*dt/( ymed(j)*(zmed(k)-zmed(k-1)));
-	
+
 #else
 	vz_temp[ll] += -2.0*(pres_z[ll]-pres_z[llzm])/(rho[ll]*dzrho1+rho[llzm]*dzrho2)*dt;
 #endif
 
-#ifdef ADIABATIC
+#if ADIABATIC
 	e[ll] += -dt*(pres_z[ll]*(vz[llzp]-vz[ll])/zone_size_z(j,k));
 #endif
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

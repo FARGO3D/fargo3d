@@ -1,6 +1,6 @@
 /** \file main.c
 
-Main file of the distribution. 
+Main file of the distribution.
 Manages the call to initialization
 functions, then the main loop.
 
@@ -13,7 +13,7 @@ real dt;
 real dtemp = 0.0;
 
 int main(int argc, char *argv[]) {
-  
+
   int   i=0, OutputNumber = 0, d;
   char  sepline[]="===========================";
   sprintf (FirstCommand, "%s", argv[0]);
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     strncat (CommandLine, " ", 1023);
   }
 
-#ifdef LONGSUMMARY
+#if LONGSUMMARY
   strncpy (StickyOptions, ExtractFromExecutable (YES, "", 1), 1023);
   strncpy (BoundaryFile, ExtractFromExecutable (YES, "", 3), 4095);
 #endif
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 	OnlyInit = YES;
       if (strchr (argv[i], 'C')) {
 	EverythingOnCPU = YES;
-#ifdef GPU
+#if GPU
 	mastererr ("WARNING: Forcing execution of all functions on CPU\n");
 #else
 	mastererr ("WARNING: Flag -C meaningless for a CPU built\n");
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 	NbRestart = atoi(argv[i+1]);
 	if ((NbRestart < 0)) {
 	  masterprint ("Incorrect output number\n");
-	  PrintUsage (argv[0]);	  
+	  PrintUsage (argv[0]);
 	}
       }
       if (strchr (argv[i], 'B')) {
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 	NbRestart = atoi(argv[i+1]);
 	if ((NbRestart < 0)) {
 	  masterprint ("Incorrect output number\n");
-	  PrintUsage (argv[0]);	  
+	  PrintUsage (argv[0]);
 	}
       }
       if (strchr (argv[i], 'D')) {
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
     else strcpy (ParameterFile, argv[i]);
   }
 
-#ifdef WRITEGHOSTS
+#if WRITEGHOSTS
   if (Merge == YES) {
 	mastererr ("Cannot merge outputs when dumping ghost values.\n");
 	mastererr ("'make nofulldebug' could fix this problem.\n");
@@ -151,9 +151,9 @@ int main(int argc, char *argv[]) {
 	prs_exit (1);
   }
 #endif
-  
 
-#ifdef MPICUDA
+
+#if MPICUDA
   EarlyDeviceSelection();
 #endif
   MPI_Init (&argc, &argv);
@@ -167,10 +167,10 @@ int main(int argc, char *argv[]) {
     sprintf (VersionString, "FARGO3D git version %s", xstr(VERSION));
   masterprint("\n\n%s\n%s\nSETUP: '%s'\n%s\n\n",
 	      sepline, VersionString, xstr(SETUPNAME), sepline);
-  
+
   if ((ParameterFile[0] == 0) || (argc == 1)) PrintUsage (argv[0]);
 
-#ifndef MPICUDA
+#if (!MPICUDA)
   SelectDevice(CPU_Rank);
 #endif
   InitVariables ();
@@ -202,19 +202,19 @@ int main(int argc, char *argv[]) {
 
   MakeDir(OUTPUTDIR); /*Create the output directory*/
 
-#if !defined(X)
+#if (!XDIM)
   NX = 1;
 #endif
-#if !defined(Y)
+#if (!YDIM)
   NY = 1;
 #endif
-#if !defined(Z)
+#if (!ZDIM)
   NZ = 1;
 #endif
 
   SelectWriteMethod();
 
-#if !defined(Y) && !defined(Z)
+#if ((!YDIM) && (!ZDIM))
   if (CPU_Rank==1){
     prs_error ("You cannot split a 1D mesh in x. Sequential runs only!");
   }
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
     prs_exit(EXIT_FAILURE);
   }
 #endif
-    
+
   ListVariables ("variables.par"); //Writes all variables defined in set up
   ListVariablesIDL ("IDL.var");
   ChangeArch(); /*Changes the name of the main functions
@@ -245,14 +245,14 @@ the target velocity in Stockholm's damping prescription. We copy the
 value above *after* rescaling, and after any initial correction to
 OMEGAFRAME (which is used afterwards to build the initial Vx field. */
 
-  
+
   if(Restart == YES || Restart_Full == YES) {
     CondInit (); //Needed even for restarts: some setups have custom
 		 //definitions (eg potential for setup MRI) or custom
 		 //scaling laws (eg. setup planetesimalsRT).
 
     MULTIFLUID( begin_i  = RestartSimulation(NbRestart));
-    
+
     if (ThereArePlanets) {
       PhysicalTime  = GetfromPlanetFile (NbRestart, 9, 0);
       OMEGAFRAME  = GetfromPlanetFile (NbRestart, 10, 0);
@@ -270,7 +270,7 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
   if (StretchOldOutput == YES) {
     StretchOutput (StretchNumber);
   }
-  
+
   MULTIFLUID(comm(ENERGY)); //Very important for isothermal cases!
 
   /* This must be placed ***after*** reading the input files in case of a restart */
@@ -287,14 +287,14 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
     WriteDim ();
   }
 
-#if !defined(STANDARD) && !defined(RAM)
+#if ((!STANDARD) && (!RAM))
 if (*SPACING=='N'){
   mastererr ("Warning: Mesh must be unifrom in x-direction to use FARGO advection.\n");
   mastererr ("Warning: If SPACING is set to 'N', use -DSTANDARD or -DRAM in .opt file.\n");
   prs_exit (1);
 }
 #endif
-#if defined(MHD) && defined(RAM)
+#if (MHD && RAM)
   mastererr ("Warning: Current version of MHD module does not include RAM.\n");
   mastererr ("Warning: If SPACING is set to 'N', use -DSTANDARD in .opt file.\n");
   prs_exit (1);
@@ -304,50 +304,50 @@ if (*SPACING=='N'){
   DumpToFargo3drc(argc, argv);
 
   SelectArchFileName ();
-#ifdef LONGSUMMARY
+#if LONGSUMMARY
   ExtractFromExecutable (NO, ArchFile, 2);
 #endif
-  
+
   MULTIFLUID(FillGhosts(PrimitiveVariables()));
 
-  
-#ifdef STOCKHOLM 
+
+#if STOCKHOLM
   FARGO_SAFE(init_stockholm()); //ALREADY IMPLEMENTED MULTIFLUID COMPATIBILITY
 #endif
-  
-#ifdef GHOSTSX
+
+#if GHOSTSX
   masterprint ("\n\nNew version with ghost zones in X activated\n");
 #else
   masterprint ("Standard version with no ghost zones in X\n");
 #endif
-  
+
   for (i = begin_i; i<=NTOT; i++) { // MAIN LOOP
     if (NINTERM * (TimeStep = (i / NINTERM)) == i) {
 
-#if defined(MHD) && defined(DEBUG)
+#if (MHD && DEBUG)
       FARGO_SAFE(ComputeDivergence(Bx, By, Bz));
 #endif
       if (ThereArePlanets)
 	WritePlanetSystemFile(TimeStep, NO);
-      
-#ifndef NOOUTPUTS
+
+#if (!NOOUTPUTS)
       MULTIFLUID(WriteOutputs(ALL));
-      
-#ifdef MATPLOTLIB
+
+#if MATPLOTLIB
       Display();
 #endif
-      
+
       if(CPU_Master) printf("OUTPUTS %d at date t = %f OK\n", TimeStep, PhysicalTime);
 #endif
-      
+
       if (TimeInfo == YES) GiveTimeInfo (TimeStep);
 
     }
-    
+
     if (NSNAP != 0) {
       if (NSNAP * (TimeStep = (i / NSNAP)) == i) {
 	MULTIFLUID(WriteOutputs(SPECIFIC));
-#ifdef MATPLOTLIB
+#if MATPLOTLIB
 	Display();
 #endif
       }
@@ -355,38 +355,38 @@ if (*SPACING=='N'){
 
     if (i==NTOT)
       break;
-    
+
     dtemp = 0.0;
-    
+
     while (dtemp<DT) { // DT LOOP
-      
+
       /// AT THIS STAGE Vx IS THE INITIAL TOTAL VELOCITY IN X
-#ifdef X
-#ifndef STANDARD
+#if XDIM
+#if (!STANDARD)
       MULTIFLUID(ComputeVmed(Vx)); // FARGO algorithm -- very important to have it here!
 #endif
 #endif
       /// NOW THE 2D MESH VxMed CONTAINS THE AZIMUTHAL AVERAGE OF Vx in X
-      
-#ifdef FLOOR
+
+#if FLOOR
       MULTIFLUID(Floor());
 #endif
 
-#ifdef MHD
-#ifdef OHMICDIFFUSION
+#if MHD
+#if OHMICDIFFUSION
       FARGO_SAFE(OhmicDiffusion_coeff());
 #endif
-#ifdef AMBIPOLARDIFFUSION
+#if AMBIPOLARDIFFUSION
       FARGO_SAFE(AmbipolarDiffusion_coeff());
 #endif
-#ifdef HALLEFFECT
+#if HALLEFFECT
       FARGO_SAFE(HallEffect_coeff());
 #endif
 #endif
 
       // CFL condition is applied below ----------------------------------------
       MULTIFLUID(cfl());
-      
+
       CflFluidsMin(); /*Fills StepTime with the " global min " of the
 			cfl, computed from each fluid.*/
       dt = StepTime; //cfl works with the 'StepTime' global variable.
@@ -394,36 +394,36 @@ if (*SPACING=='N'){
       dtemp+=dt;
       if(dtemp>DT)  dt = DT - (dtemp-dt); //updating dt
       //------------------------------------------------------------------------
-      
+
       //------------------------------------------------------------------------
       /* We now compute the total density of the mesh. We need first
 	 reset an array and then fill it by adding the density of each
 	 fluid */
-      FARGO_SAFE(Reset_field(Total_Density)); 
-      MULTIFLUID(ComputeTotalDensity()); 
+      FARGO_SAFE(Reset_field(Total_Density));
+      MULTIFLUID(ComputeTotalDensity());
       //------------------------------------------------------------------------
 
-      
-#ifdef COLLISIONPREDICTOR
+
+#if COLLISIONPREDICTOR
       FARGO_SAFE(Collisions(0.5*dt, 0)); // 0 --> V is used and we update v_half.
 #endif
-      
+
       MULTIFLUID(Sources(dt)); //v_half is used in the R.H.S
 
-#ifdef DRAGFORCE
+#if DRAGFORCE
       FARGO_SAFE(Collisions(dt, 1)); // 1 --> V_temp is used.
 #endif
 
-#ifdef DUSTDIFFUSION
+#if DUSTDIFFUSION
       FARGO_SAFE(DustDiffusion_Main(dt));
 #endif
-      
+
       MULTIFLUID(Transport(dt));
 
       PhysicalTime+=dt;
       Timestepcount++;
 
-#ifdef STOCKHOLM
+#if STOCKHOLM
       MULTIFLUID(StockholmBoundary(dt));
 #endif
 
@@ -439,16 +439,16 @@ if (*SPACING=='N'){
 	  else
 	    printf("%s", ".");
 	}
-#ifndef NOFLUSH
+#if (!NOFLUSH)
 	fflush(stdout);
 #endif
       }
       FullArrayComms = 0;
       ContourComms = 0;
     }
-    
+
     if(CPU_Master) printf("%s", "\n");
-    
+
     MULTIFLUID(MonitorGlobal (MONITOR2D      |	\
 			      MONITORY       |	\
 			      MONITORY_RAW   |	\
@@ -461,9 +461,9 @@ if (*SPACING=='N'){
       SolveOrbits (Sys);
     }
   }
-  
+
   MPI_Finalize();
-  
+
   masterprint("End of the simulation!\n");
-  return 0;  
+  return 0;
 }

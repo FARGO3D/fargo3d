@@ -11,19 +11,19 @@ void addviscosity_cyl_cpu(real dt) {
 
 //<USER_DEFINED>
   INPUT(Density);
-#ifdef X
+#if XDIM
   INPUT(Vx_temp);
   INPUT(Mmx);
   INPUT(Mpx);
   OUTPUT(Vx_temp);
 #endif
-#ifdef Y
+#if YDIM
   INPUT(Vy_temp);
   INPUT(Mmy);
   INPUT(Mpy);
   OUTPUT(Vy_temp);
 #endif
-#ifdef Z
+#if ZDIM
   INPUT(Vz_temp);
   INPUT(Mmz);
   INPUT(Mpz);
@@ -33,31 +33,31 @@ void addviscosity_cyl_cpu(real dt) {
 
 //<EXTERNAL>
   real* rho = Density->field_cpu;
-#ifdef X
+#if XDIM
   real* vx = Vx_temp->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* vy = Vy_temp->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* vz = Vz_temp->field_cpu;
 #endif
-#ifdef X
+#if XDIM
   real* tauxx = Mmx->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* tauyy = Mmy->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* tauzz = Mmz->field_cpu;
 #endif
-#if defined(X) && defined(Z)
+#if (XDIM && ZDIM)
   real* tauxz = Mpx->field_cpu;
 #endif
-#if defined(Y) && defined(X)
+#if (YDIM && XDIM)
   real* tauyx = Mpy->field_cpu;
 #endif
-#if defined(Z) && defined(Y)
+#if (ZDIM && YDIM)
   real* tauzy = Mpz->field_cpu;
 #endif
   int pitch  = Pitch_cpu;
@@ -85,57 +85,57 @@ void addviscosity_cyl_cpu(real dt) {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for(k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=XIM; i<size_x; i++) {
 #endif
 //<#>
 
-#ifdef X
+#if XDIM
 	vx[l] += 2.0*(tauxx[l]-tauxx[lxm])*Inv_zone_size_xmed(i,j,k)/((rho[l]+rho[lxm]))*dt;
-#if defined(Y) && defined(X)
+#if (YDIM && XDIM)
 	vx[l] += 2.0*(ymin(j+1)*ymin(j+1)*tauyx[lyp]-ymin(j)*ymin(j)*tauyx[l])/((ymin(j+1)-ymin(j))*ymed(j)*ymed(j)*(rho[lxm]+rho[l]))*dt;
 #endif
-#if defined(X) && defined(Z)
+#if (XDIM && ZDIM)
 	vx[l] += 2.0*(tauxz[lzp]-tauxz[l])/((zmin(k+1)-zmin(k))*(rho[lxm]+rho[l]))*dt;
 #endif
 #endif
 
-#ifdef Y
+#if YDIM
 	vy[l] += 2.0*(ymed(j)*tauyy[l]-ymed(j-1)*tauyy[lym])/((ymed(j)-ymed(j-1))*(rho[l]+rho[lym])*ymin(j))*dt;
-#if defined(Y) && defined(X)
+#if (YDIM && XDIM)
 	vy[l] += 2.0*(tauyx[lxp]-tauyx[l])/( (xmin(i+1)-xmin(i))*ymin(j)*(rho[l]+rho[lym]))*dt;
 #endif
-#if defined(X)
+#if XDIM
 	vy[l] -= (tauxx[l]+tauxx[lym])/(ymin(j)*(rho[l]+rho[lym]))*dt;
 #endif
-#if defined(Z) && defined(Y)
+#if (ZDIM && YDIM)
 	vy[l] += 2.0*(tauzy[lzp]-tauzy[l])/((zmin(k+1)-zmin(k))*(rho[l]+rho[lym]))*dt;
 #endif
 #endif
 
-#ifdef Z
+#if ZDIM
 	vz[l] += 2.0*(tauzz[l]-tauzz[lzm])/((zmed(k)-zmed(k-1))*(rho[l]+rho[lzm]))*dt;
-#if defined(Z) && defined(X)
+#if (ZDIM && XDIM)
 	vz[l] += 2.0*(tauxz[lxp]-tauxz[l])/(zone_size_x(i,j,k)*(rho[l]+rho[lzm]))*dt;
 #endif
-#if defined(Z) && defined(Y)
+#if (ZDIM && YDIM)
 	vz[l] += 2.0*(ymin(j+1)*tauzy[lyp]-ymin(j)*tauzy[l])/((ymin(j+1)-ymin(j))*ymed(j)*(rho[l]+rho[lzm]))*dt;
 #endif
 #endif
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

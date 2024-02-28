@@ -1,5 +1,5 @@
 //System includes
-#ifdef GPU
+#if GPU
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
@@ -26,7 +26,7 @@
 #include "types_def.h"
 #include "fondam.h"
 
-#ifdef PARALLEL
+#if PARALLEL
 #ifndef __GPU
 #include <mpi.h>
 #else

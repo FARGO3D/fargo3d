@@ -1,7 +1,7 @@
 #include "fargo3d.h"
 
 void ComputeIndirectTerm () {
-#ifndef NODEFAULTSTAR
+#if (!NODEFAULTSTAR)
   IndirectTerm.x = -DiskOnPrimaryAcceleration.x;
   IndirectTerm.y = -DiskOnPrimaryAcceleration.y;
   IndirectTerm.z = -DiskOnPrimaryAcceleration.z;
@@ -19,7 +19,7 @@ void ComputeIndirectTerm () {
 
 Force ComputeForce(real x, real y, real z,
 		   real rsmoothing, real mass) {
-  
+
   Force Force;
 
   /* The trick below, which uses VxMed as a 2D temporary array,
@@ -29,7 +29,7 @@ Force ComputeForce(real x, real y, real z,
      location of resonances in a non self-gravitating disk. See
      Baruteau & Masset 2008, ApJ, 678, 483 (arXiv:0801.4413) for
      details. */
-#ifdef BM08
+#if BM08
   ComputeVmed (Total_Density);
   ChangeFrame (-1, Total_Density, VxMed);
 #endif
@@ -37,17 +37,17 @@ Force ComputeForce(real x, real y, real z,
   FARGO_SAFE(_ComputeForce(x, y, z, rsmoothing, mass)); /* Function/Kernel Launcher. */
   /* We restore the total density below by adding back the azimuthal
      average */
-#ifdef BM08
+#if BM08
   ChangeFrame (+1, Total_Density, VxMed);
 #endif
 
-  
-#ifdef FLOAT
+
+#if FLOAT
   MPI_Allreduce (&localforce, &globalforce, 12, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 #else
   MPI_Allreduce (&localforce, &globalforce, 12, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 #endif
-  
+
   Force.fx_inner    = globalforce[0];
   Force.fy_inner    = globalforce[1];
   Force.fz_inner    = globalforce[2];
@@ -74,7 +74,7 @@ Point ComputeAccel(real x, real y, real z,
     acceleration.x = force.fx_ex_inner+force.fx_ex_outer;
     acceleration.y = force.fy_ex_inner+force.fy_ex_outer;
     acceleration.z = force.fz_ex_inner+force.fz_ex_outer;
-  } 
+  }
   else {
     acceleration.x = force.fx_inner+force.fx_outer;
     acceleration.y = force.fy_inner+force.fy_outer;
@@ -104,7 +104,7 @@ void AdvanceSystemFromDisk(real dt) {
       Sys->vx[k] += dt * gamma.x;
       Sys->vy[k] += dt * gamma.y;
       Sys->vz[k] += dt * gamma.z;
-#ifdef GASINDIRECTTERM
+#if GASINDIRECTTERM
       Sys->vx[k] += dt * IndirectTerm.x;
       Sys->vy[k] += dt * IndirectTerm.y;
       Sys->vz[k] += dt * IndirectTerm.z;
@@ -127,7 +127,7 @@ OrbitalElements SV2OE (StateVector v, real m) {
   vz = v.vz;
 
   d = sqrt(x*x+y*y+z*z);
-  
+
   hx   = y*vz - z*vy;
   hy   = z*vx - x*vz;
   hz   = x*vy - y*vx;
@@ -154,7 +154,7 @@ OrbitalElements SV2OE (StateVector v, real m) {
   //hence on its way from aphelion to perihelion (E < 0)
 
   if (isnan(E)) {
-    if (d < a) 
+    if (d < a)
       E = 0.0;
     else
       E = M_PI;
@@ -172,7 +172,7 @@ OrbitalElements SV2OE (StateVector v, real m) {
   if (E < 0.0) V = -V;
 
   o.ta = V;
-  
+
   if (fabs(o.i) > 1e-5) {
     an = atan2(hy,hx)+M_PI*.5; //Independently of sign of (hz)
     if (an > 2.0*M_PI) an -= 2.0*M_PI;
@@ -202,7 +202,7 @@ void FindOrbitalElements (StateVector v,real m,int n){
   sprintf (name, "%sorbit%d.dat", OUTPUTDIR, n);
   output = fopen_prs (name, "a");
   o = SV2OE (v,m);
- 
+
   fprintf (output, "%.12g\t%.12g\t%.12g\t%.12g\t%.12g\t%.12g\t%.12g", \
 	   PhysicalTime, o.e, o.a, o.M, o.ta, o.per, XAxisRotationAngle);
   fprintf (output, "\t%.12g\t%.12g\t%.12g\n", o.i, o.an, o.Perihelion_Phi);
@@ -222,4 +222,4 @@ void SolveOrbits (PlanetarySystem *sys){
     v.vz = sys->vz[i];
     FindOrbitalElements (v,MSTAR+sys->mass[i],i);
   }
-} 
+}

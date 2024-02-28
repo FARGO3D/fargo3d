@@ -50,17 +50,17 @@ void ComputeJy_cpu() {
       for (i=0; i<size_x; i++) {
 //<#>
 	ll = l;
-#ifdef CARTESIAN
+#if CARTESIAN
 	fact1 = 1.0/(zmed(k)-zmed(k-1));
 	fact2 = Inv_zone_size_xmed(i,j,k);
 	jy[ll] = ((bx[ll]-bx[lzm])*fact1-(bz[ll]-bz[lxm])*fact2)/mu0;
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	fact1 = Inv_zone_size_xmed(i,j,k);
 	fact2 = 1.0/(zmed(k)-zmed(k-1));
 	jy[ll] = ((bz[ll]-bz[lxm])*fact1-(bx[ll]-bx[lzm])*fact2)/mu0;
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	fact1 = Inv_zone_size_xmed(i,j,k);
 	fact2 = 1.0/(fact*(zmed(k)-zmed(k-1)));
 	jy[ll] = ((sin(zmed(k))*bx[ll]-sin(zmed(k-1))*bx[lzm])*fact2-(bz[ll]-bz[lxm])*fact1)/mu0;

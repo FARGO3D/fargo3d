@@ -11,13 +11,13 @@ void SubStep3_cpu (real dt) {
 
 //<USER_DEFINED>
   INPUT(Energy);
-#ifdef X
+#if XDIM
   INPUT(Vx_temp);
 #endif
-#ifdef Y
+#if YDIM
   INPUT(Vy_temp);
 #endif
-#ifdef Z
+#if ZDIM
   INPUT(Vz_temp);
 #endif
   OUTPUT(Energy);
@@ -25,18 +25,18 @@ void SubStep3_cpu (real dt) {
 
 //<EXTERNAL>
   real* e   = Energy->field_cpu;
-#ifdef X
+#if XDIM
   real* vx  = Vx_temp->field_cpu;
 #endif
-#ifdef Y
+#if YDIM
   real* vy  = Vy_temp->field_cpu;
 #endif
-#ifdef Z
+#if ZDIM
   real* vz  = Vz_temp->field_cpu;
 #endif
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = XIP; 
+  int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
 //<\EXTERNAL>
@@ -46,19 +46,19 @@ void SubStep3_cpu (real dt) {
   int j; //for the topology
   int k; //of the kernels
   int ll;
-#ifdef X
+#if XDIM
   int llxp;
 #endif
-#ifdef Y
+#if YDIM
   int llyp;
 #endif
-#ifdef Z
+#if ZDIM
   int llzp;
 #endif
   real term;
   real div_v;
 //<\INTERNAL>
-  
+
 //<CONSTANT>
 // real GAMMA(1);
 // real Sxi(Nx);
@@ -72,50 +72,50 @@ void SubStep3_cpu (real dt) {
 //<\CONSTANT>
 
 //<MAIN_LOOP>
-  
+
   i = j = k = 0;
-  
-#ifdef Z
+
+#if ZDIM
   for(k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for(j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for(i=0; i<size_x; i++) {
 #endif
 //<#>
 
 	ll = l;
-#ifdef X
+#if XDIM
 	llxp = lxp;
 #endif
-#ifdef Y
+#if YDIM
 	llyp = lyp;
 #endif
-#ifdef Z
+#if ZDIM
 	llzp = lzp;
 #endif
 	div_v = 0.0;
-#ifdef X
+#if XDIM
 	div_v += (vx[llxp]-vx[ll])*SurfX(j,k);
 #endif
-#ifdef Y
+#if YDIM
 	div_v += (vy[llyp]*SurfY(i,j+1,k)-vy[ll]*SurfY(i,j,k));
 #endif
-#ifdef Z
+#if ZDIM
 	div_v += (vz[llzp]*SurfZ(i,j,k+1)-vz[ll]*SurfZ(i,j,k));
 #endif
 	term = 0.5 * dt * (GAMMA - 1.) * div_v * InvVol(i,j,k);
 	e[ll] *= (1.0-term)/(1.0+term);
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

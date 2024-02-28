@@ -1,148 +1,98 @@
-from __future__ import print_function
 import re
 import os
-import sys
+import argparse
+import textwrap
 
-def get_pardata(parname):
+parser = argparse.ArgumentParser(prog='par.py',
+    description='Compile parameter definitions to var.c',
+    epilog='This script is part of FARGO3D.')
+parser.add_argument('params')
+parser.add_argument('defaults')
+parser.add_argument('-m', '--mandatories')
+parser.add_argument('-o', '--output', default='var.c')
+args = parser.parse_args()
 
-    parfile = open(parname,'r')
-    par = parfile.readlines()
-    parfile.close()
+def extract_variable_and_type(line):
+    skip = re.match(r'\s*(?:#+)|($)', line)
+    if skip is not None: return None
 
-    realvariables = {}
-    intvariables  = {}
-    boolvariables = {}
-    strvariables  = {}
+    varname = re.search(r'(\w+)\s', line)
+    if varname is not None:
+        realvar = re.match(r'(\w+)\s+(\+?-?\d+\.\d+e?[+-]?\d*)', line)
+        if realvar is not None:
+            name  = realvar.group(1).upper()
+            value = realvar.group(2)
+            return name, value, 'REAL'
 
-    for line in par:
-        skip = re.match("\s*#+",line)
-        if skip != None:
-            continue    
-        varname = re.search("(\w+)\s",line)
-        if varname != None:
-            realvar = re.match("(\w+)\s+(\+?-?\d+\.\d+e?[+-]?\d*)",line)
-            if realvar != None:
-                name  = realvar.group(1).upper()
-                value = realvar.group(2)
-                realvariables[name] = value
-                continue
-            intvar = re.match("(\w+)\s+(\+?-?\d+)\s+",line)
-            if intvar != None:
-                name  = intvar.group(1).upper()
-                value = intvar.group(2)
-                intvariables[name] = value
-                continue
+        intvar = re.match(r'(\w+)\s+(\+?-?\d+)\s+', line)
+        if intvar is not None:
+            name  = intvar.group(1).upper()
+            value = intvar.group(2)
+            return name, value, 'INT'
 
-            boolvar = re.match("(\w+)\s+(\w+)",line)
-            if boolvar != None:
-                name  = boolvar.group(1).upper()
-                value = boolvar.group(2).lower()
-                if value == "no" or value == "yes":
-                    if value == "yes":
-                        value = str(1)
-                    elif value == "no":
-                        value = str(0)
-                    boolvariables[name] = value
-                    continue
-                    
-            strvar = re.match("(\w+)\s+(.*)\s?",line)
-            if strvar != None:
-                name  = strvar.group(1).upper()
-                value = strvar.group(2)
-                strvariables[name] = value
-                continue
+        boolvar = re.match(r'(\w+)\s+(\w+)', line)
+        if boolvar is not None:
+            name  = boolvar.group(1).upper()
+            value = boolvar.group(2).lower()
+            if value in ['yes', 'no']:
+                value = dict(no=0, yes=1).get(value)
+                return name, value, 'BOOL'
 
-    return  (realvariables,
-             intvariables,
-             boolvariables,
-             strvariables)
+        strvar = re.match(r'(\w+)\s+(.*)\s?', line)
+        if strvar is not None:
+            name  = strvar.group(1).upper()
+            value = strvar.group(2)
+            return name, value, 'STRING'
 
-def make_excess(active,default):
-    """
-    The result is stored in default. (pop method!)
-    At the end, default has the non common parameters
-    """
-    for key in active:
-        try:
-            default.pop(key)
-        except:
+    raise NotImplementedError(f'Could not parse line: {line}')
+
+with open(args.params, 'r') as params, open(args.defaults, 'r') as defaults, \
+        open(args.output, 'w') as output:
+    p = dict()
+
+    # initialize with default parameters
+    for line in defaults:
+        tup = extract_variable_and_type(line)
+        if tup is None:
+            # skipping this line
             continue
+        else:
+            name, value, dtype = tup
+            p[name] = value, dtype, False
 
-def make_varc(varc, parameters, partype, mand, init=False, end=False):
-    """
-    varc is a tuple of lines of var.c
-    variables is a dict of parameters
-    partype is "REAL", "INT", "STRING" or "BOOL".
-    """
-    if init:
-        includes = '#define __LOCAL\n#include "../src/fargo3d.h"\n#undef __LOCAL\n\n'
-        varc.append(includes)
-        varc.append("void InitVariables() {\n")
-    for parname in parameters:
-        need = "NO"
-        if mand != None:
-            if parname in mand:
-                need = "YES"
-        parpoint = "(char*)" + "&" + parname
-        new_line = "  init_var(" + '"' + parname + '"' + ", " + parpoint + \
-            ", " + partype + ", " + need + ", " + '"' + parameters[parname] + \
-            '");\n'
-        varc.append(new_line)
-    if end:
-        varc.append("}")        
-
-def get_mandatories(filename):
-    mandfile = open(filename,'r')
-    mandatory = mandfile.readlines()
-    mandfile.close()
-    mandatories = {}
-    
-    for line in mandatory:
-        skip = re.match("\s*#+",line)
-        if skip != None:
+    # override with specific parameters
+    for line in params:
+        tup = extract_variable_and_type(line)
+        if tup is None:
+            # skipping this line
             continue
-        varname = re.search("(\w+)\s",line)
-        if varname != None:
-            mandatories[varname.group(0).strip().upper()] = "M"
-    return mandatories
+        else:
+            name, value, dtype = tup
+            p[name] = value, dtype, False
 
-if __name__ == "__main__":
-    parname = sys.argv[1]
-    def_parname = sys.argv[2]
-    mandname = parname[:-3]+"mandatories"
-    
-    try:
-        mandatories = get_mandatories(mandname)
-    except IOError:
-        mandatories = None
-        print("You have not defined mandatory variables...")
-        
-    real, integer, boolean, string = get_pardata(parname) #SETUP.par
-    def_real, def_integer, def_boolean, def_string = get_pardata(def_parname) #Default par
-     
-    make_excess(integer,mandatories)
-    
-    make_excess(real,def_real)
-    make_excess(integer,def_integer)
-    make_excess(boolean,def_boolean)
-    make_excess(string,def_string)
-    
-    varc = []
-    prolog = []
-    epilog = []
-    make_varc(prolog,[]       ,"FOO"   ,mandatories, init=True)
-    make_varc(varc,real       ,"REAL"  ,mandatories)
-    make_varc(varc,integer    ,"INT"   ,mandatories)
-    make_varc(varc,string     ,"STRING",mandatories)
-    make_varc(varc,boolean    ,"BOOL"  ,mandatories)
-    make_varc(varc,def_real   ,"REAL"  ,mandatories)
-    make_varc(varc,def_integer,"INT"   ,mandatories)
-    make_varc(varc,def_string ,"STRING",mandatories)
-    make_varc(varc,def_boolean,"BOOL"  ,mandatories)
-    make_varc(epilog,[]       ,"FOO"   ,mandatories, end=True)
+    # update with mandatory parameters
+    if os.path.isfile(args.mandatories):
+        with open(args.mandatories, 'r') as mandatories:
+            for line in mandatories:
+                if re.match(r'\s*#+', line) is not None: continue
+                name = re.search(r'(\w+)\s', line)
+                if name not in p.keys():
+                    raise ValueError('Mandatory parameter {} is not defined')
+                value, dtype, _ = p[name]
+                p[name] = value, dtype, True
 
-    var = open('var.c', 'w')
-    for line in prolog+sorted(varc)+epilog:
-        var.write(line)
-    var.close()
-        
+    header = '''\
+    #define __LOCAL
+    #include "fargo3d.h"
+    #undef __LOCAL
+
+    void InitVariables() {
+    '''
+    output.write(textwrap.dedent(header))
+
+    for name, (value, dtype, reqd) in p.items():
+        need = 'YES' if reqd else 'NO'
+        line = f'  init_var("{name}", (char*)&{name}, {dtype}, {need}, "{value}");\n'
+        output.write(line)
+
+    output.write('}')

@@ -69,10 +69,10 @@ void AmbipolarDiffusion_emfz_cpu(){
 
 	etac = 0.25*( eta[ll] + eta[lxm] + eta[lym] + eta[lxm-pitch] );
 
-#if ( defined(CARTESIAN) || defined(SPHERICAL) )    
+#if (CARTESIAN || SPHERICAL)
        	emf[ll] += etac*(j3 - (b1*j1+b2*j2+b3*j3)*b3/bmod);
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	emf[ll] -= etac*(j3 - (b1*j1+b2*j2+b3*j3)*b3/bmod);
 #endif
 

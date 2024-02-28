@@ -49,17 +49,17 @@ void ComputeJz_cpu() {
       for (i=0; i<size_x; i++) {
 //<#>
 	ll = l;
-#ifdef CARTESIAN
+#if CARTESIAN
 	fact1 = Inv_zone_size_xmed(i,j,k);
 	fact2 = 1.0/(ymed(j)-ymed(j-1));
 	jz[ll] = ((by[ll]-by[lxm])*fact1-(bx[ll]-bx[lym])*fact2)/mu0;
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	fact1 = Inv_zone_size_xmed(i,j,k);
 	fact2 = 1.0/(ymin(j)*(ymed(j)-ymed(j-1)));
 	jz[ll] = ((ymed(j)*bx[ll]-ymed(j-1)*bx[lym])*fact2-(by[ll]-by[lxm])*fact1)/mu0;
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	fact1 = Inv_zone_size_xmed(i,j,k);
 	fact2 = 1.0/(ymin(j)*(ymed(j)-ymed(j-1)));
 	jz[ll] = ((by[ll]-by[lxm])*fact1-(ymed(j)*bx[ll]-ymed(j-1)*bx[lym])*fact2)/mu0;

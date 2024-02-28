@@ -46,19 +46,19 @@
 
 // Ghost cells
 
-#ifdef X
-#ifdef GHOSTSX
+#if XDIM
+#if GHOSTSX
 #define NGHX 12
 #else
 #define NGHX 0
 #endif
 #endif
 
-#ifdef Y
+#if YDIM
 #define NGHY 3
 #endif
 
-#ifdef Z
+#if ZDIM
 #define NGHZ 3
 #endif
 
@@ -72,7 +72,7 @@
 #define NGHZ 0
 #endif
 
-#ifdef GHOSTSX
+#if GHOSTSX
 #define XIP (Nx+2*NGHX-1) //X Interval Plus (we need to address right neighbor in loop)
 #define XIM (1)           //X Interval Minus (we need to address left neighbor in loop)
 #else
@@ -100,7 +100,7 @@
 #define QPLUS 65536L
 
 /////////////////////////////////////////////////////
-//Definitions relative to Fine Grain Monitoring 
+//Definitions relative to Fine Grain Monitoring
 #define MONITORSCALAR (MONITOR_SCALAR+0)
 #define MONITOR2D     (MONITOR_2D+0)
 #define MONITORY      (MONITOR_Y+0)
@@ -173,17 +173,17 @@
 // two nested commands to force double expansion above
 // Use INIT_REDUCTION in the reduction routines
 
-#ifdef CARTESIAN
+#if CARTESIAN
 #define XC xmed(i)
 #define YC ymed(j)
 #define ZC zmed(k)
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 #define XC ymed(j)*cos(xmed(i))
 #define YC ymed(j)*sin(xmed(i))
 #define ZC zmed(k)
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 #define XC ymed(j)*cos(xmed(i))*sin(zmed(k))
 #define YC ymed(j)*sin(xmed(i))*sin(zmed(k))
 #define ZC ymed(j)*cos(zmed(k))
@@ -200,10 +200,10 @@
 #define zmed(i) Zmed[(i)]
 
 #define alpha(i) Alpha[(i)]
-  
+
 #else // #ifdef __GPU
 
-#ifndef BIGMEM
+#if (!BIGMEM)
 #define xmin_d Xmin_d
 #define ymin_d Ymin_d
 #define zmin_d Zmin_d
@@ -235,7 +235,7 @@
 #define SurfY(i,j,k) Syj(j)*Syk(k)*Sxi(i)
 #define SurfZ(i,j,k) Szj(j)*Szk(k)*Sxi(i)
 
-#else //#ifdef __GPU
+#else // #ifdef __GPU
 
 #define InvVol(i,j,k) InvVj_s[(j)]/Syk_s[(k)]/Sxi_s[(i)]
 #define Vol(i,j,k) Syk_s[(k)]*Sxi_s[(i)]/InvVj_s[(j)]
@@ -249,44 +249,44 @@
 #endif
 
 #ifndef __GPU
-#ifdef CARTESIAN
+#if CARTESIAN
 #define zone_size_x(i,j,k) Sxi(i)
 #define Inv_zone_size_xmed(i,j,k)  InvDiffXmed(i)
 #define zone_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define zone_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 #define zone_size_x(i,j,k) (Sxi(i)*Ymed(j))
 #define Inv_zone_size_xmed(i,j,k)  (InvDiffXmed(i)/Ymed(j))
 #define zone_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define zone_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
-#ifdef SPHERICAL
+#if SPHERICAL
 #define zone_size_x(i,j,k) (Sxi(i)*Ymed(j)*sin(Zmed(k)))
 #define Inv_zone_size_xmed(i,j,k)  (InvDiffXmed(i)/Ymed(j)/sin(Zmed(k)))
 #define zone_size_y(j,k) (Ymin(j+1)-Ymin(j))
 #define zone_size_z(j,k) ((Zmin(k+1)-Zmin(k))*Ymed(j))
 #endif
 
-#else // ifdef GPU
+#else // if GPU
 
-#ifdef CARTESIAN
+#if CARTESIAN
 #define zone_size_x(i,j,k) (xmin(i+1)-xmin(i))
 #define Inv_zone_size_xmed(i,j,k)  InvDiffXmed_s[(i)]
 #define zone_size_y(j,k) (ymin(j+1)-ymin(j))
 #define zone_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 #define zone_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j))
 #define Inv_zone_size_xmed(i,j,k) (InvDiffXmed_s[(i)]/ymed(j))
 #define zone_size_y(j,k) (ymin(j+1)-ymin(j))
 #define zone_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
-#ifdef SPHERICAL
+#if SPHERICAL
 #define zone_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j)*sin(zmed(k)))
 #define Inv_zone_size_xmed(i,j,k)  (InvDiffXmed_s[(i)]/ymed(j)/sin(zmed(k)))
 #define zone_size_y(j,k) (ymin(j+1)-ymin(j))
@@ -297,7 +297,7 @@
 
 #ifndef __GPU
 
-#ifdef CARTESIAN
+#if CARTESIAN
 #define edge_size_x(i,j,k) Sxi(i)
 #define edge_size_x_middlez_lowy(i,j,k) Sxi(i) //Used by FARGO-MHD
 #define edge_size_x_middley_lowz(i,j,k) Sxi(i) //Used by FARGO-MHD
@@ -305,7 +305,7 @@
 #define edge_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 #define edge_size_x(i,j,k) (Sxi(i)*Ymin(j))
 #define edge_size_x_middlez_lowy(i,j,k) (Sxi(i)*Ymin(j))
 #define edge_size_x_middley_lowz(i,j,k) (Sxi(i)*Ymed(j))
@@ -313,7 +313,7 @@
 #define edge_size_z(j,k) (Zmin(k+1)-Zmin(k))
 #endif
 
-#ifdef SPHERICAL
+#if SPHERICAL
 #define edge_size_x(i,j,k) (Sxi(i)*Ymin(j)*sin(Zmin(k)))
 #define edge_size_x_middlez_lowy(i,j,k) (Sxi(i)*Ymin(j)*sin(Zmed(k)))
 #define edge_size_x_middley_lowz(i,j,k) (Sxi(i)*Ymed(j)*sin(Zmin(k)))
@@ -321,9 +321,9 @@
 #define edge_size_z(j,k) ((Zmin(k+1)-Zmin(k))*Ymin(j))
 #endif
 
-#else //ifdef __GPU
+#else // #ifdef __GPU
 
-#ifdef CARTESIAN
+#if CARTESIAN
 #define edge_size_x(i,j,k) (xmin(i+1)-xmin(i))
 #define edge_size_x_middlez_lowy(i,j,k) (xmin(i+1)-xmin(i)) //Used by FARGO-MHD
 #define edge_size_x_middley_lowz(i,j,k) (xmin(i+1)-xmin(i)) //Used by FARGO-MHD
@@ -331,7 +331,7 @@
 #define edge_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 #define edge_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j))
 #define edge_size_x_middlez_lowy(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j))
 #define edge_size_x_middley_lowz(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j))
@@ -339,7 +339,7 @@
 #define edge_size_z(j,k) (zmin(k+1)-zmin(k))
 #endif
 
-#ifdef SPHERICAL
+#if SPHERICAL
 #define edge_size_x(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j)*sin(zmin(k)))
 #define edge_size_x_middlez_lowy(i,j,k) ((xmin(i+1)-xmin(i))*ymin(j)*sin(zmed(k)))
 #define edge_size_x_middley_lowz(i,j,k) ((xmin(i+1)-xmin(i))*ymed(j)*sin(zmin(k)))
@@ -373,14 +373,14 @@
 //Index define
 #ifndef __GPU
 
-#ifdef GHOSTSX              // <==== MAIN ifdef
+#if GHOSTSX              // <==== MAIN if
 #define lxp ((l)+1)
 #define lxm ((l)-1)
 
 #define ixm ((i)-1)
 #define ixp ((i)+1)
 
-#ifdef Y
+#if YDIM
 #define lyp ((l)+Nx+2*NGHX)
 #define lym ((l)-Nx-2*NGHX)
 #else
@@ -394,7 +394,7 @@
 #define ixm ((i)>0 ? ((i)-1) : Nx-1)
 #define ixp ((i)<Nx-1 ? ((i)+1) : 0)
 
-#ifdef Y
+#if YDIM
 #define lyp ((l)+Nx)
 #define lym ((l)-Nx)
 #else
@@ -403,7 +403,7 @@
 #endif
 #endif    // <============ MAIN endif
 
-#ifdef Z
+#if ZDIM
 #define lzp (l+Stride)
 #define lzm (l-Stride)
 #else
@@ -411,7 +411,7 @@
 #define lzm (l)
 #endif
 
-#ifdef GHOSTSX
+#if GHOSTSX
 #define l   ((i)+(j)*(Nx+2*NGHX)+((k)*Stride))
 #else
 #define l   ((i)+(j)*(Nx)+((k)*Stride))
@@ -421,7 +421,7 @@
 
 #else //defined __GPU
 
-#ifndef GHOSTSX
+#if (!GHOSTSX)
 #define lxp (((i)<size_x-1) ? ((l)+1) : ((l)-(size_x-1)))
 #define lxm (((i)>0) ? ((l)-1) : ((l)+(size_x-1)))
 #define ixm ((i)>0 ? ((i)-1) : size_x-1)
@@ -436,7 +436,7 @@
 
 #endif
 
-#ifdef Y
+#if YDIM
 #define lyp ((l)+pitch)
 #define lym ((l)-pitch)
 #else
@@ -444,7 +444,7 @@
 #define lym ((l))
 #endif
 
-#ifdef Z
+#if ZDIM
 #define lzp ((l)+stride)
 #define lzm ((l)-stride)
 #else
@@ -501,7 +501,7 @@ the first call of the function to be debugged. If your initial
 conditions are too symmetric or regular, you may miss a bug and have
 false-negatives. It is therefore advised that you introduce some noise
 in the initial conditions of the setup that is used to run the code in
-this debugging mode. There is a variable NOISE that defaults to 0. 
+this debugging mode. There is a variable NOISE that defaults to 0.
 */
 
 /* The fields produced by the CPU function are all written in files
@@ -581,7 +581,7 @@ a bug and obtain hints about its origin. */
 
 #define DRAFT( field) Draft(field, __LINE__, __FILE__);
 
-#ifdef BIGMEM
+#if BIGMEM
 #define CUDAMEMCPY(a,b,c,d,e)  cudaMemcpyToSymbol(a, b, sizeof(real*), d, cudaMemcpyHostToDevice);
 #define CONSTANT(a,b,c) __device__ __constant__ a *b;
 #else
@@ -589,7 +589,7 @@ a bug and obtain hints about its origin. */
 #define CONSTANT(a,b,c) __device__ __constant__ a b[c];
 #endif
 
-#ifdef FLOAT
+#if FLOAT
 #define INSPECT_REAL( var) {printf ("%s = %f\n", #var, var);}
 #else
 #define INSPECT_REAL( var) {printf ("%s = %.18g\n", #var, var);}
@@ -597,7 +597,7 @@ a bug and obtain hints about its origin. */
 
 #define INSPECT_INT( var) {printf ("%s = %d\n", #var, var);}
 
-#ifdef FLOAT
+#if FLOAT
 #define pow powf
 #define sin sinf
 #define cos cosf
@@ -635,4 +635,4 @@ a bug and obtain hints about its origin. */
   if ( x >   xma && x <=  xmb ) output = GX_M (x) + xmc3 ; \
   if ( x >   xmb              ) output = FX   (x) + xmc4 ; \
   output;})
-  
+

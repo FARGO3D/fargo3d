@@ -5,9 +5,9 @@ Field *CreateFieldAlias(char *name, Field *clone, int type) {
   //real *array;
   char *string;
   int i,j,k;
-  
+
   field = (Field *) malloc(sizeof(Field));
-  if (field == NULL) 
+  if (field == NULL)
     prs_error("Insufficient memory for Field cloning");
   string = (char *) malloc(sizeof(char) * 80);
   if (string == NULL)
@@ -20,7 +20,7 @@ Field *CreateFieldAlias(char *name, Field *clone, int type) {
   field->name = string;
   field->next = ListOfGrids;     //Linkedlist
   ListOfGrids = field;
-#ifdef GPU
+#if GPU
   field->field_gpu = clone->field_gpu;
   field->gpu_pp = clone->gpu_pp;
   field->cpu_pp = clone->cpu_pp;
@@ -36,7 +36,7 @@ Field *CreateFieldAlias(char *name, Field *clone, int type) {
     field->fresh_inside_contour_gpu[i] = NO;
     field->fresh_outside_contour_gpu[i] = NO;
   }
-  
+
   field->type = type;
   masterprint("Grids %s and %s share their storage\n", clone->name, name);
   return field;
@@ -58,35 +58,35 @@ Fluid *CreateFluid(char *name, int fluidtype) {
   f->Density = CreateField(fieldname, DENS, 0,0,0);
 
   sprintf(fieldname,"%s%s",name,"energy");
-  f->Energy  = CreateField(fieldname, ENERGY, 0,0,0);  
+  f->Energy  = CreateField(fieldname, ENERGY, 0,0,0);
   f->VxMed   = CreateField2D ("VxMed", YZ);
 
-#ifdef X
+#if XDIM
   sprintf(fieldname,"%s%s",name,"vx");
   f->Vx      = CreateField(fieldname, VX, 1,0,0);
   f->Vx_temp = CreateField("Vx_temp", VXTEMP, 1,0,0);
-#ifdef COLLISIONPREDICTOR
+#if COLLISIONPREDICTOR
   f->Vx_half = CreateField("Vx_half", VXTEMP, 1,0,0);
 #endif
 #endif
-#ifdef Y
+#if YDIM
   sprintf(fieldname,"%s%s",name,"vy");
   f->Vy      = CreateField(fieldname, VY, 0,1,0);
   f->Vy_temp = CreateField("Vy_temp", VYTEMP,0,1,0);
-#ifdef COLLISIONPREDICTOR
+#if COLLISIONPREDICTOR
   f->Vy_half = CreateField("Vy_half", VYTEMP, 1,0,0);
 #endif
 #endif
-#ifdef Z
+#if ZDIM
   sprintf(fieldname,"%s%s",name,"vz");
   f->Vz      = CreateField(fieldname, VZ, 0,0,1);
   f->Vz_temp = CreateField("Vz_temp", VZTEMP,0,0,1);
-#ifdef COLLISIONPREDICTOR
+#if COLLISIONPREDICTOR
   f->Vz_half = CreateField("Vz_half", VZTEMP, 1,0,0);
 #endif
 #endif
 
-#ifdef STOCKHOLM
+#if STOCKHOLM
   f->Density0 = CreateField2D ("rho0", YZ);
   f->Energy0   = CreateField2D ("e0", YZ);
   f->Vx0  = CreateField2D ("vx0", YZ);
@@ -109,10 +109,10 @@ Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
   size_t pitch;
 
   field = (Field *) malloc(sizeof(Field));
-  if (field == NULL) 
+  if (field == NULL)
     prs_error("Insufficient memory for Field creation-step1.");
 
-#ifndef GPU
+#if (!GPU)
   array = (real *) malloc(sizeof(real)*(Ny+2*NGHY)*(Nx+2*NGHX)*(Nz+2*NGHZ)+sizeof(Field*));
 #else
 #ifndef PINNED
@@ -122,10 +122,10 @@ Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
 #endif
 #endif
 
-  if (array == NULL) 
+  if (array == NULL)
     prs_error("Insufficient memory for Field creation-step2.");
   string = (char *) malloc(sizeof(char) * 80);
-  if (string == NULL) 
+  if (string == NULL)
     prs_error("Insufficient memory for Field creation-step3.");
   sprintf(string, "%s", name);
   field->field_cpu = array;
@@ -136,34 +136,34 @@ Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
   *(field->owner) = field;
   field->line_origin = __LINE__;
   strncpy (field->file_origin, __FILE__, MAXLINELENGTH-1);
-  
+
   field->next = ListOfGrids;     //Linkedlist
   ListOfGrids = field;
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k = 0; k<Nz+2*NGHZ; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j = 0; j<Ny+2*NGHY; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i = 0; i<Nx+2*NGHX; i++) {
 #endif
 	array[l] = 0.0;
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
-#endif  
+#endif
   masterprint("Field %s has been created\n", name);
   //Now on the GPU
-#ifdef GPU
+#if GPU
   if (Nx+2*NGHX > 1 ) {
     #ifndef NOPITCH
       cudaMallocPitch (&arr_gpu, &pitch, (Nx+2*NGHX)*sizeof(real), (Ny+2*NGHY)*(Nz+2*NGHZ));
@@ -204,7 +204,7 @@ Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
     Pitch_gpu = 1;
     Stride_gpu = pitch/sizeof(real);
   }
-#ifdef DEBUG
+#if DEBUG
   masterprint("------>>>Pitch of %s = %d\n",field->name,pitch);
 #endif
   Host2Dev3D(field); // Do NOT remove this
@@ -216,15 +216,15 @@ Field *CreateField(char *name, int type, boolean sx, boolean sy, boolean sz) {
 
   if (sx)
     field->x = Xmin;
-  else 
+  else
     field->x = Xmed;
   if (sy)
     field->y = Ymin;
-  else 
+  else
     field->y = Ymed;
   if (sz)
     field->z = Zmin;
-  else 
+  else
     field->z = Zmed;
 
   return field;
@@ -255,10 +255,10 @@ Field2D *CreateField2D(char *name, int dim) {
   }
 
   field = (Field2D *) malloc(sizeof(Field));
-  if (field == NULL) 
+  if (field == NULL)
     prs_error("Insufficient memory for Field2D creation-step1.");
 
-#ifndef GPU
+#if (!GPU)
   array = (real *) malloc(sizeof(real)*size1*size2);
 #else
 #ifndef PINNED
@@ -269,15 +269,15 @@ Field2D *CreateField2D(char *name, int dim) {
 #endif
 
 
-  if (array == NULL) 
+  if (array == NULL)
     prs_error("Insufficient memory for Field2D creation-step2.");
   string = (char *) malloc(sizeof(char) * 80);
-  if (string == NULL) 
+  if (string == NULL)
     prs_error("Insufficient memory for Field2D creation-step3.");
   sprintf(string, "%s", name);
   field->field_cpu = array;
   field->name = string;
-  
+
   i = j = k = 0;
 
   for (i = 0; i < size1*size2; i++)
@@ -285,7 +285,7 @@ Field2D *CreateField2D(char *name, int dim) {
 
   masterprint("Field2D %s has been created\n", name);
   //Now on the GPU
-#ifdef GPU
+#if GPU
   if(cudaMallocPitch(&arr_gpu, &pitch, size1*sizeof(real), size2) == cudaSuccess){
     masterprint("Field %s has created on the GPU\n", name);
     masterprint("Pitch = %d bytes (%d elements)\n", (int)pitch, (int)(pitch/sizeof(real)));
@@ -317,10 +317,10 @@ FieldInt2D *CreateFieldInt2D(char *name) {
   size_t pitch;
 
   field = (FieldInt2D *) malloc(sizeof(Field));
-  if (field == NULL) 
+  if (field == NULL)
     prs_error("Insufficient memory for FieldInt2D creation-step1.");
 
-#ifndef GPU
+#if (!GPU)
   array = (int *) malloc(sizeof(int)*(Ny+2*NGHY)*(Nz+2*NGHZ));
 #else
 #ifndef PINNED
@@ -330,35 +330,35 @@ FieldInt2D *CreateFieldInt2D(char *name) {
 #endif
 #endif
 
-  if (array == NULL) 
+  if (array == NULL)
     prs_error("Insufficient memory for FieldInt2D creation-step2.");
   string = (char *) malloc(sizeof(char) * 80);
-  if (string == NULL) 
+  if (string == NULL)
     prs_error("Insufficient memory for FieldInt2D creation-step3.");
   sprintf(string, "%s", name);
   field->field_cpu = array;
   field->backup = NULL;
   field->secondary_backup = NULL;
   field->name = string;
-  
+
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k = 0; k<Nz+2*NGHZ; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j = 0; j<Ny+2*NGHY; j++) {
 #endif
 	array[l2D] = 0;
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
-#endif  
+#endif
   masterprint("Field2D %s has been created\n", name);
   //Now on the GPU
-#ifdef GPU
+#if GPU
   cudaMallocPitch (&arr_gpu, &pitch, (Ny+2*NGHY)*sizeof(int), Nz+2*NGHZ);
   check_errors ("CreateFieldInt2D");
   masterprint("Integer field %s has been created on the GPU\n", name);

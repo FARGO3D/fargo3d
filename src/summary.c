@@ -1,4 +1,4 @@
-#include <fargo3d.h>
+#include "fargo3d.h"
 
 extern Param Var_Set[];
 extern int Id_Var;
@@ -66,7 +66,7 @@ char *ExtractFromExecutable (boolean tostring, char *filename, int position) {
     if (input == NULL) {
       mastererr ("Cannot open executable file to retrieve information appended.\n");
       prs_exit (1);
-    } 
+    }
   }
   fseek (input, 0, SEEK_END);
   do {
@@ -112,7 +112,7 @@ void GetHostsList () {
   static boolean SpaceReservedForHostnames=NO;
   int device;
   gethostname(hostname,1023);
-#ifdef GPU
+#if GPU
   strcat (hostname, " (device ");
   cudaGetDevice (&device);
   sprintf (strdevice, "%d", device);
@@ -153,29 +153,29 @@ void Summary (int nout) {
     sum = fopen_prs (filename, "w");
     fprintf (sum, "%sSUMMARY:\n%s",sep,sep);
     fprintf (sum, "SETUP '%s' of %s\n", xstr(SETUPNAME), VersionString);
-#ifdef CARTESIAN
+#if CARTESIAN
     fprintf (sum, "Cartesian ");
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
     fprintf (sum, "Cylindrical ");
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
     fprintf (sum, "Spherical ");
 #endif
     fprintf (sum, "mesh of size %d x %d x %d (%d cells in total)\n", NX, NY, NZ, NX*NY*NZ);
     fprintf (sum, "%d outputs scheduled\n", NTOT/NINTERM);
-#ifdef LONGSUMMARY
+#if LONGSUMMARY
     fprintf (sum, "Source file archive: %s\n", ArchFile);
 #else
     fprintf (sum, "LONGSUMMARY sticky flag not activated: no source file archive\n");
 #endif
     if (ThereArePlanets)
-      fprintf (sum, "%d planet%s\n", Sys->nb, (Sys->nb > 1 ? "s" : "")); 
+      fprintf (sum, "%d planet%s\n", Sys->nb, (Sys->nb > 1 ? "s" : ""));
     fprintf (sum, "\n%sCOMPILATION OPTION SECTION:\n%s",sep,sep);
     fprintf (sum, "%s\n", xstr(OPTIONS));
     fprintf (sum, "Ghost layer sizes: NGHX=%d\tNGHY=%d\tNGHZ=%d\n",\
 	     NGHX, NGHY, NGHZ);
-#ifdef LONGSUMMARY
+#if LONGSUMMARY
     fprintf (sum, "\n%sSTICKY FLAGS SECTION:\n%s",sep,sep);
     fprintf (sum, "%s", StickyOptions);
 #endif
@@ -224,7 +224,7 @@ void Summary (int nout) {
     }
     fprintf (sum, "*** Input file: %s\n#-----------\n%s\n#-----------\n",
 	     ParameterFile, InputFile);
-#ifdef LONGSUMMARY
+#if LONGSUMMARY
     fprintf (sum, "\n%sBOUNDARY CONDITIONS SECTION:\n%s",sep,sep);
     fprintf (sum, "%s", BoundaryFile);
 #endif

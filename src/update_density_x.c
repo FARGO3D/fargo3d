@@ -50,13 +50,13 @@ void UpdateDensityX_cpu(real dt, Field *Q, Field *Vx_t) {
 
   i = j = k = 0;
 
-#ifdef Z  
+#if ZDIM  
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=0; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++) {
 #endif
 //<#>
@@ -67,13 +67,13 @@ void UpdateDensityX_cpu(real dt, Field *Q, Field *Vx_t) {
 		   vx[llxp]*rho_s[llxp])*	\
 		  SurfX(j,k)*dt*InvVol(i,j,k));
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

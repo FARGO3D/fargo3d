@@ -8,13 +8,13 @@
 //<\INCLUDES>
 
 void ChangeFrame_cpu(int sign, Field *V, Field2D *Vm) {
-  
+
 //<USER_DEFINED>
   INPUT(V);
   INPUT2D(Vm);
   OUTPUT(V);
 //<\USER_DEFINED>
-  
+
 //<EXTERNAL>
   real* v  = V->field_cpu;
   real* vm = Vm->field_cpu;
@@ -36,25 +36,25 @@ void ChangeFrame_cpu(int sign, Field *V, Field2D *Vm) {
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k = 0; k < size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j = 0; j < size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i = 0; i < size_x; i++) {
 #endif
 //<#>
 	v[l] += (real)sign*vm[l2D];
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

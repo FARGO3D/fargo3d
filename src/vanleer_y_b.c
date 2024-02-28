@@ -23,7 +23,7 @@ void VanLeerY_b_cpu(real dt, Field *Q, Field *Qs){
   int ll;
   int llym;
 //<\INTERNAL>
-  
+
 //<EXTERNAL>
   real* q = Q->field_cpu;
   real* qs = Qs->field_cpu;
@@ -45,13 +45,13 @@ void VanLeerY_b_cpu(real dt, Field *Q, Field *Qs){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=0; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=1; j<size_y; j++) {
 #endif
-#ifdef X
+#if XDIM
       for (i=0; i<size_x; i++) {
 #endif
 //<#>
@@ -64,13 +64,13 @@ void VanLeerY_b_cpu(real dt, Field *Q, Field *Qs){
 	  qs[ll] = q[ll] - 0.5 * (zone_size_y(j,k)
 	  			  +vy[ll]*dt)*slope[ll];
 //<\#>
-#ifdef X
+#if XDIM
       }
 #endif
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

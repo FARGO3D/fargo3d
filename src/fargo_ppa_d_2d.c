@@ -8,7 +8,7 @@
 //<\INCLUDES>
 
 void VanLeerX_PPA_d_2d_cpu(real dt, Field *Q, Field *Qs, Field2D *Vx_t){
-  
+
 //<USER_DEFINED>
   INPUT(Q);
   INPUT(QL);
@@ -40,7 +40,7 @@ void VanLeerX_PPA_d_2d_cpu(real dt, Field *Q, Field *Qs, Field2D *Vx_t){
   int llxm;
   real ksi;
 //<\INTERNAL>
-  
+
 //Parsed as copytosymbol, from a _d variable allocated on the gpu by users.
 //<CONSTANT>
 // real xmin(Nx+1);
@@ -52,10 +52,10 @@ void VanLeerX_PPA_d_2d_cpu(real dt, Field *Q, Field *Qs, Field2D *Vx_t){
 
   i = j = k = 0;
 
-#ifdef Z
+#if ZDIM
   for (k=1; k<size_z; k++) {
 #endif
-#ifdef Y
+#if YDIM
     for (j=1; j<size_y; j++) {
 #endif
       for (i=XIM; i<size_x; i++) {
@@ -74,10 +74,10 @@ void VanLeerX_PPA_d_2d_cpu(real dt, Field *Q, Field *Qs, Field2D *Vx_t){
 	}
 //<\#>
       }
-#ifdef Y
+#if YDIM
     }
 #endif
-#ifdef Z
+#if ZDIM
   }
 #endif
 //<\MAIN_LOOP>

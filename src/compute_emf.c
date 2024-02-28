@@ -8,7 +8,7 @@
 //<\INCLUDES>
 
 
-void ComputeEmf(real dt, int idx, int idy, int idz, 
+void ComputeEmf(real dt, int idx, int idy, int idz,
 		Field *Bs1, Field *Vs1, Field *Bs2, Field *Vs2) {
 
   int idx1,idy1,idz1;
@@ -19,7 +19,7 @@ void ComputeEmf(real dt, int idx, int idy, int idz,
   Field* V1;
   Field* V2;
   Field* Emf;
-    
+
   if(idx == 1) {
     Emf = Emfx;
     B2 = By;
@@ -114,7 +114,7 @@ void _ComputeEmf_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, 
   real v1_mean_old;
   real v2_mean_old;
 //<\INTERNAL>
-  
+
 //<CONSTANT>
 // real xmin(Nx+1);
 // real ymin(Ny+2*NGHY+1);
@@ -131,18 +131,18 @@ void _ComputeEmf_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, 
 	ll = l;
 	l1 = lxm*idx1+lym*idy1+lzm*idz1;
 	l2 = lxm*idx2+lym*idy2+lzm*idz2;
-	
+
 	delta1 = (zone_size_x(i,j,k)*idx1 +
 		  zone_size_y(j,k)*idy1 +
 		  zone_size_z(j,k)*idz1);
-	
+
 	delta2 = (zone_size_x(i,j,k)*idx2 +
 		  zone_size_y(j,k)*idy2 +
 		  zone_size_z(j,k)*idz2);
-	
+
 	v1_mean_old = 0.5*(v1[ll]+v1[l2]);
 	v2_mean_old = 0.5*(v2[ll]+v2[l1]);
-	
+
 	if(v2_mean_old<0.0){
 	  v1_mean = v1[ll]-.5*slope_v2[ll]*(delta2+v2_mean_old*dt);
 	  b1_mean = b1[ll]-.5*slope_b2[ll]*(delta2+v2_mean_old*dt);
@@ -151,7 +151,7 @@ void _ComputeEmf_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, 
 	  v1_mean = v1[l2]+.5*slope_v2[l2]*(delta2-v2_mean_old*dt);
 	  b1_mean = b1[l2]+.5*slope_b2[l2]*(delta2-v2_mean_old*dt);
 	}
-#ifdef STRICTSYM
+#if STRICTSYM
 	if (fabs(v2_mean_old) < SMALLVEL) {
 	  v1_mean = .5*(v1[ll]+v1[l2]);
 	  b1_mean = .5*(b1[ll]+b1[l2]);
@@ -165,7 +165,7 @@ void _ComputeEmf_cpu(real dt, int idx1, int idy1, int idz1, int idx2, int idy2, 
 	  v2_mean = v2[l1]+.5*slope_v1[l1]*(delta1-v1_mean_old*dt);
 	  b2_mean = b2[l1]+.5*slope_b1[l1]*(delta1-v1_mean_old*dt);
 	}
-#ifdef STRICTSYM
+#if STRICTSYM
 	if (fabs(v1_mean_old) < SMALLVEL) {
 	  v2_mean = .5*(v2[ll]+v2[l1]);
 	  b2_mean = .5*(b2[ll]+b2[l1]);

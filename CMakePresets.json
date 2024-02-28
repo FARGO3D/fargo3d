@@ -1,0 +1,7 @@
+{
+    "version": 4,
+    "include": [
+        "setups/fargo/fargo.json",
+        "setups/fargo_multifluid/fargo_multifluid.json"
+    ]
+}

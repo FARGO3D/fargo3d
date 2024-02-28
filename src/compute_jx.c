@@ -47,17 +47,17 @@ void ComputeJx_cpu() {
       for (i=0; i<size_x; i++) {
 //<#>
 	ll = l;
-#ifdef CARTESIAN
+#if CARTESIAN
 	fact1 = 1.0/(ymed(j)-ymed(j-1));
 	fact2 = 1.0/(zmed(k)-zmed(k-1));
 	jx[ll] = ((bz[ll]-bz[lym])*fact1-(by[ll]-by[lzm])*fact2)/mu0; // rot(B)_x
 #endif
-#ifdef CYLINDRICAL
+#if CYLINDRICAL
 	fact1 = 1.0/(ymed(j)-ymed(j-1));
 	fact2 = 1.0/(zmed(k)-zmed(k-1));
 	jx[ll] = ((by[ll]-by[lzm])*fact2-(bz[ll]-bz[lym])*fact1)/mu0;  //rot(B)_phi
 #endif
-#ifdef SPHERICAL
+#if SPHERICAL
 	fact1 = 1.0/(ymin(j)*(ymed(j)-ymed(j-1)));
 	fact2 = 1.0/(ymin(j)*(zmed(k)-zmed(k-1)));
 	jx[ll] = ((ymed(j)*bz[ll]-ymed(j-1)*bz[lym])*fact1-(by[ll]-by[lzm])*fact2)/mu0; //rot(B)_phi
