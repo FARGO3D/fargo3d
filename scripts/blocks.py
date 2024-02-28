@@ -24,7 +24,7 @@ def opt_reader():
                                            's:f',
                                            ['setup=',
                                             'force'])
-    except getopt.GetoptError, err:
+    except getopt.GetoptError(err):
         print(str(err))
         usage()
 
@@ -67,6 +67,7 @@ def analyze_makefile():
             if o[-1] == 'o':
                 gpu_objects.append(o[:-6]+'.c')
     makefile.close()
+
     return gpu_objects
 
 
