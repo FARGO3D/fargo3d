@@ -75,7 +75,7 @@ def analyze_data():
     temp.close()
     name = []; nx = []; ny = []; nz = []; time = []
     for line in lines:
-        match = re.match("("+FILENAME+'u'+")\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+.\d+)",line)
+        match = re.match("("+BINDIR+"/"+FILENAME+'u'+")\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+.\d+)",line)
         if match:
             name.append(match.group(1))
             nx.append(int(match.group(2)))
@@ -86,13 +86,14 @@ def analyze_data():
     return nx[index], ny[index], nz[index]
 
 def test_function():
+
+    compile_string = "make GPU=1 MPICUDA=0 PARALLEL=0 DEBUG=0 FULLDEBUG=0 FARGO_DISPLAY=0 PROFILING=1 SETUP="+SETUPNAME+SILENT
+    os.system(compile_string)
     os.system(PYTHON_CMD+ 
               C2CUDA+' -i ' + 
               SRCDIR +'/'+FILENAME + ' -o ' + 
-              FILENAME + 'u -p'+SILENT)
-
-    os.system("mv "+FILENAME+'u '+BINDIR+'/')
-    os.system("make GPU=1 MPICUDA=0 PARALLEL=0 DEBUG=0 FULLDEBUG=0 FARGO_DISPLAY=0 PROFILING=1 SETUP="+SETUPNAME+SILENT)
+              BINDIR+'/'+FILENAME + 'u -p'+SILENT)
+    os.system(compile_string)
     os.system("rm "+BINDIR+'/'+FILENAME[:-2]+"_gpu.o")
     os.system("rm -f "+BINDIR+'/'+FILENAME+'u ')
     os.system("./fargo3d -f "+SETUPDIR+'/'+SETUPNAME+'/'+SETUPNAME+'.par > '+ FILENAME[:-2]+'_blocks.temp 2>&1')
