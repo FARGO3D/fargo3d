@@ -297,7 +297,7 @@ void WriteMerging(Field *f, int n) {
   if (CPU_Master) fo = fopen(outname, "w");
   else            fo = fopen(outname, "r+");
   
-  long offset = (Nx+2*NGHX)*Y0 + Nx*NY*Z0;
+  long offset = Nx*Y0 + Nx*NY*Z0;
   
   for (k=NGHZ; k<Nz+NGHZ; k++) {
     fseek(fo, offset*sizeof(real), SEEK_SET);
