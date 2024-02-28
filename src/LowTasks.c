@@ -210,6 +210,7 @@ void InitSpace() {
   boolean already_z=NO;
   int temp, relay;
   int init = 0;
+  int j_global, j_local;
 
  
   if (*SPACING=='F') { //Fixed spacing
@@ -288,9 +289,9 @@ void InitSpace() {
   ymin_global = YMIN;
   Ymin(NGHY)  = YMIN;
 
-  for (int j_global = NGHY; j_global < NY+NGHY+1; j_global++) { //Global loop
+  for (j_global = NGHY; j_global < NY+NGHY+1; j_global++) { //Global loop
     if (j_global > NGHY) ymin_global = bisect(ymin_global, 1.1*YMAX, NY+1, uy, 0);
-    int j_local = j_global - Y0;
+    j_local = j_global - Y0;
     if ( (j_local > 0) && (j_local <= Ny+2*NGHY) )
       Ymin(j_local)  =  ymin_global;
   }
