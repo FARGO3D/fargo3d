@@ -289,7 +289,7 @@ void WriteMerging(Field *f, int n) {
   int relay;
   int i, j, k;
   
-  sprintf(outname, "%s%s%d_new.dat", OUTPUTDIR, f->name, n);
+  sprintf(outname, "%s%s%d.dat", OUTPUTDIR, f->name, n);
   
   if (CPU_Rank > 0) // Force sequential write
     MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
