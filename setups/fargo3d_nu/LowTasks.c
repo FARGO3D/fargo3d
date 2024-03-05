@@ -290,7 +290,7 @@ void InitSpace() {
   Ymin(NGHY)  = YMIN;
 
   for (int j_global = NGHY; j_global < NY+NGHY+1; j_global++) { //Global loop
-    if (j_global > NGHY) ymin_global = bisect(ymin_global, 1.1*YMAX, NY+1, uy, 0);
+    if (j_global > NGHY) ymin_global = bisect(ymin_global, 1.5*YMAX, NY+1, uy, 0);
     int j_local = j_global - Y0;
     if ( (j_local > 0) && (j_local <= Ny+2*NGHY) )
       Ymin(j_local)  =  ymin_global;
@@ -317,6 +317,10 @@ void InitSpace() {
   zmin_global = ZMIN;
   Zmin(NGHZ)  = ZMIN;
   Zmin(NZ+NGHZ) = ZMAX;
+
+  masterprint("Lets check u(ZMIN) and u(ZMAX) should equal 0 and 1\n");
+  masterprint("ZMIN,ZMAX = %f, %f\n",ZMIN,ZMAX);
+  masterprint("u(ZMIN), u(ZMAX) = %f, %f\n",uz(ZMIN),uz(ZMAX));
 
 
   for (int k_global = NGHZ; k_global < NZ+NGHZ; k_global++) { //Global loop
