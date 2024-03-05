@@ -1,0 +1,44 @@
+# You may enter a description between the BEGIN and END labels.
+# BEGIN
+# The "fargo" setup is the 2D polar setup that corresponds to the
+# standard setup of the former FARGO code.
+# In order to run it, do:
+# make SETUP=grow_planet
+# fargo3d in/fargo.par
+# END
+#-------------------------------------------------------------------------
+
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
+
+#Monitoring options
+MONITOR_SCALAR = MASS | MOM_X | TORQ
+MONITOR_Y_RAW  = TORQ
+
+#Damping zones in the active mesh
+
+FARGO_OPT += -DSTOCKHOLM
+
+FARGO_OPT +=  -DX
+FARGO_OPT +=  -DY
+
+#Equation of State
+FARGO_OPT +=  -DISOTHERMAL
+
+#Coordinate System.
+FARGO_OPT +=  -DCYLINDRICAL
+
+#Legacy files for outputs
+FARGO_OPT += -DLEGACY
+
+FARGO_OPT += -DPOTENTIAL
+
+FARGO_OPT += -DALPHAVISCOSITY
+
+#Cuda blocks
+ifeq (${GPU}, 1)
+FARGO_OPT += -DBLOCK_X=16
+FARGO_OPT += -DBLOCK_Y=16
+FARGO_OPT += -DBLOCK_Z=1
+endif

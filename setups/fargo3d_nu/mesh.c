@@ -100,7 +100,7 @@ real fz(real z) {
 }
 
 real gz_p(real z) {
-  return 0.5*(2.0+ZMC)*z/z_mesh_I - ZMC*(ZMB-ZMA)/(2.0*M_PI*z_mesh_I)*sin(M_PI*(z-M_PI/2-ZMA)/(ZMA-ZMB));
+  return 0.5*(2.0+ZMC)*z/z_mesh_I - ZMC*(ZMB-ZMA)/(2.0*M_PI*z_mesh_I)*sin(M_PI*(z-M_PI/2+ZMA)/(ZMA-ZMB));
 }
 
 real hz(real z) {
@@ -112,7 +112,7 @@ real uz(real z) { //Integral of \psi
   // 
   if( ZMA>ZMB ) prs_error("Error! ZMA>ZMB\n");
   if( fabs(ZMAX/(M_PI/2)-1) > 1e-6 ) prs_error("Error! ZMAX must be equal to PI/2 within 1e-6 precision.\n");
-  if( z>ZMAX ) prs_error("Error! this is only valid for z < ZMAX=PI/2");
+  // if( z>ZMAX ) prs_error("Error! this is only valid for z < ZMAX=PI/2");
 
   z_mesh_I = (ZMAX-ZMIN) + 0.5*ZMC*(ZMA + ZMB);  
   if ( z <= M_PI/2-ZMB                    ) return fz   (z) - fz   (ZMIN)                        ;
@@ -123,8 +123,8 @@ real uz(real z) { //Integral of \psi
 
 real psi_z(real z) { //Mesh density function
   z_mesh_I = (ZMAX-ZMIN) + 0.5*ZMC*(ZMA + ZMB);  
-  if      (z <= M_PI/2-ZMA)                     return (1+ZMC)/z_mesh_I;
-  else if (z  > M_PI/2-ZMA && z < M_PI/2-ZMB)   return (1+ZMC*pow(cos(M_PI*(M_PI/2-z-ZMA)/(2*(ZMB-ZMA))),2))/z_mesh_I;
+  if      (z >= M_PI/2-ZMA)                     return (1+ZMC)/z_mesh_I;
+  else if (z  < M_PI/2-ZMA && z > M_PI/2-ZMB)   return (1+ZMC*pow(cos(M_PI*(z-ZMAX+ZMA)/(2*(ZMB-ZMA))),2))/z_mesh_I;
   else                                          return  1/z_mesh_I;
 }
 
@@ -159,6 +159,7 @@ real bisect(real a, real b, int N, real (*u)(real), int option) {
       a = c;
     else {
       masterprint("Error! No root in the interval [%16.16lf,%16.16lf]\n",a,b);
+      masterprint("u(a), u(b), rhs = %f,%f,%f\n",u(a),u(b),rhs);
       prs_exit(1); 
     }
   }
