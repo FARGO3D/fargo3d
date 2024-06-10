@@ -18,7 +18,7 @@ int FindNumberOfPlanets(char *filename) {
 }
 
 PlanetarySystem *AllocPlanetSystem(int nb) {
-  char command[512];
+  char command[512], **name;
   real *mass, *x, *y, *z, *vx, *vy, *vz, *acc;
   boolean *feeldisk, *feelothers;
   int i;
@@ -29,22 +29,23 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
     fprintf (stderr, "Not enough memory to alloc PlanetarySystem.\n");
     prs_exit (1);
   }
-  x    = (real*)malloc(sizeof(real)*(nb+1));
-  y    = (real*)malloc(sizeof(real)*(nb+1));
-  z    = (real*)malloc(sizeof(real)*(nb+1));
-  vx   = (real*)malloc(sizeof(real)*(nb+1));
-  vy   = (real*)malloc(sizeof(real)*(nb+1));
-  vz   = (real*)malloc(sizeof(real)*(nb+1));
-  mass = (real*)malloc(sizeof(real)*(nb+1));
-  acc  = (real*)malloc(sizeof(real)*(nb+1));
+  x    = malloc(sizeof(real) * nb);
+  y    = malloc(sizeof(real) * nb);
+  z    = malloc(sizeof(real) * nb);
+  vx   = malloc(sizeof(real) * nb);
+  vy   = malloc(sizeof(real) * nb);
+  vz   = malloc(sizeof(real) * nb);
+  mass = malloc(sizeof(real) * nb);
+  acc  = malloc(sizeof(real) * nb);
+  name = malloc(sizeof(char *) * nb);
   if ((x == NULL) || (y == NULL) || (z == NULL)	      \
       || (vx == NULL) || (vy == NULL) || (vz == NULL) \
-      || (acc == NULL) || (mass == NULL)) {
+      || (acc == NULL) || (mass == NULL) || (name == NULL)) {
     fprintf (stderr, "Not enough memory to alloc components of planetary system.\n");
     prs_exit (1);
   }
-  feeldisk   = (boolean*)malloc(sizeof(char)*(nb+1));
-  feelothers = (boolean*)malloc(sizeof(char)*(nb+1));
+  feeldisk   = malloc(sizeof(char) * nb);
+  feelothers = malloc(sizeof(char) * nb);
   if ((feeldisk == NULL) || (feelothers == NULL)) {
     fprintf (stderr, "Not enough memory for boolean allocation in PlanetarySystem.\n");
     prs_exit (1);
@@ -57,16 +58,21 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
   sys->vz= vz;
   sys->acc=acc;
   sys->mass = mass;
+  sys->name = name;
   sys->FeelDisk = feeldisk;
   sys->FeelOthers = feelothers;
   for (i = 0; i < nb; i++) {
     x[i] = y[i] = z[i] = vx[i] = vy[i] = vz[i] = mass[i] = acc[i] = 0.0;
+    name[i] = NULL;
     feeldisk[i] = feelothers[i] = YES;
   }
-  for (i = 0; i < nb; i++) {
-    /* Creates orbit[i].dat if it does not exist */
-    sprintf (command, "touch %s/orbit%d.dat", OUTPUTDIR, i);
-    temp = system (command);
+
+  if (!HDF5) {
+    for (i = 0; i < nb; i++) {
+      /* Creates orbit[i].dat if it does not exist */
+      sprintf (command, "touch %s/orbit%d.dat", OUTPUTDIR, i);
+      temp = system (command);
+    }
   }
 
   sys->x = x;
@@ -103,15 +109,21 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
 }
 
 void FreePlanetary () {
-  free (Sys->x);
-  free (Sys->vx);
-  free (Sys->y);
-  free (Sys->vy);
-  free (Sys->mass);
-  free (Sys->acc);
-  free (Sys->FeelOthers);
-  free (Sys->FeelDisk);
-  free (Sys);
+  free(Sys->x);
+  free(Sys->vx);
+  free(Sys->y);
+  free(Sys->vy);
+  free(Sys->mass);
+  free(Sys->acc);
+
+  for (int i = 0; i < Sys->nb; ++i) {
+    free(Sys->name[i]);
+  }
+
+  free(Sys->name);
+  free(Sys->FeelOthers);
+  free(Sys->FeelDisk);
+  free(Sys);
 }
 
 real ComputeInnerMass(real r) {
@@ -126,7 +138,7 @@ real ComputeInnerMass(real r) {
 	if(Ymed(j)<r) {
 	  mass+=rho[l]*Vol(i,j,k);
 	}
-      }	
+      }
     }
   }
 #ifdef FLOAT
@@ -150,14 +162,14 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
   real summass=0.0;
   real e_bin, a_bin, period_bin;
   int status;
-  
+
   if (ThereArePlanets == NO) {
     sys = AllocPlanetSystem (1);
     sys->nb = 0;
     sys->x = sys->vx = sys->y = sys->vy = NULL;
     return sys;
   }
-  
+
   nb = FindNumberOfPlanets (filename);
   if (CPU_Master) {
     if(nb > 1) printf  ("%d planets found.\n", nb);
@@ -169,6 +181,10 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
   while (fgets(s, 510, input) != NULL) {
     sscanf(s, "%s ", nm);
     if (isalpha(s[0])) {
+      size_t namelen = strlen(nm);
+      sys->name[i] = malloc((namelen + 1) * sizeof(char));
+      strcpy(sys->name[i], nm);
+
       s1 = s + strlen(nm);
 #ifdef FLOAT
       sscanf(s1 + strspn(s1, "\t :=>_"), "%f %f %f %s %s", &dist, &mass, &accret, test1, test2);
@@ -392,7 +408,7 @@ real GetPsysInfo (boolean action) {
   }
 
   switch (action) {
-  case MARK: 
+  case MARK:
     X_planet = xc;
     Y_planet = yc;
     return 0.;

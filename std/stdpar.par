@@ -90,3 +90,6 @@ WriteVz                    No
 WriteDivergence            No
 WriteEnergyRad             No
 WriteTau                   No
+FileTag                    undefined
+CompressLevel              3
+Hdf5                       no
