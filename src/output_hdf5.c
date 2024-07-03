@@ -688,14 +688,14 @@ int WriteOutputs2dHdf5() {
 
 #ifdef Z
 #ifdef WRITEGHOSTS
-  mem_start[rank++] = NGHZ * (Gridd.K == 0);
+  mem_start[rank++] = NGHZ * (Gridd.K > 0);
 #else
   mem_start[rank++] = NGHZ;
 #endif  // WRITEGHOSTS
 #endif  // Z
 #ifdef Y
 #ifdef WRITEGHOSTS
-  mem_start[rank++] = NGHY * (Gridd.J == 0);
+  mem_start[rank++] = NGHY * (Gridd.J > 0);
 #else
   mem_start[rank++] = NGHY;
 #endif  // WRITEGHOSTS
