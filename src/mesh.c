@@ -58,11 +58,11 @@ real fy(real y) {
 }
 
 real gy_p(real y) {
-  return log(y)/y_mesh_I + 0.5*YMC*y/y_mesh_I - YMC*(YMB-YMA)/(2.0*M_PI*y_mesh_I)*sin(M_PI*(YMA+fabs(y-YMY0))/(YMA-YMB));
+  return log(y)/y_mesh_I + 0.5*YMC*y/y_mesh_I - YMC*(YMB-YMA)/(2.0*M_PI*y_mesh_I)*sin(M_PI*(YMA+(y-YMY0))/(YMA-YMB));
 }
 
 real gy_m(real y) {
-  return log(y)/y_mesh_I + 0.5*YMC*y/y_mesh_I - YMC*(YMB-YMA)/(2.0*M_PI*y_mesh_I)*sin(M_PI*(YMA-fabs(y-YMY0))/(YMA-YMB));
+  return log(y)/y_mesh_I + 0.5*YMC*y/y_mesh_I - YMC*(YMB-YMA)/(2.0*M_PI*y_mesh_I)*sin(M_PI*(-YMA+(y-YMY0))/(YMA-YMB));
 }
 
 real hy(real y) {
@@ -77,9 +77,9 @@ real uy(real y) { //Integral of \psi
   y_mesh_I = log(YMAX/YMIN) + YMC*(YMA + YMB); 
   
   if ( y <= YMY0-YMB                    ) return fy   (y) - fy   (YMIN)                     ;
-  if ( y >  YMY0-YMB && y <= YMY0-YMA   ) return gy_m (y) - gy_m (YMY0-YMB) + uy(YMY0-YMB) ; 
+  if ( y >  YMY0-YMB && y <= YMY0-YMA   ) return gy_p (y) - gy_p (YMY0-YMB) + uy(YMY0-YMB) ; 
   if ( y >  YMY0-YMA && y <= YMY0+YMA   ) return hy   (y) - hy   (YMY0-YMA) + uy(YMY0-YMA) ;
-  if ( y >  YMY0+YMA && y <= YMY0+YMB   ) return gy_p (y) - gy_p (YMY0+YMA) + uy(YMY0+YMA) ;
+  if ( y >  YMY0+YMA && y <= YMY0+YMB   ) return gy_m (y) - gy_m (YMY0+YMA) + uy(YMY0+YMA) ;
   if ( y >  YMY0+YMB                    ) return fy   (y) - fy   (YMY0+YMB) + uy(YMY0+YMB) ;  
   return 0.0; //default return
 }
@@ -87,13 +87,13 @@ real uy(real y) { //Integral of \psi
 real psi_y(real y) { //Mesh density function
   y_mesh_I = log(YMAX/YMIN) + YMC*(YMA + YMB);
   if      (fabs(y-YMY0) <= YMA)                   return (1/y+YMC)/y_mesh_I;
-  else if (fabs(y-YMY0) > YMA && fabs(y) < YMB)   return (1/y+YMC*pow(cos(M_PI*(fabs(y-YMY0)-YMA)/(2*(YMB-YMA))),2))/y_mesh_I;
+  else if (fabs(y-YMY0) > YMA && fabs(y-YMY0) < YMB)   return (1/y+YMC*pow(cos(M_PI*(fabs(y-YMY0)-YMA)/(2*(YMB-YMA))),2))/y_mesh_I;
   else                                            return 1/y/y_mesh_I;
 }
 
 
 real bisect(real a, real b, int N, real (*u)(real), int option) {
-
+  int i;
   if (a>b) prs_error("Error! a>b\n");
   
   real delta = 1e-16;
@@ -105,7 +105,7 @@ real bisect(real a, real b, int N, real (*u)(real), int option) {
   if (option == 0) rhs = u(a) + du;
   if (option == 1) rhs = u(b) - du; // Used to fill ghost zones
 
-  for (int i=0; i<nmax; i++) {
+  for (i=0; i<nmax; i++) {
     c = 0.5*(a + b);
 
     fa = u(a) - rhs;

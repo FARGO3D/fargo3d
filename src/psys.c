@@ -212,7 +212,7 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
       sys->x[i] = (real)dist*(1.0+ECCENTRICITY); // Planets are initialized at apoastron
       sys->y[i] = 0.0;
       sys->z[i] = 0.0;
-      sys->vy[i] = (real)sqrt(G*(MSTAR+mass)/dist)*	\
+      sys->vy[i] = (real)sqrt(G*(MSTAR+sys->mass[i])/dist)*	\
 	sqrt( (1.0-ECCENTRICITY)/(1.0+ECCENTRICITY))*	\
 	cos(INCLINATION);
       sys->vx[i] = -0.0000000000*sys->vy[i];

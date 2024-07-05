@@ -116,8 +116,8 @@ void DustDiffusion_Core_cpu(real dt) {
 	
 	// DUST DIFFUSION ALONG X-DIRECTION
 	dxmin  = xmin(i+1)-xmin(i);
-	dxmedp = InvDiffXmed(ixp);
-	dxmedm = InvDiffXmed(i);
+	dxmedp = 1.0/InvDiffXmed(ixp);
+	dxmedm = 1.0/InvDiffXmed(i);
 	
 #ifdef X
         d1   = 0.25*(rhod[ll] + rhog[ll] + rhod[llxp] + rhog[llxp])*(sdiff_yczc[llxp]+sdiff_yczc[ll]); //face centered in X
