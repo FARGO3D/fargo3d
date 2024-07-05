@@ -90,6 +90,5 @@ WriteVz                    No
 WriteDivergence            No
 WriteEnergyRad             No
 WriteTau                   No
-FileTag                    undefined
+FileTag                    fargo3d
 CompressLevel              3
-Hdf5                       no

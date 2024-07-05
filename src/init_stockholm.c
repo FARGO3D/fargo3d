@@ -104,9 +104,9 @@ void _init_stockholm() {
   }
 #endif
 
-  if (HDF5) {
+#ifdef HDF5
     WriteOutputs2dHdf5();
-  } else {
+#else
     sprintf(outputname,"%s0_2d.dat",Density->name);
     Write2D(Density0, outputname, OUTPUTDIR, GHOSTINC);
 #ifdef X
@@ -125,7 +125,7 @@ void _init_stockholm() {
     sprintf(outputname,"%s0_2d.dat",Energy->name);
     Write2D(Energy0, outputname, OUTPUTDIR, GHOSTINC);
 #endif
-  }
+#endif
 
 }
 

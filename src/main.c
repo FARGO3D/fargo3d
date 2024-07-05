@@ -224,15 +224,17 @@ int main(int argc, char *argv[]) {
   }
 #endif
 
-  if (!HDF5) {
-	ListVariables ("variables.par"); //Writes all variables defined in set up
-	ListVariablesIDL ("IDL.var");
-  }
+#ifndef HDF5
+  ListVariables ("variables.par"); //Writes all variables defined in set up
+  ListVariablesIDL ("IDL.var");
+#endif
   ChangeArch(); /*Changes the name of the main functions
 		  ChangeArch adds _cpu or _gpu if GPU is activated.*/
   split(&Gridd); /*Split mesh over PEs*/
   InitSpace();
-  if (!HDF5) WriteDim();
+#ifndef HDF5
+  WriteDim();
+#endif
   InitSurfaces();
   LightGlobalDev(); /* Copy light arrays to the device global memory */
   CreateFields(); // Allocate all fields.
@@ -262,8 +264,10 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
     }
   }
   else {
-    if (!HDF5 && ThereArePlanets)
+#ifndef HDF5
+    if (ThereArePlanets)
       EmptyPlanetSystemFiles ();
+#endif
     CondInit(); // Initialize set up
     // Note: CondInit () must be called only ONCE (otherwise some
     // custom scaling laws may be applied several times).
@@ -302,27 +306,27 @@ if (*SPACING=='N'){
   prs_exit (1);
 #endif
 
-  if (HDF5) {
-	if (SetupOutputHdf5() != 0) {
-      mastererr("HDF5 output initialization failed!\n");
-      exit(EXIT_FAILURE);
-	}
-
-	if (WriteDomainHdf5() != 0) {
-      mastererr("HDF5 domain write failed!\n");
-      exit(EXIT_FAILURE);
-	}
-
-	if (WriteParametersHdf5() != 0) {
-      mastererr("HDF5 parameters write failed!\n");
-      exit(EXIT_FAILURE);
-	}
-
-	if (ThereArePlanets && (WritePlanetsHdf5() != 0)) {
-      mastererr("HDF5 planets write failed!\n");
-      exit(EXIT_FAILURE);
-	}
+#ifdef HDF5
+  if (SetupOutputHdf5() != 0) {
+    mastererr("HDF5 output initialization failed!\n");
+    exit(EXIT_FAILURE);
   }
+
+  if (WriteDomainHdf5() != 0) {
+    mastererr("HDF5 domain write failed!\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (WriteParametersHdf5() != 0) {
+    mastererr("HDF5 parameters write failed!\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (ThereArePlanets && (WritePlanetsHdf5() != 0)) {
+    mastererr("HDF5 planets write failed!\n");
+    exit(EXIT_FAILURE);
+  }
+#endif
 
   GetHostsList ();
   DumpToFargo3drc(argc, argv);
@@ -351,12 +355,17 @@ if (*SPACING=='N'){
 #if defined(MHD) && defined(DEBUG)
       FARGO_SAFE(ComputeDivergence(Bx, By, Bz));
 #endif
-      if (!HDF5 && ThereArePlanets)
+#ifndef HDF5
+      if (ThereArePlanets)
 	    WritePlanetSystemFile(TimeStep, NO);
+#endif
 
 #ifndef NOOUTPUTS
-	  if (HDF5) WriteOutputsHdf5();
-	  else MULTIFLUID(WriteOutputs(ALL));
+#ifdef HDF5
+	  WriteOutputsHdf5();
+#else
+	  MULTIFLUID(WriteOutputs(ALL));
+#endif
 
 #ifdef MATPLOTLIB
       Display();
@@ -371,7 +380,9 @@ if (*SPACING=='N'){
 
     if (NSNAP != 0) {
       if (NSNAP * (TimeStep = (i / NSNAP)) == i) {
-		if (!HDF5) MULTIFLUID(WriteOutputs(SPECIFIC));
+#ifndef HDF5
+		MULTIFLUID(WriteOutputs(SPECIFIC));
+#endif
 #ifdef MATPLOTLIB
 	Display();
 #endif
@@ -474,26 +485,28 @@ if (*SPACING=='N'){
 
     if(CPU_Master) printf("%s", "\n");
 
-	if (!HDF5) {
-      MULTIFLUID(MonitorGlobal (MONITOR2D      |	\
+#ifndef HDF5
+    MULTIFLUID(MonitorGlobal (MONITOR2D      |	\
 	    		      MONITORY       |	\
 	    		      MONITORY_RAW   |	\
 	    		      MONITORSCALAR  |	\
 	    		      MONITORZ       |	\
 	    		      MONITORZ_RAW));
-	}
+#endif
 
     if (ThereArePlanets) {
-	  if (HDF5) {
-		WritePlanetsHdf5();
-	  } else {
-        WritePlanetSystemFile(TimeStep, YES);
-        SolveOrbits (Sys);
-	  }
+#ifdef HDF5
+	  WritePlanetsHdf5();
+#else
+      WritePlanetSystemFile(TimeStep, YES);
+      SolveOrbits (Sys);
+#endif
     }
   }
 
-  if (HDF5) TeardownOutputHdf5();
+#ifdef HDF5
+  TeardownOutputHdf5();
+#endif
   MPI_Finalize();
 
   masterprint("End of the simulation!\n");

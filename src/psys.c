@@ -67,13 +67,13 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
     feeldisk[i] = feelothers[i] = YES;
   }
 
-  if (!HDF5) {
+#ifndef HDF5
     for (i = 0; i < nb; i++) {
       /* Creates orbit[i].dat if it does not exist */
       sprintf (command, "touch %s/orbit%d.dat", OUTPUTDIR, i);
       temp = system (command);
     }
-  }
+#endif
 
   sys->x = x;
   sys->y = y;
