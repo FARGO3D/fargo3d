@@ -34,7 +34,6 @@ void ComputeJy_cpu() {
   int ll;
   real fact1;
   real fact2;
-  real fact;
 //<\INTERNAL>
 
 //<CONSTANT>
@@ -62,7 +61,7 @@ void ComputeJy_cpu() {
 #endif
 #ifdef SPHERICAL
 	fact1 = Inv_zone_size_xmed(i,j,k);
-	fact2 = 1.0/(fact*(zmed(k)-zmed(k-1)));
+	fact2 = 1.0/(ymed(j)*sin(zmin(k))*(zmed(k)-zmed(k-1)));
 	jy[ll] = ((sin(zmed(k))*bx[ll]-sin(zmed(k-1))*bx[lzm])*fact2-(bz[ll]-bz[lxm])*fact1)/mu0;
 #endif
 //<\#>
