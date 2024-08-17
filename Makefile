@@ -92,7 +92,8 @@ endif
 ##Shortcut rules
 blocks:
 #Syntax: make blocks setup=SETUPNAME
-	@${PYTHON} ${SCRIPTSDIR}/blocks.py --${MAKEFLAGS} BLOCKS=1
+	@echo "Initial built in progress. Please wait"
+	@${PYTHON} ${SCRIPTSDIR}/blocks.py --setup=${setup}
 cuda:
 	@${PYTHON} ${SCRIPTSDIR}/make.py GPU=1 ${MAKEFLAGS}
 nocuda:
