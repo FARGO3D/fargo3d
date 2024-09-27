@@ -126,15 +126,15 @@ endif
 #---------------------------------------------------------------------
 #LINUX PLATFORM (GENERIC, default)
 #FARGO_ARCH must be set to LINUX
-CC_LINUX      = gcc 
+CC_LINUX      = gcc
 SEQOPT_LINUX  = -O3
 PARAOPT_LINUX = ${SEQOPT_LINUX}
 PARACC_LINUX  = mpicc
 LIBS_LINUX    = -lm
-INC_LINUX     = 
+INC_LINUX     =
 NVCC_LINUX    = nvcc
 CUDAOPT_LINUX = -O3 -w #-arch=sm_XX # try utils/cuda/get_cuda_sm.sh
-PARAINC_LINUX = 
+PARAINC_LINUX =
 PARALIB_LINUX =
 CUDAINC_LINUX = -I${CUDA}/include/
 CUDALIB_LINUX = -L${CUDA}/lib64/  -lcudart -lstdc++
@@ -143,16 +143,16 @@ CXXPARA_LINUX = mpic++ -stdlib=libstdc++
 #---------------------------------------------------------------------
 #KEPLER PLATFORM WITH OPENMPI-1.7.4 AT UNAM
 #FARGO_ARCH must be set to KEPLEROPENMPI
-CC_KEPLEROPENMPI      = gcc 
+CC_KEPLEROPENMPI      = gcc
 SEQOPT_KEPLEROPENMPI  = -O3 -ffast-math
 PARAOPT_KEPLEROPENMPI = ${SEQOPT_KEPLEROPENMPI}
 PARACC_KEPLEROPENMPI  = mpicc
 LIBS_KEPLEROPENMPI    = -lm
 ENVRANK_KEPLEROPENMPI = OMPI_COMM_WORLD_LOCAL_RANK
-INC_KEPLEROPENMPI     = 
+INC_KEPLEROPENMPI     =
 NVCC_KEPLEROPENMPI    = nvcc
 CUDAOPT_KEPLEROPENMPI = -O3 -arch=sm_35
-PARAINC_KEPLEROPENMPI = 
+PARAINC_KEPLEROPENMPI =
 PARALIB_KEPLEROPENMPI =
 CUDAINC_KEPLEROPENMPI = -I${CUDA}/include/
 CUDALIB_KEPLEROPENMPI = -L${CUDA}/lib64/  -lcudart
@@ -161,17 +161,17 @@ CXXPARA_KEPLEROPENMPI = mpic++ -stdlib=libstdc++
 #---------------------------------------------------------------------
 #KEPLER PLATFORM WITH MVAPICH2-2.0b AT UNAM
 #FARGO_ARCH must be set to KEPLERMVAPICH
-CC_KEPLERMVAPICH      = gcc 
+CC_KEPLERMVAPICH      = gcc
 SEQOPT_KEPLERMVAPICH  = -O3 -ffast-math
 PARAOPT_KEPLERMVAPICH = ${SEQOPT_KEPLERMVAPICH}
 PARACC_KEPLERMVAPICH  = mpicc
 LIBS_KEPLERMVAPICH    = -lm
 ENVRANK_KEPLERMVAPICH = MV2_COMM_WORLD_LOCAL_RANK
-INC_KEPLERMVAPICH     = 
+INC_KEPLERMVAPICH     =
 NVCC_KEPLERMVAPICH    = nvcc
 CUDAOPT_KEPLERMVAPICH = -O3 -arch=sm_35
-PARAINC_KEPLERMVAPICH = 
-PARALIB_KEPLERMVAPICH = 
+PARAINC_KEPLERMVAPICH =
+PARALIB_KEPLERMVAPICH =
 CUDAINC_KEPLERMVAPICH = -I${CUDA}/include/
 CUDALIB_KEPLERMVAPICH = -L${CUDA}/lib64/ -lcudart -L/share/apps/mvapich2/lib
 CXX_KEPLERMVAPICH     = g++ -stdlib=libstdc++
@@ -179,16 +179,16 @@ CXXPARA_KEPLERMVAPICH = mpic++ -stdlib=libstdc++
 #---------------------------------------------------------------------
 #TESLA PLATFORM WITH OPENMPI-1.7.2 AT UNAM
 #FARGO_ARCH must be set to TESLAOPENMPI
-CC_TESLAOPENMPI      = gcc 
+CC_TESLAOPENMPI      = gcc
 SEQOPT_TESLAOPENMPI  = -O3 -ffast-math
 PARAOPT_TESLAOPENMPI = ${SEQOPT_TESLAOPENMPI}
 PARACC_TESLAOPENMPI  = mpicc
 LIBS_TESLAOPENMPI    = -lm
 ENVRANK_TESLAOPENMPI = OMPI_COMM_WORLD_LOCAL_RANK
-INC_TESLAOPENMPI     = 
+INC_TESLAOPENMPI     =
 NVCC_TESLAOPENMPI    = nvcc
 CUDAOPT_TESLAOPENMPI = -O3 -arch=sm_20
-PARAINC_TESLAOPENMPI = 
+PARAINC_TESLAOPENMPI =
 PARALIB_TESLAOPENMPI =
 CUDAINC_TESLAOPENMPI = -I${CUDA}/include/
 CUDALIB_TESLAOPENMPI = -L${CUDA}/lib64/  -lcudart
@@ -197,16 +197,16 @@ CXXPARA_TESLAOPENMPI = mpic++
 #---------------------------------------------------------------------
 #TESLA PLATFORM WITH MVAPICH2-1.9 AT UNAM
 #FARGO_ARCH must be set to TESLAMVAPICH
-CC_TESLAMVAPICH      = gcc 
+CC_TESLAMVAPICH      = gcc
 SEQOPT_TESLAMVAPICH  = -O3 -ffast-math
 PARAOPT_TESLAMVAPICH = ${SEQOPT_TESLAMVAPICH}
 PARACC_TESLAMVAPICH  = mpicc
 LIBS_TESLAMVAPICH    = -lm
 ENVRANK_TESLAMVAPICH = MV2_COMM_WORLD_LOCAL_RANK
-INC_TESLAMVAPICH     = 
+INC_TESLAMVAPICH     =
 NVCC_TESLAMVAPICH    = nvcc
 CUDAOPT_TESLAMVAPICH = -O3 -arch=sm_20
-PARAINC_TESLAMVAPICH = 
+PARAINC_TESLAMVAPICH =
 PARALIB_TESLAMVAPICH = -lmpich -lOpenCL
 CUDAINC_TESLAMVAPICH = -I${CUDA}/include/
 CUDALIB_TESLAMVAPICH = -lcudart
@@ -215,16 +215,16 @@ CXXPARA_TESLAMVAPICH = mpic++ -stdlib=libstdc++
 #---------------------------------------------------------------------
 #TESLA C2070 PLATFORM WITH MVAPICH2-1.9 AT CORDOBA
 #FARGO_ARCH must be set to MENDIETA
-CC_MENDIETA      = gcc 
+CC_MENDIETA      = gcc
 SEQOPT_MENDIETA  = -O3 -ffast-math
 PARAOPT_MENDIETA = ${SEQOPT_MENDIETA}
 PARACC_MENDIETA  = mpicc
 LIBS_MENDIETA    = -lm
 ENVRANK_MENDIETA = MV2_COMM_WORLD_RANK
-INC_MENDIETA     = 
+INC_MENDIETA     =
 NVCC_MENDIETA    = nvcc
 CUDAOPT_MENDIETA = -O3 -arch=sm_20
-PARAINC_MENDIETA = 
+PARAINC_MENDIETA =
 PARALIB_MENDIETA = -lmpich -lOpenCL
 CUDAINC_MENDIETA = -I${CUDA}/include/
 CUDALIB_MENDIETA = -lcudart
@@ -234,13 +234,13 @@ CXXPARA_MENDIETA = mpic++ -stdlib=libstdc++
 #QUADRO PLATFORM (IATE COMPUTER)
 #FARGO_ARCH must be set to QUADRO
 CC_QUADRO      = gcc
-SEQOPT_QUADRO  = -O3 #-ffast-math 
+SEQOPT_QUADRO  = -O3 #-ffast-math
 PARAOPT_QUADRO = ${SEQOPT_QUADRO}
 PARACC_QUADRO  = mpicc
 LIBS_QUADRO    = -lm
-INC_QUADRO     = 
+INC_QUADRO     =
 NVCC_QUADRO    = ${CUDA}/bin/nvcc -arch=sm_20
-CUDAOPT_QUADRO = 
+CUDAOPT_QUADRO =
 PARAINC_QUADRO = -I/usr/include/openmpi-x86_64/
 PARALIB_QUADRO = -L/usr/lib64/openmpi/lib/
 CUDALIB_QUADRO = -L${CUDA}/lib64/ -lcudart
@@ -256,12 +256,12 @@ SEQOPT_MacIntel  = -O3 -arch x86_64 -Wmissing-prototypes #-Wall -Wextra
 PARAOPT_MacIntel = ${SEQOPT_MacIntel}
 PARACC_MacIntel  = mpicc
 ENVRANK_MacIntel = OMPI_COMM_WORLD_RANK
-LIBS_MacIntel    = 
-INC_MacIntel     = 
+LIBS_MacIntel    =
+INC_MacIntel     =
 NVCC_MacIntel    = ${CUDA}/bin/nvcc
 CUDAOPT_MacIntel = -arch=sm_30 -m64 -O3 --compiler-options '-Wno-return-type-c-linkage' -Xcudafe --diag_suppress=set_but_not_used -Xcudafe --diag_suppress=declared_but_not_referenced
-PARAINC_MacIntel = 
-PARALIB_MacIntel = 
+PARAINC_MacIntel =
+PARALIB_MacIntel =
 CUDALIB_MacIntel = -L${CUDA}/lib/ -lcudart
 CUDAINC_MacIntel = -I${CUDA}/include/
 CXX_MacIntel     = g++ -stdlib=libstdc++
@@ -369,7 +369,7 @@ MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    \
 	   mesh.o ram_advect.o ram_advect_lin.o ram_compute_ustar.o ram_plm.o
 #-----------------------#Cuda objects---------------------------------
 GPU_OBJ  =  reduction_sum_device.o reduction_min_device.o	\
-	   	lowtasks_gpu.o 
+	   	lowtasks_gpu.o
 
 
 #<CUDA OBJECTS> #Do not remove!!!
@@ -457,6 +457,12 @@ else
 	MAINOBJ += ${MPIDUMMY}
 	COMPILER = ${CC}
 endif
+
+ifeq (-DHDF5,${findstring -DHDF5,${FARGO_OPT}})
+	LIBS += -lhdf5
+	MAINOBJ += output_hdf5.o
+endif
+
 	LINKER = ${COMPILER}
 
 
@@ -469,7 +475,7 @@ endif
 
 #---------------------------------------------------------------------
 #Adding includes and objects if MATPLOTLIB is activated.
-#These lines prevent compatibility problems 
+#These lines prevent compatibility problems
 #if matplotlib is not installed
 ifeq (MATPLOTLIB,${findstring MATPLOTLIB,${FARGO_DISPLAY}})
 	FARGO_OPT += -DMATPLOTLIB
@@ -477,7 +483,7 @@ ifeq (MATPLOTLIB,${findstring MATPLOTLIB,${FARGO_DISPLAY}})
 	OBJECTS   +=  matplotlib.o
 	LIBS      += -lpython3.8
 endif
-# Debug mode if FARGO_DEBUG = 1, Note that this mode is only 
+# Debug mode if FARGO_DEBUG = 1, Note that this mode is only
 # meant to execute gdb (or lldb, etc.) or valgrind.
 ifeq (${FARGO_DEBUG}, 1)
 OPTIONS = -g
@@ -514,7 +520,7 @@ ifeq (${FARGO_GPU}, 1)
 	@echo "a CPU with a GPU card (1 GPU only)."
 endif
 endif
-ifeq (MATPLOTLIB,${findstring MATPLOTLIB,${FARGO_DISPLAY}})	
+ifeq (MATPLOTLIB,${findstring MATPLOTLIB,${FARGO_DISPLAY}})
 	@echo ""
 	@echo "This built has a graphical output,"
 	@echo "which uses Python's matplotlib library."
@@ -635,7 +641,7 @@ collisions.cu: collisions_template.cu ${GLOBAL}
 
 %.cu: %.c
 	@echo C2CUDA $< "==>" $*.cu
-	@${PYTHON} ${SCRIPTSDIR}/c2cuda.py -i $< -o $*.cu -s ${SETUP}	
+	@${PYTHON} ${SCRIPTSDIR}/c2cuda.py -i $< -o $*.cu -s ${SETUP}
 
 reduction_sum_device.o: reduction_sum_device.cu
 	@echo NVCC $< "==>" $*.o
