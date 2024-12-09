@@ -9,7 +9,7 @@ FlaringIndex		0.0		    Flare of the disk
 Nu			        1.0e-5		Uniform kinematic viscosity
 
 UnitOfLengthAU		5.0		    Code's unit of length in AU
-UnitOfMassMSun		1.0		    Code's unit of length in Solar masses
+UnitOfMassMSun		1.0		    Code's unit of mass in Solar masses
 
 
 ### Dust parameters
