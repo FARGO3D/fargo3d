@@ -150,7 +150,7 @@ void visctensor_cyl_cpu(){
 	viscosityzm   = ALPHA*GAMMA*(GAMMA-1.0)*(energy[l]+energy[lzm]+energy[lxm]+energy[lxm-stride])/(rho[l]+rho[lzm]+rho[lxm]+rho[lxm-stride])*sqrt(ymed(j)*ymed(j)*ymed(j)/(G*MSTAR));
 #endif
 #else
-	viscosityzmym = viscositym = viscosity = NU;
+	viscosityzmym = viscosityzm = viscositym = viscosity = NU;
 #endif
 //Evaluate centered divergence.
 	div_v = 0.0;
