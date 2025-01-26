@@ -1,6 +1,6 @@
 /** \file main.c
 
-Main file of the distribution. 
+Main file of the distribution.
 Manages the call to initialization
 functions, then the main loop.
 
@@ -13,7 +13,7 @@ real dt;
 real dtemp = 0.0;
 
 int main(int argc, char *argv[]) {
-  
+
   int   i=0, OutputNumber = 0, d;
   char  sepline[]="===========================";
   sprintf (FirstCommand, "%s", argv[0]);
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 	NbRestart = atoi(argv[i+1]);
 	if ((NbRestart < 0)) {
 	  masterprint ("Incorrect output number\n");
-	  PrintUsage (argv[0]);	  
+	  PrintUsage (argv[0]);
 	}
       }
       if (strchr (argv[i], 'B')) {
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 	NbRestart = atoi(argv[i+1]);
 	if ((NbRestart < 0)) {
 	  masterprint ("Incorrect output number\n");
-	  PrintUsage (argv[0]);	  
+	  PrintUsage (argv[0]);
 	}
       }
       if (strchr (argv[i], 'D')) {
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
 	prs_exit (1);
   }
 #endif
-  
+
 
 #ifdef MPICUDA
   EarlyDeviceSelection();
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
     sprintf (VersionString, "FARGO3D git version %s", xstr(VERSION));
   masterprint("\n\n%s\n%s\nSETUP: '%s'\n%s\n\n",
 	      sepline, VersionString, xstr(SETUPNAME), sepline);
-  
+
   if ((ParameterFile[0] == 0) || (argc == 1)) PrintUsage (argv[0]);
 
 #ifndef MPICUDA
@@ -223,14 +223,18 @@ int main(int argc, char *argv[]) {
     prs_exit(EXIT_FAILURE);
   }
 #endif
-    
+
+#ifndef HDF5
   ListVariables ("variables.par"); //Writes all variables defined in set up
   ListVariablesIDL ("IDL.var");
+#endif
   ChangeArch(); /*Changes the name of the main functions
 		  ChangeArch adds _cpu or _gpu if GPU is activated.*/
   split(&Gridd); /*Split mesh over PEs*/
   InitSpace();
+#ifndef HDF5
   WriteDim();
+#endif
   InitSurfaces();
   LightGlobalDev(); /* Copy light arrays to the device global memory */
   CreateFields(); // Allocate all fields.
@@ -245,14 +249,14 @@ the target velocity in Stockholm's damping prescription. We copy the
 value above *after* rescaling, and after any initial correction to
 OMEGAFRAME (which is used afterwards to build the initial Vx field. */
 
-  
+
   if(Restart == YES || Restart_Full == YES) {
     CondInit (); //Needed even for restarts: some setups have custom
 		 //definitions (eg potential for setup MRI) or custom
 		 //scaling laws (eg. setup planetesimalsRT).
 
     MULTIFLUID( begin_i  = RestartSimulation(NbRestart));
-    
+
     if (ThereArePlanets) {
       PhysicalTime  = GetfromPlanetFile (NbRestart, 9, 0);
       OMEGAFRAME  = GetfromPlanetFile (NbRestart, 10, 0);
@@ -260,8 +264,10 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
     }
   }
   else {
+#ifndef HDF5
     if (ThereArePlanets)
       EmptyPlanetSystemFiles ();
+#endif
     CondInit(); // Initialize set up
     // Note: CondInit () must be called only ONCE (otherwise some
     // custom scaling laws may be applied several times).
@@ -270,7 +276,7 @@ OMEGAFRAME (which is used afterwards to build the initial Vx field. */
   if (StretchOldOutput == YES) {
     StretchOutput (StretchNumber);
   }
-  
+
   MULTIFLUID(comm(ENERGY)); //Very important for isothermal cases!
 
   /* This must be placed ***after*** reading the input files in case of a restart */
@@ -300,6 +306,28 @@ if (*SPACING=='N'){
   prs_exit (1);
 #endif
 
+#ifdef HDF5
+  if (SetupOutputHdf5() != 0) {
+    mastererr("HDF5 output initialization failed!\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (WriteDomainHdf5() != 0) {
+    mastererr("HDF5 domain write failed!\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (WriteParametersHdf5() != 0) {
+    mastererr("HDF5 parameters write failed!\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (ThereArePlanets && (WritePlanetsHdf5() != 0)) {
+    mastererr("HDF5 planets write failed!\n");
+    exit(EXIT_FAILURE);
+  }
+#endif
+
   GetHostsList ();
   DumpToFargo3drc(argc, argv);
 
@@ -307,46 +335,54 @@ if (*SPACING=='N'){
 #ifdef LONGSUMMARY
   ExtractFromExecutable (NO, ArchFile, 2);
 #endif
-  
+
   MULTIFLUID(FillGhosts(PrimitiveVariables()));
 
-  
-#ifdef STOCKHOLM 
+
+#ifdef STOCKHOLM
   FARGO_SAFE(init_stockholm()); //ALREADY IMPLEMENTED MULTIFLUID COMPATIBILITY
 #endif
-  
+
 #ifdef GHOSTSX
   masterprint ("\n\nNew version with ghost zones in X activated\n");
 #else
   masterprint ("Standard version with no ghost zones in X\n");
 #endif
-  
+
   for (i = begin_i; i<=NTOT; i++) { // MAIN LOOP
     if (NINTERM * (TimeStep = (i / NINTERM)) == i) {
 
 #if defined(MHD) && defined(DEBUG)
       FARGO_SAFE(ComputeDivergence(Bx, By, Bz));
 #endif
+#ifndef HDF5
       if (ThereArePlanets)
-	WritePlanetSystemFile(TimeStep, NO);
-      
+	    WritePlanetSystemFile(TimeStep, NO);
+#endif
+
 #ifndef NOOUTPUTS
-      MULTIFLUID(WriteOutputs(ALL));
-      
+#ifdef HDF5
+	  WriteOutputsHdf5();
+#else
+	  MULTIFLUID(WriteOutputs(ALL));
+#endif
+
 #ifdef MATPLOTLIB
       Display();
 #endif
-      
+
       if(CPU_Master) printf("OUTPUTS %d at date t = %f OK\n", TimeStep, PhysicalTime);
 #endif
-      
+
       if (TimeInfo == YES) GiveTimeInfo (TimeStep);
 
     }
-    
+
     if (NSNAP != 0) {
       if (NSNAP * (TimeStep = (i / NSNAP)) == i) {
-	MULTIFLUID(WriteOutputs(SPECIFIC));
+#ifndef HDF5
+		MULTIFLUID(WriteOutputs(SPECIFIC));
+#endif
 #ifdef MATPLOTLIB
 	Display();
 #endif
@@ -355,11 +391,11 @@ if (*SPACING=='N'){
 
     if (i==NTOT)
       break;
-    
+
     dtemp = 0.0;
-    
+
     while (dtemp<DT) { // DT LOOP
-      
+
       /// AT THIS STAGE Vx IS THE INITIAL TOTAL VELOCITY IN X
 #ifdef X
 #ifndef STANDARD
@@ -367,7 +403,7 @@ if (*SPACING=='N'){
 #endif
 #endif
       /// NOW THE 2D MESH VxMed CONTAINS THE AZIMUTHAL AVERAGE OF Vx in X
-      
+
 #ifdef FLOOR
       MULTIFLUID(Floor());
 #endif
@@ -386,7 +422,7 @@ if (*SPACING=='N'){
 
       // CFL condition is applied below ----------------------------------------
       MULTIFLUID(cfl());
-      
+
       CflFluidsMin(); /*Fills StepTime with the " global min " of the
 			cfl, computed from each fluid.*/
       dt = StepTime; //cfl works with the 'StepTime' global variable.
@@ -394,20 +430,20 @@ if (*SPACING=='N'){
       dtemp+=dt;
       if(dtemp>DT)  dt = DT - (dtemp-dt); //updating dt
       //------------------------------------------------------------------------
-      
+
       //------------------------------------------------------------------------
       /* We now compute the total density of the mesh. We need first
 	 reset an array and then fill it by adding the density of each
 	 fluid */
-      FARGO_SAFE(Reset_field(Total_Density)); 
-      MULTIFLUID(ComputeTotalDensity()); 
+      FARGO_SAFE(Reset_field(Total_Density));
+      MULTIFLUID(ComputeTotalDensity());
       //------------------------------------------------------------------------
 
-      
+
 #ifdef COLLISIONPREDICTOR
       FARGO_SAFE(Collisions(0.5*dt, 0)); // 0 --> V is used and we update v_half.
 #endif
-      
+
       MULTIFLUID(Sources(dt)); //v_half is used in the R.H.S
 
 #ifdef DRAGFORCE
@@ -417,7 +453,7 @@ if (*SPACING=='N'){
 #ifdef DUSTDIFFUSION
       FARGO_SAFE(DustDiffusion_Main(dt));
 #endif
-      
+
       MULTIFLUID(Transport(dt));
 
       PhysicalTime+=dt;
@@ -446,24 +482,33 @@ if (*SPACING=='N'){
       FullArrayComms = 0;
       ContourComms = 0;
     }
-    
+
     if(CPU_Master) printf("%s", "\n");
-    
+
+#ifndef HDF5
     MULTIFLUID(MonitorGlobal (MONITOR2D      |	\
-			      MONITORY       |	\
-			      MONITORY_RAW   |	\
-			      MONITORSCALAR  |	\
-			      MONITORZ       |	\
-			      MONITORZ_RAW));
+	    		      MONITORY       |	\
+	    		      MONITORY_RAW   |	\
+	    		      MONITORSCALAR  |	\
+	    		      MONITORZ       |	\
+	    		      MONITORZ_RAW));
+#endif
 
     if (ThereArePlanets) {
+#ifdef HDF5
+	  WritePlanetsHdf5();
+#else
       WritePlanetSystemFile(TimeStep, YES);
       SolveOrbits (Sys);
+#endif
     }
   }
-  
+
+#ifdef HDF5
+  TeardownOutputHdf5();
+#endif
   MPI_Finalize();
-  
+
   masterprint("End of the simulation!\n");
-  return 0;  
+  return 0;
 }
