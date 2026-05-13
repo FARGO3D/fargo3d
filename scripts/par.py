@@ -5,9 +5,8 @@ import sys
 
 def get_pardata(parname):
 
-    parfile = open(parname,'r')
-    par = parfile.readlines()
-    parfile.close()
+    with open(parname, 'r', encoding='utf-8') as parfile:
+        par = parfile.readlines()
 
     realvariables = {}
     intvariables  = {}
@@ -92,9 +91,8 @@ def make_varc(varc, parameters, partype, mand, init=False, end=False):
         varc.append("}")        
 
 def get_mandatories(filename):
-    mandfile = open(filename,'r')
-    mandatory = mandfile.readlines()
-    mandfile.close()
+    with open(filename, 'r', encoding='utf-8') as mandfile:
+        mandatory = mandfile.readlines()
     mandatories = {}
     
     for line in mandatory:
@@ -141,8 +139,7 @@ if __name__ == "__main__":
     make_varc(varc,def_boolean,"BOOL"  ,mandatories)
     make_varc(epilog,[]       ,"FOO"   ,mandatories, end=True)
 
-    var = open('var.c', 'w')
-    for line in prolog+sorted(varc)+epilog:
-        var.write(line)
-    var.close()
+    with open('var.c', 'w', encoding='utf-8') as var:
+        for line in prolog+sorted(varc)+epilog:
+            var.write(line)
         
