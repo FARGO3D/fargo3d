@@ -100,3 +100,22 @@ KEPLERIAN3DSPHVAZIMCOL:
 #### Allow outflow only at inner mesh edge
 OPENINNER:
 	Staggered: |(a>0.0 ? 0.0: a)|(a>0.0 ? 0.0: a)|a|
+
+
+OPENVRADBEG:
+           Centered:    |minof2(0.0,vrad)|vrad|
+           Staggered:    |minof2(0.0,vrad)|minof2(0.0,vrad)|vrad|
+
+OPENVRADEND:
+           Centered:    |MAX2(0.0,vrad)|vrad|
+           Staggered:    |MAX2(0.0,vrad)|MAX2(0.0,vrad)|vrad|
+
+OPENVTHETABEG:
+      Centered:  |minof2(0.0,vtheta)|vtheta|
+      Staggered:  |minof2(0.0,vtheta)|minof2(0.0,vtheta)|vtheta|
+OPENVTHETAEND:
+      Centered:  |max2(0.0,vtheta)|vtheta|
+      Staggered:  |max2(0.0,vtheta)|max2(0.0,vtheta)|vtheta|
+
+KEPLERIAN3DSPHENGCOL: #Approximate extrapolation in COLatitude (Z)
+    Centered: |eng*exp((vx[lgh]*vx[lgh]/tan(Zmed(kgh))*(Zmed(kgh)-Zmed(kact)))/(('GAMMA'-1.0)*energy[lact]/density[lact]))|eng|

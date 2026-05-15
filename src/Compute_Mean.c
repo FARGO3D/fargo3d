@@ -24,7 +24,7 @@ real ComputeMean(Field *F) {
 #ifdef X
       for (i=NGHX;i<Nx+NGHX;i++) {
 #endif
-	dvol = Vol(i,j,k);
+	dvol = Vol(j,k);
 	total += f[l]*dvol;
 	volume += dvol;
 #ifdef X

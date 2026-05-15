@@ -40,8 +40,8 @@ void mon_reynolds_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
 // real Syk(Nz+2*NGHZ);
+// real ymin(Ny+2*NGHY+1);
 // real InvVj(Ny+2*NGHY);
 //<\CONSTANT>
 
@@ -60,8 +60,9 @@ void mon_reynolds_cpu () {
 #endif
 //<#>
 	ll = l;
-	interm[ll] = .25*dens[ll]*(vy[ll]+vy[lyp])*\
-	  (vx[ll]+vx[lxp]-2.*vxm[l2D])*Vol(i,j,k);
+//	interm[ll] = .25*dens[ll]*(vy[ll]+vy[lyp])*\
+//	  (vx[ll]+vx[lxp]-2.*vxm[l2D])*Vol(j,k);
+        interm[ll] = 2.0 *ymed(j) *M_PI *vy[ll] *dens[ll];
 //<\#>
 #ifdef X
       }

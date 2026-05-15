@@ -1,0 +1,42 @@
+# You may enter a description between the BEGIN and END labels.
+# BEGIN
+# The "p3diso" setup is a spherical locally isothermal setup that may
+# be used to simulate a "full-disk" (symmetric or not with respect to
+# the equator). If you want to simulate a half disk, you should create
+# another setup (p3diso) slightly different from this one.  In order
+# to run it, do:
+# make SETUP=p3disof
+# ./fargo3d in/p3disof.par
+# Note: if you want to simulate a half disk with reflecting boundary
+# conditions at the midplane, use the setup 'p3diso'.
+# END
+#-------------------------------------------------------------------------
+
+FLUIDS := 0
+NFLUIDS = 1
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
+
+MONITOR_2D = MASS | MOM_X
+MONITOR_SCALAR = TORQ
+
+FARGO_OPT +=  -DX
+FARGO_OPT +=  -DY
+FARGO_OPT +=  -DZ
+
+#Coordinate System.
+FARGO_OPT +=  -DSPHERICAL
+
+#Equation of State
+FARGO_OPT +=  -DISOTHERMAL
+
+
+FARGO_OPT += -DSTOCKHOLM
+FARGO_OPT += -DVISCOSITY
+FARGO_OPT += -DPOTENTIAL
+
+#Cuda blocks
+ifeq (${GPU}, 1)
+FARGO_OPT += -DBLOCK_X=16
+FARGO_OPT += -DBLOCK_Y=8
+FARGO_OPT += -DBLOCK_Z=4
+endif

@@ -33,7 +33,6 @@ void mon_dens_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
 // real Syk(Nz+2*NGHZ);
 // real InvVj(Ny+2*NGHY);
 //<\CONSTANT>
@@ -53,7 +52,7 @@ void mon_dens_cpu () {
 #endif
 //<#>
 	ll = l;
-	interm[ll] = dens[ll]*Vol(i,j,k);
+	interm[ll] = dens[ll]*Vol(j,k);
 //<\#>
 #ifdef X
       }

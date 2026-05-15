@@ -35,7 +35,6 @@ void mon_momy_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
 // real Syk(Nz+2*NGHZ);
 // real InvVj(Ny+2*NGHY);
 //<\CONSTANT>
@@ -55,7 +54,7 @@ void mon_momy_cpu () {
 #endif
 //<#>
 	ll = l;
-	mom[ll] = dens[ll]*.5*(vy[ll]+vy[lyp])*Vol(i,j,k);
+	mom[ll] = dens[ll]*.5*(vy[ll]+vy[lyp])*Vol(j,k);
 //<\#>
 #ifdef X
       }

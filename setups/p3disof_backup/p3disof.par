@@ -1,0 +1,44 @@
+Setup			p3disof
+
+### Disk parameters
+
+AspectRatio     	0.05            Thickness over Radius in the disc
+Sigma0			6.3661977237e-4	Surface Density at r=1
+Nu			1.0e-5		Uniform kinematic viscosity
+SigmaSlope		1.0		Slope of surface
+FlaringIndex		0.5
+
+### Planet parameters
+
+PlanetConfig		planets/SuperEarth.cfg
+ThicknessSmoothing 	0.1		Smoothing parameters in disk thickness
+
+### Numerical method parameters
+
+Disk			YES
+OmegaFrame     		1.0
+Frame			F
+IndirectTerm		No
+
+### Mesh parameters
+
+Nx			100		Azimuthal number of zones 
+Ny               	80		Radial number of zones
+Nz			40		Number of zones in colatitude
+Ymin			0.6		Inner boundary radius
+Ymax			1.5		Outer boundary radius
+Zmin			1.42079632679489661922
+Zmax			1.72079632679489661922
+Xmin			-3.141592653589793
+Xmax			3.141592653589793
+
+### Output control parameters
+
+Ntot			10001		Total number of time steps
+Ninterm	 		10		Time steps between outputs
+DT			0.314159265359	Time step length. 2PI = 1 orbit
+OutputDir		@outputs/p3disof
+
+
+Field 			gasdens
+PlotLine		field[-1,:,:]

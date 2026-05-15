@@ -196,7 +196,7 @@ void mastererr(const char *template, ...) {
 }
 
 void InitSpace() {
-  real dx,dy, dz;
+  real dy, dz;
   real x0;
   int  i,j,k;
   
@@ -210,18 +210,16 @@ void InitSpace() {
   boolean already_z=NO;
   int temp, relay;
   int init = 0;
-  int j_global, j_local;
 
- 
   if (*SPACING=='F') { //Fixed spacing
-#ifdef X
+
     masterprint("Warning: zone spacing will be taken from the files domain_i.dat.\n");
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_x.dat");
     domain = fopen(domain_out, "r");
     if(domain != NULL) {
       masterprint("Warning: x spacing taken from domain_x.dat file!\n");
       init = 0;
-      for (i=0; i<NX+2*NGHX+1; i++) {
+      for (i=0; i<NX+1; i++) {
 #ifdef FLOAT
 	temp = fscanf(domain, "%f\n", &temp1);
 #else
@@ -229,11 +227,11 @@ void InitSpace() {
 #endif
 	Xmin(i) = temp1;
       }
+      Dx = (XMAX-XMIN)/NX;
       already_x = YES;
     }
     fclose(domain);
-#endif    
-#ifdef Y
+    
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_y.dat");
     domain = fopen(domain_out, "r");
     if(domain != NULL){
@@ -252,8 +250,6 @@ void InitSpace() {
     }
     
     fclose(domain);
-#endif
-#ifdef Z
     sprintf(domain_out, "%s%s", OUTPUTDIR, "domain_z.dat");
     domain = fopen(domain_out, "r");
     if(domain != NULL) {
@@ -271,58 +267,15 @@ void InitSpace() {
       already_z = YES;
     }
     fclose(domain);
-#endif
   }
-
- else if (*SPACING=='N') {
-
-#ifdef X
-    Xmin(0) = XMIN;
-    for (i = 1; i<Nx+2*NGHX+1; i++) {
-      Xmin(i) = bisect(Xmin(i-1), 1.1*XMAX, Nx+2*NGHX+1, ux, 0);
-    }
-    // calcualte constants to optimize RamComputeUstar.c
-    compute_ux_constants();
-#endif //X
-#ifdef Y
-  real ymin_global;
-  ymin_global = YMIN;
-  Ymin(NGHY)  = YMIN;
-
-  for (j_global = NGHY; j_global < NY+NGHY+1; j_global++) { //Global loop
-    if (j_global > NGHY) ymin_global = bisect(ymin_global, 1.1*YMAX, NY+1, uy, 0);
-    j_local = j_global - Y0;
-    if ( (j_local > 0) && (j_local <= Ny+2*NGHY) )
-      Ymin(j_local)  =  ymin_global;
-  }
-  // Fill ghost zones using the fact that du is constant and we bisect in reverse order
-  if (J == 0) {
-    for (j = 0; j < NGHY; j++) 
-      Ymin(NGHY - (j+1)) = bisect(0.5*YMIN, Ymin(NGHY-j), NY+1, uy, 1);
-  }
-  if (J == Ncpu_x - 1) {
-    for (j = 0; j < NGHY; j++) 
-      Ymin(Ny+NGHY+j+1) = bisect(Ymin(Ny+NGHY+j), 1.5*YMAX, NY+1, uy, 0);
-  }
-
-#endif //Y
-
-#ifdef Z
-  dz = (ZMAX-ZMIN)/NZ;
-  for (k = 0; k<Nz+2*NGHZ+1; k++) {
-      Zmin(k) = ZMIN + dz*(k+Z0-NGHZ);
-  }
-#endif //Z
- }
- 
 
   else {
 
-#ifdef X
-  dx  = (XMAX-XMIN)/NX;
-#else
-  dx  = 0;
-#endif
+    Dx = (XMAX-XMIN)/NX;
+    for (i = 0; i<Nx+2*NGHX+1; i++) {
+      Xmin(i) = XMIN + Dx*(i-NGHX);
+    }
+    
 #ifdef Y
     dy = (YMAX-YMIN)/NY;
 #else
@@ -344,27 +297,16 @@ void InitSpace() {
     else {  //Linear
       masterprint("Warning: The Y spacing is linear (default).\n");
       for (j = 0; j<Ny+2*NGHY+1; j++) {
-#ifdef Y
 	Ymin(j) = YMIN + dy*(j+Y0-NGHY);
-#else
-	Ymin(j) = 0.0;
-#endif
       }
     }
-      for (k = 0; k<Nz+2*NGHZ+1; k++) {
+    for (k = 0; k<Nz+2*NGHZ+1; k++) {
 #ifdef Z
-	Zmin(k) = ZMIN + dz*(k+Z0-NGHZ);
+      Zmin(k) = ZMIN + dz*(k+Z0-NGHZ);
 #else
-	Zmin(k) = 0.0;
+      Zmin(k) = 0.0;
 #endif
-      }
-      for (i = 0; i<Nx+2*NGHX+1; i++) {
-#ifdef X
-	Xmin(i) = XMIN + dx*(i-NGHX);
-#else
-	Xmin(i) = 0.0;
-#endif	
-      }
+    }
   }
 
   for (i = 0; i<Nx+2*NGHX; i++) {
@@ -380,8 +322,29 @@ void InitSpace() {
   for (i = 1; i<Nx+2*NGHX; i++) {
     InvDiffXmed(i) = 1./(Xmed(i)-Xmed(i-1));
   }
-  InvDiffXmed(0) = 1./( Xmed(0)- (Xmed(Nx-1)-(XMAX-XMIN) ));
+  if (Nx+2*NGHX>1) InvDiffXmed(0) = InvDiffXmed(1);
+  else InvDiffXmed(0) = 0.0;
+
+  for (j = 1; j<Ny+2*NGHY; j++) {
+    InvDiffYmed(j) = 1./(Ymed(j)-Ymed(j-1));
+  }
+
+  if (Ny+2*NGHY>1) InvDiffYmed(0) = InvDiffYmed(1);
+  else InvDiffYmed(0) = 0.0;
   
+#ifdef Z
+  for (k = 1; k<Nz+2*NGHZ; k++) {
+    InvDiffZmed(k) = 1./(Zmed(k)-Zmed(k-1));
+  }
+
+  if(Nz+2*NGHZ>1){
+    InvDiffZmed(1) = 0.0;
+    InvDiffZmed(0) = InvDiffZmed(1);
+  }
+  else{
+    InvDiffZmed(0) = 0.0;
+  }
+#endif
 
   MPI_Barrier(MPI_COMM_WORLD);
   
@@ -397,7 +360,7 @@ void InitSpace() {
   }
   
   if (!already_y) {
-    if (CPU_Rank > 0) { // Force sequential write
+    if (CPU_Rank > 0) { // Force sequential read
       MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
     
@@ -422,7 +385,7 @@ void InitSpace() {
       }
       fclose(domain);
     }
-    if (CPU_Rank < CPU_Number-1) {  // Force sequential write
+    if (CPU_Rank < CPU_Number-1) {  // Force sequential read
       MPI_Send (&relay, 1, MPI_INT, CPU_Rank+1, 42, MPI_COMM_WORLD);
     }
   }
@@ -465,21 +428,8 @@ void InitSpace() {
 
 void InitSurfaces() {
 
-  int i,j,k;
-
-for (i = 0; i<Nx+2*NGHX; i++){
-#ifdef X
-  Sxi(i) = Xmin(i+1)-Xmin(i);
-#else
-  Sxi(i) = 1.0;
-#endif
-}
-
-Mindx  = Sxi(0);
-for(i=1;i<Nx+2*NGHX; i++) {
-    if(Sxi(i)<Mindx) Mindx = Sxi(i);
-}
-
+  int j,k;
+  
 #ifdef CARTESIAN
     for (j = 0; j<Ny+2*NGHY; j++) {
 #ifdef Y
@@ -488,8 +438,12 @@ for(i=1;i<Nx+2*NGHX; i++) {
       Sxj(j) = 1.0;
 #endif
       Syj(j) = 1.0;
-#ifdef Y
-      Szj(j) = Ymin(j+1)-Ymin(j);
+#if (defined(X) && defined(Y))
+      Szj(j) = Dx*(Ymin(j+1)-Ymin(j));
+#elif defined(X)
+      Szj(j) = Dx;
+#elif defined(Y)
+      Szj(j) = (Ymin(j+1)-Ymin(j));
 #else
       Szj(j) = 1.0;
 #endif
@@ -501,8 +455,12 @@ for(i=1;i<Nx+2*NGHX; i++) {
 #else
       Sxk(k) = 1.0;
 #endif
-#ifdef Z
-      Syk(k) = Zmin(k+1)-Zmin(k);
+#if (defined(X) && defined(Z))
+      Syk(k) = Dx*(Zmin(k+1)-Zmin(k));
+#elif defined(X)
+      Syk(k) = Dx;
+#elif defined(Z)
+      Syk(k) = (Zmin(k+1)-Zmin(k));
 #else 
       Syk(k) = 1.0;
 #endif
@@ -516,9 +474,15 @@ for(i=1;i<Nx+2*NGHX; i++) {
 #endif
     for (j = 0; j<Ny+2*NGHY; j++) {
       Sxj(j) = Ymin(j+1)-Ymin(j);
+#if defined(X)
+      Syj(j) = Ymin(j)*Dx;
+      Szj(j) = 0.5*(Ymin(j+1)*Ymin(j+1) -
+		    Ymin(j)*Ymin(j))*Dx;
+#else
       Syj(j) = Ymin(j);
       Szj(j) = 0.5*(Ymin(j+1)*Ymin(j+1) -
 		    Ymin(j)*Ymin(j));
+#endif
       InvVj(j) = 1.0/Szj(j);
     }
     for (k = 0; k<Nz+2*NGHZ; k++) {
@@ -539,11 +503,19 @@ for(i=1;i<Nx+2*NGHX; i++) {
     for (j = 0; j<Ny+2*NGHY; j++) {
       Sxj(j) = 0.5*(Ymin(j+1)*Ymin(j+1)
 		    -Ymin(j)*Ymin(j));
+#ifdef X
+      Syj(j) = Ymin(j)*Ymin(j)*Dx;
+      Szj(j) = 0.5*(Ymin(j+1)*Ymin(j+1)
+		    -Ymin(j)*Ymin(j))*Dx;
+      InvVj(j) = 3./((Ymin(j+1)*Ymin(j+1)*Ymin(j+1) - 
+		      Ymin(j)*Ymin(j)*Ymin(j))*Dx);
+#else
       Syj(j) = Ymin(j)*Ymin(j);
       Szj(j) = 0.5*(Ymin(j+1)*Ymin(j+1)
 		    -Ymin(j)*Ymin(j)); 
       InvVj(j) = 3./((Ymin(j+1)*Ymin(j+1)*Ymin(j+1) - 
 		      Ymin(j)*Ymin(j)*Ymin(j)));
+#endif
     }
     for (k = 0; k<Nz+2*NGHZ; k++) {
 #ifdef Z
@@ -635,13 +607,7 @@ void CreateFields() {
   
   QL      = CREATEFIELDALIAS("QLeft", Pressure, 0);
   QR      = CreateField("QRight", 0,0,0,0);
-
-#ifdef RAM  
-  PhiStarmin = CreateField("PhiStarmin", 0,0,0,0);
-  UStarmin   = CreateField("UStarmin", 0,0,0,0);
-#endif
-
-
+  
 #ifdef PPA_STEEPENER
   LapPPA  = CreateField("LapPPA", 0,0,0,0);
 #endif
@@ -727,7 +693,7 @@ real ComputeMass() {
 #ifdef X
       for (i=NGHX;i<Nx+NGHX;i++) {
 #endif
-	mass += rho[l]*Vol(i,j,k);
+	mass += rho[l]*Vol(j,k);
 #ifdef X
       }
 #endif
@@ -842,7 +808,7 @@ int RestartSimulation(int n) {
 #ifdef Z
   __Restart(Vz, n);
 #endif
-      if(Fluidtype != DUST) __Restart(Energy, n);
+  __Restart(Energy, n);
 #ifdef MHD
   __Restart(Bx, n);
   __Restart(By, n);
@@ -854,15 +820,19 @@ int RestartSimulation(int n) {
   MPI_Offset offset;
   offset = 0; //We start at the begining of the file
   
+  //Density and Energy are mandatory for a restart
   offset = ParallelIO(Density, n, MPI_MODE_RDONLY, offset,FALSE);
-  if(Fluidtype != DUST)  offset = ParallelIO(Energy, n, MPI_MODE_RDONLY, offset,FALSE);
+  offset = ParallelIO(Energy, n, MPI_MODE_RDONLY, offset,FALSE);
 #ifdef X
+  //Vx is also mandatory ifdef X
   offset = ParallelIO(Vx, n, MPI_MODE_RDONLY, offset,FALSE);
 #endif
 #ifdef Y
+  //Idem
   offset = ParallelIO(Vy, n, MPI_MODE_RDONLY, offset,FALSE);
 #endif
 #ifdef Z
+  //Idem
   offset = ParallelIO(Vz, n, MPI_MODE_RDONLY, offset,FALSE);
 #endif
 #ifdef MHD //MHD is 3D.
@@ -871,6 +841,8 @@ int RestartSimulation(int n) {
     offset = ParallelIO(By, n, MPI_MODE_RDONLY, offset,FALSE);
     offset = ParallelIO(Bz, n, MPI_MODE_RDONLY, offset,FALSE);    
   }
+  //We don't need the divergency for a restart
+  //offset = ParallelIO(Divergence, n, MPI_MODE_RDONLY, offset, FALSE);
 #endif
 #endif
   

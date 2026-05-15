@@ -40,13 +40,6 @@ void NewVelocity_y_cpu () {
   int llym;
 //<\INTERNAL>
 
-//<CONSTANT>
-// real Syk(Nz+2*NGHZ);
-// real InvVj(Ny+2*NGHY);
-// real Sxi(Nx+2*NGHX);
-//<\CONSTANT>
-
-
 //<MAIN_LOOP>
 
   i = j = k = 0;
@@ -64,7 +57,7 @@ void NewVelocity_y_cpu () {
 #ifdef Y
 	ll = l;
 	llym = lym;
-	vy[ll] = (mmy[ll]*Vol(i,j,k)+mpy[llym]*Vol(i,j-1,k))/(rho[ll]*Vol(i,j,k)+rho[llym]*Vol(i,j-1,k));
+	vy[ll] = (mmy[ll]+mpy[llym])/(rho[ll]+rho[llym]);
 #endif
 //<\#>
 #ifdef X

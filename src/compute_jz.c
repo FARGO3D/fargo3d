@@ -19,6 +19,7 @@ void ComputeJz_cpu() {
   real* bx = Bx->field_cpu;
   real* by = By->field_cpu;
   real* jz = Jz->field_cpu;
+  real dx = Dx;
   real mu0 = MU0;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
@@ -37,8 +38,6 @@ void ComputeJz_cpu() {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real xmin(Nx+1);
-// real InvDiffXmed(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -50,17 +49,17 @@ void ComputeJz_cpu() {
 //<#>
 	ll = l;
 #ifdef CARTESIAN
-	fact1 = Inv_zone_size_xmed(i,j,k);
+	fact1 = 1.0/dx;
 	fact2 = 1.0/(ymed(j)-ymed(j-1));
 	jz[ll] = ((by[ll]-by[lxm])*fact1-(bx[ll]-bx[lym])*fact2)/mu0;
 #endif
 #ifdef CYLINDRICAL
-	fact1 = Inv_zone_size_xmed(i,j,k);
+	fact1 = 1.0/(ymin(j)*dx);
 	fact2 = 1.0/(ymin(j)*(ymed(j)-ymed(j-1)));
 	jz[ll] = ((ymed(j)*bx[ll]-ymed(j-1)*bx[lym])*fact2-(by[ll]-by[lxm])*fact1)/mu0;
 #endif
 #ifdef SPHERICAL
-	fact1 = Inv_zone_size_xmed(i,j,k);
+	fact1 = 1.0/(ymin(j)*sin(zmed(k))*dx);
 	fact2 = 1.0/(ymin(j)*(ymed(j)-ymed(j-1)));
 	jz[ll] = ((by[ll]-by[lxm])*fact1-(ymed(j)*bx[ll]-ymed(j-1)*bx[lym])*fact2)/mu0;
 #endif

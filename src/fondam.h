@@ -11,6 +11,10 @@ code.
    value of 2.4 g/mol for protoplanetary disks. */
 
 //Scale free
+#define     MUNIT  1.9891e33
+#define     LUNIT  (30.0*1.49597871e13)
+#define      RHOS  3.0
+
 #define      G_SF  1.0
 #define  MSTAR_SF  1.0
 #define     R0_SF  1.0

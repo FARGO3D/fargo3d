@@ -36,7 +36,6 @@ void UpdateDensityY_cpu(real dt, Field *Q) {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -63,9 +62,9 @@ void UpdateDensityY_cpu(real dt, Field *Q) {
 	ll = l;
 	llyp = lyp;
 
-	qb[ll] += (vy[ll]*rho_s[ll]*SurfY(i,j,k) -	\
+	qb[ll] += (vy[ll]*rho_s[ll]*SurfY(j,k) -	\
 		  vy[llyp]*rho_s[llyp]		\
-		  *SurfY(i,j+1,k)) * dt * InvVol(i,j,k);
+		  *SurfY(j+1,k)) * dt * InvVol(j,k);
 //<\#>
 #ifdef X
       }

@@ -76,6 +76,7 @@ void cfl_cpu() {
   int size_x = Nx+NGHX;
   int size_y = Ny+NGHY;
   int size_z = Nz+NGHZ;
+  real dx = Dx;
   int pitch2d = Pitch2D;
   int fluidtype = Fluidtype;
 //<\EXTERNAL>
@@ -185,7 +186,7 @@ void cfl_cpu() {
 	soundspeed = sqrt(soundspeed2);
 
 #ifdef X
-	cfl1_a = soundspeed/zone_size_x(i,j,k);
+	cfl1_a = soundspeed/zone_size_x(j,k);
 #endif
 #ifdef Y
 	cfl1_b = soundspeed/zone_size_y(j,k);
@@ -197,7 +198,7 @@ void cfl_cpu() {
 	
 
 #ifdef X
-	cfl2 = (max2(fabs(vxx),fabs(vxxp)))/zone_size_x(i,j,k);
+	cfl2 = (max2(fabs(vxx),fabs(vxxp)))/zone_size_x(j,k);
 #endif
 #ifdef Y
 	cfl3 = (max2(fabs(vy[ll]),fabs(vy[llyp])))/zone_size_y(j,k);
@@ -208,7 +209,7 @@ void cfl_cpu() {
 
 #ifndef NOSUBSTEP2
 #ifdef X	
-	cfl5_a = fabs(vx[llxp]-vx[ll])/zone_size_x(i,j,k);
+	cfl5_a = fabs(vx[llxp]-vx[ll])/zone_size_x(j,k);
 #endif
 #ifdef Y
 	cfl5_b = fabs(vy[llyp]-vy[ll])/zone_size_y(j,k);
@@ -224,7 +225,7 @@ void cfl_cpu() {
 #endif
 
 #ifdef X	
-	cfl7_a = 1.0/zone_size_x(i,j,k);	
+	cfl7_a = 1.0/zone_size_x(j,k);	
 #endif
 #ifdef Y
 	cfl7_b = 1.0/zone_size_y(j,k);

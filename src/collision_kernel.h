@@ -44,8 +44,17 @@ for (o=0; o<NFLUIDS; o++) {
 	 have the possibility of disabling feedback if necessary.*/      
       
 #if defined(STOKESNUMBER) || defined(CONSTANTSTOKESNUMBER)
-      if ( p > o )  m[p+o*NFLUIDS] = -dt*omega*alpha[p+o*NFLUIDS]*rho_p/rho_o;
-      else          m[p+o*NFLUIDS] = -dt*omega*alpha[p+o*NFLUIDS];
+//      if ( p > o )  m[p+o*NFLUIDS] = -dt*omega*alpha[p+o*NFLUIDS]*rho_p/rho_o;
+//     else          m[p+o*NFLUIDS] = -dt*omega*alpha[p+o*NFLUIDS];
+      if ( p > o )  m[p+o*NFLUIDS] = 0.0;
+      else {
+	      if (p == 0) {
+		      if (o == 1) m[p+o*NFLUIDS] = -dt*omega*alpha[p+o*NFLUIDS];
+		      else m[p+o*NFLUIDS] = -dt*omega*2.0*(0.5*(rho[0][l] + rho[0][idm]))/M_PI/(RHOS/MUNIT*LUNIT*LUNIT*LUNIT)/((alpha[p+o*NFLUIDS]+1.0e-30)/LUNIT);
+              }
+	      else m[p+o*NFLUIDS] = 0.0;
+      }	     
+
 #endif
 #ifdef CONSTANTDRAG
       m[p+o*NFLUIDS] = -dt*alpha[p+o*NFLUIDS]/rho_o;
@@ -72,8 +81,17 @@ for (o=0; o<NFLUIDS; o++) {
 	     alpha[p+q*NFLUIDS], however, we use alpha[q+p*NFLUIDS] to
 	     have the possibility of disabling feedback if necessary.*/
 	  
-	  if( q > p ) sum += alpha[q+p*NFLUIDS]*rho_q/rho_p;
-	  else        sum += alpha[q+p*NFLUIDS];
+//	  if( q > p ) sum += alpha[q+p*NFLUIDS]*rho_q/rho_p;
+//	  else        sum += alpha[q+p*NFLUIDS];
+          if ( q > p )  sum += 0.0;
+          else {
+                  if (q == 0) {
+			  if (p == 1) sum += alpha[q+p*NFLUIDS];
+                          else sum += 2.0*(0.5*(rho[0][l] + rho[0][idm]))/M_PI/(RHOS/MUNIT*LUNIT*LUNIT*LUNIT)/((alpha[q+p*NFLUIDS]+1.0e-30)/LUNIT);
+		  }
+                  else sum += 0.0;
+          }
+
 #endif
 #ifdef CONSTANTDRAG
 	  sum += alpha[q+p*NFLUIDS];
