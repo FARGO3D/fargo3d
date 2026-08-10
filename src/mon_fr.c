@@ -81,7 +81,11 @@ void mon_fr_cpu () {
 #endif
 
         // radial force fr
-        interm[ll] = (fxi * Xplanet + fyi * Yplanet + fzi * Zplanet)/rplanet;
+        real fr = fxi * Xplanet + fyi * Yplanet;
+#ifdef Z
+        fr += fzi * Zplanet;
+#endif
+        interm[ll] = fr / rplanet;
 
 #ifdef X
       }
