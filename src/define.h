@@ -6,8 +6,8 @@
 #define MAX1D 16384
 #define MAXPRIME 5000
 #define MAX_FIELDS 10
-#define CVNR 1.41
-#define CVNL 0.05
+#define CVNR 10.41
+#define CVNL 0.5
 
 #define GAS 1
 #define DUST 2
