@@ -165,6 +165,8 @@ ex void mon_momx_cpu(void);
 ex void mon_momy_cpu(void);
 ex void mon_momz_cpu(void);
 ex void mon_torq_cpu(void);
+ex void mon_power_cpu(void);
+ex void mon_fr_cpu(void);
 ex void mon_reynolds_cpu(void);
 ex void mon_maxwell_cpu(void);
 ex void mon_bxflux_cpu(void);
@@ -642,6 +644,9 @@ ex int Host2Dev2DInt (FieldInt2D *);
 ex int Dev2Host2DInt (FieldInt2D *);
 
 ex void explore(real *, int);
+
+ex void mon_power_cpu(void);
+ex void mon_fr_cpu(void);
 
 // Multifluid prototypes
 ex Fluid *CreateFluid(char*,int);

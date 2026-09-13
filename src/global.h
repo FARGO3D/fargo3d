@@ -354,6 +354,8 @@ void (*mon_momx)();
 void (*mon_momy)();
 void (*mon_momz)();
 void (*mon_torq)();
+void (*mon_power)();
+void (*mon_fr)();
 void (*mon_reynolds)();
 void (*mon_maxwell)();
 void (*mon_bxflux)();

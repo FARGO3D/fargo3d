@@ -20,7 +20,10 @@ int FindNumberOfPlanets(char *filename) {
 PlanetarySystem *AllocPlanetSystem(int nb) {
   char command[512];
   real *mass, *x, *y, *z, *vx, *vy, *vz, *acc;
-  boolean *feeldisk, *feelothers;
+  real *taum, *taue;
+  boolean *feelothers;
+  int *feeldisk;
+  boolean *flag_pres;
   int i;
   PlanetarySystem *sys;
   int temp;
@@ -37,15 +40,20 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
   vz   = (real*)malloc(sizeof(real)*(nb+1));
   mass = (real*)malloc(sizeof(real)*(nb+1));
   acc  = (real*)malloc(sizeof(real)*(nb+1));
+  taum  = (real*)malloc(sizeof(real)*(nb+1));
+  taue  = (real*)malloc(sizeof(real)*(nb+1));
   if ((x == NULL) || (y == NULL) || (z == NULL)	      \
       || (vx == NULL) || (vy == NULL) || (vz == NULL) \
-      || (acc == NULL) || (mass == NULL)) {
+      || (acc == NULL) || (mass == NULL) \
+	  || (taum == NULL) || (taue == NULL)) {
     fprintf (stderr, "Not enough memory to alloc components of planetary system.\n");
     prs_exit (1);
   }
-  feeldisk   = (boolean*)malloc(sizeof(char)*(nb+1));
+  //feeldisk   = (boolean*)malloc(sizeof(char)*(nb+1));
+  feeldisk   = (int*)malloc(sizeof(int)*(nb+1));
   feelothers = (boolean*)malloc(sizeof(char)*(nb+1));
-  if ((feeldisk == NULL) || (feelothers == NULL)) {
+  flag_pres   = (boolean*)malloc(sizeof(char)*(nb+1));
+  if ((feeldisk == NULL) || (feelothers == NULL) || (flag_pres == NULL)) {
     fprintf (stderr, "Not enough memory for boolean allocation in PlanetarySystem.\n");
     prs_exit (1);
   }
@@ -57,11 +65,17 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
   sys->vz= vz;
   sys->acc=acc;
   sys->mass = mass;
+  sys->taum = taum;
+  sys->taue = taue;
   sys->FeelDisk = feeldisk;
   sys->FeelOthers = feelothers;
+  sys->Flag_Pres = flag_pres;
   for (i = 0; i < nb; i++) {
     x[i] = y[i] = z[i] = vx[i] = vy[i] = vz[i] = mass[i] = acc[i] = 0.0;
-    feeldisk[i] = feelothers[i] = YES;
+	taum[i] = taue[i] = 0.0;
+	feeldisk[i] = 1;  
+    feelothers[i] = YES;
+	flag_pres[i] = NO;
   }
   for (i = 0; i < nb; i++) {
     /* Creates orbit[i].dat if it does not exist */
@@ -84,8 +98,11 @@ PlanetarySystem *AllocPlanetSystem(int nb) {
 
   sys->acc=acc;
   sys->mass = mass;
+  sys->taum = taum;
+  sys->taue = taue;
   sys->FeelDisk = feeldisk;
   sys->FeelOthers = feelothers;
+  sys->Flag_Pres = flag_pres;
 
 #ifdef GPU
   int status;
@@ -109,8 +126,11 @@ void FreePlanetary () {
   free (Sys->vy);
   free (Sys->mass);
   free (Sys->acc);
+  free (Sys->taum);
+  free (Sys->taue);
   free (Sys->FeelOthers);
   free (Sys->FeelDisk);
+  free (Sys->Flag_Pres);
   free (Sys);
 }
 
@@ -140,12 +160,17 @@ real ComputeInnerMass(real r) {
 
 PlanetarySystem *InitPlanetarySystem (char *filename) {
   FILE *input;
-  char s[512], nm[512], test1[512], test2[512], *s1;
+  char s[512], nm[512], test1[512], test2[512], test3[512], *s1;
   PlanetarySystem *sys;
+  int flag;
   int i=0, j, nb, nbstars=0, i_star1=-1, i_star2=-1;
   real xp,yp,zp,vxp,vyp,vzp,mp,M1,M2,r1,r2,v1,v2;
   real mass, dist, accret;
-  boolean feeldis, feelothers;
+  real ecc, inc;
+  real taum, taue;
+  boolean feelothers;
+  int feeldis;
+  boolean flag_pres;
   real newmass;
   real summass=0.0;
   real e_bin, a_bin, period_bin;
@@ -171,9 +196,9 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
     if (isalpha(s[0])) {
       s1 = s + strlen(nm);
 #ifdef FLOAT
-      sscanf(s1 + strspn(s1, "\t :=>_"), "%f %f %f %s %s", &dist, &mass, &accret, test1, test2);
+      sscanf(s1 + strspn(s1, "\t :=>_"), "%f %f %f %d %s %s %f %f %f %f", &dist, &mass, &accret, &flag, test2, test3, &ecc, &inc, &taum, &taue);
 #else
-      sscanf(s1 + strspn(s1, "\t :=>_"), "%lf %lf %lf %s %s", &dist, &mass, &accret, test1, test2);
+      sscanf(s1 + strspn(s1, "\t :=>_"), "%lf %lf %lf %d %s %s %lf %lf %lf %lf", &dist, &mass, &accret, &flag, test2, test3, &ecc, &inc, &taum, &taue);
 #endif
       if ((SEMIMAJORAXIS > 0.0) && (i == 0)) // SemiMajorAxis can be
 					     // used to overwrite the
@@ -188,11 +213,18 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
       mass *= MSTAR;
 #endif
       sys->mass[i] = mass;
+	  ECCENTRICITY = ecc;
+      INCLINATION  = inc;
+	  sys->taum[i] = taum;
+	  sys->taue[i] = taue;
       if (PLANETMASS > 1e-18)
 	sys->mass[0] = PLANETMASS;
-      feeldis = feelothers = YES;
-      if (tolower(*test1) == 'n') feeldis = NO;
+	  feeldis = flag;
+      feelothers = YES;
+	  flag_pres = NO;
+      //if (tolower(*test1) == 'n') feeldis = NO;
       if (tolower(*test2) == 'n') feelothers = NO;
+	  if (tolower(*test3) == 'y') flag_pres = YES;
       sys->x[i] = (real)dist*(1.0+ECCENTRICITY); // Planets are initialized at apoastron
       sys->y[i] = 0.0;
       sys->z[i] = 0.0;
@@ -205,6 +237,7 @@ PlanetarySystem *InitPlanetarySystem (char *filename) {
       sys->acc[i] = accret;
       sys->FeelDisk[i] = feeldis;
       sys->FeelOthers[i] = feelothers;
+	  sys->Flag_Pres[i] = flag_pres;
       if (sys->mass[i] > THRESHOLD_STELLAR_MASS)
 	nbstars++;
       i++;
@@ -345,8 +378,10 @@ void ListPlanets () {
       printf ("Non-accreting.\n");
     else
       printf ("accretion time = %.10f\n", 1.0/(Sys->acc[i]));
-    if (Sys->FeelDisk[i] == YES) {
+    if (Sys->FeelDisk[i] == 1) {
       printf ("Feels the disk potential\n");
+	} else if (Sys->FeelDisk[i] == 2) {
+      printf ("Prescribe planet motion using taum and taue for the planet\n");
     } else {
       printf ("Doesn't feel the disk potential\n");
     }
@@ -355,6 +390,11 @@ void ListPlanets () {
     } else {
       printf ("Doesn't feel the other planets potential\n");
     }
+	if (Sys->Flag_Pres[i] == YES) {
+      printf ("Prescribe the planet orbits, also need to set feeldisk and feelothers false!!!\n");
+    } else {
+      printf ("Doesn't Prescribe the planet orbits\n");
+    }  
     printf ("\n");
   }
 }

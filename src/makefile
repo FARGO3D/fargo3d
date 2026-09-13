@@ -366,6 +366,7 @@ MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    \
 	   nimhd_ohmic_diffusion.o				\
 	   nimhd_ohmic_diffusion_coeff.o			\
 	   compute_jx.o compute_jy.o compute_jz.o		\
+	   mon_power.o mon_fr.o 		\
 	   mesh.o ram_advect.o ram_advect_lin.o ram_compute_ustar.o ram_plm.o
 #-----------------------#Cuda objects---------------------------------
 GPU_OBJ  =  reduction_sum_device.o reduction_min_device.o	\
@@ -420,6 +421,7 @@ GPU_OBJBLOCKS =  CompPresIso_gpu.o CompPresAd_gpu.o 		\
 	   nimhd_ohmic_diffusion_coeff_gpu.o			\
 	   compute_jx_gpu.o compute_jy_gpu.o compute_jz_gpu.o \
 	   compute_vmed_gpu.o ram_advect_gpu.o ram_compute_ustar_gpu.o \
+	   mon_power_gpu.o	mon_fr_gpu.o \
 	   ram_plm_gpu.o ram_advect_lin_gpu.o
 #</CUDA OBJECTS>
 #---------------------------------------------------------------------

@@ -37,10 +37,14 @@ struct planetary_system {
   real *vy;		        /**< y-coordinate of the planets'velocities */
   real *vz;		        /**< z-coordinate of the planets'velocities */
   real *acc;			/**< The planets' accretion times^-1 */
+  real *taum;           /**< The planets' angular momentum damping times */
+  real *taue;           /**< The planets' eccentricity damping times */
   char **name;  		/**< The planets' names */
-  boolean *FeelDisk;		/**< For each planet tells if it feels the disk (ie migrates) */
+  // boolean *FeelDisk;		/**< For each planet tells if it feels the disk (ie migrates) */
+  int *FeelDisk;                /**< For each planet tells if it feels the disk (ie migrates) */
   boolean *FeelOthers;		/**< For each planet tells if it feels
 				   the other planets' gravity */
+  boolean *Flag_Pres;    /* For each planets, flag to prescribe the orbit of the planet*/
 };
 
 struct grid {   // Store all relevant information for grid
