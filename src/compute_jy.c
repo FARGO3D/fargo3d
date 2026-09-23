@@ -19,6 +19,7 @@ void ComputeJy_cpu() {
   real* bx = Bx->field_cpu;
   real* bz = Bz->field_cpu;
   real* jy = Jy->field_cpu;
+  real dx = Dx;
   real mu0 = MU0;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
@@ -34,11 +35,10 @@ void ComputeJy_cpu() {
   int ll;
   real fact1;
   real fact2;
+  real fact;
 //<\INTERNAL>
 
 //<CONSTANT>
-// real xmin(Nx+1);
-// real InvDiffXmed(Nx+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
@@ -51,17 +51,18 @@ void ComputeJy_cpu() {
 	ll = l;
 #ifdef CARTESIAN
 	fact1 = 1.0/(zmed(k)-zmed(k-1));
-	fact2 = Inv_zone_size_xmed(i,j,k);
+	fact2 = 1.0/dx;
 	jy[ll] = ((bx[ll]-bx[lzm])*fact1-(bz[ll]-bz[lxm])*fact2)/mu0;
 #endif
 #ifdef CYLINDRICAL
-	fact1 = Inv_zone_size_xmed(i,j,k);
+	fact1 = 1.0/(ymed(j)*dx);
 	fact2 = 1.0/(zmed(k)-zmed(k-1));
 	jy[ll] = ((bz[ll]-bz[lxm])*fact1-(bx[ll]-bx[lzm])*fact2)/mu0;
 #endif
 #ifdef SPHERICAL
-	fact1 = Inv_zone_size_xmed(i,j,k);
-	fact2 = 1.0/(ymed(j)*sin(zmin(k))*(zmed(k)-zmed(k-1)));
+	fact  = ymed(j)*sin(zmin(k));
+	fact1 = 1.0/(fact*dx);
+	fact2 = 1.0/(fact*(zmed(k)-zmed(k-1)));
 	jy[ll] = ((sin(zmed(k))*bx[ll]-sin(zmed(k-1))*bx[lzm])*fact2-(bz[ll]-bz[lxm])*fact1)/mu0;
 #endif
 //<\#>

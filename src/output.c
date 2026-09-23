@@ -75,7 +75,9 @@ void WritePlanetFile (int TimeStep, int n, boolean big) {
   fflush (stdout);
 }
 
-real GetfromPlanetFile (int TimeStep, int column, int n) {
+real GetfromPlanetFile (TimeStep, column, n)
+int TimeStep, column, n;
+{
   FILE *input;
   char name[256];
   char testline[256];
@@ -111,7 +113,10 @@ real GetfromPlanetFile (int TimeStep, int column, int n) {
   return (real)value;
 }
 
-void RestartPlanetarySystem (int timestep, PlanetarySystem *sys){
+void RestartPlanetarySystem (timestep, sys)
+PlanetarySystem *sys;
+int timestep;
+{
   int k;
   for (k = 0; k < sys->nb; k++) {
     sys->x[k] = GetfromPlanetFile (timestep, 2, k);
@@ -281,39 +286,45 @@ void WriteFieldGhost(Field *f, int n) { // Diagnostic function
 }
 
 void WriteMerging(Field *f, int n) {
-
   INPUT(f);
-  
-  FILE *fo;
-  char outname[MAXLINELENGTH];
-  int relay;
-  int i, j, k;
-  
-  sprintf(outname, "%s%s%d.dat", OUTPUTDIR, f->name, n);
-  
-  if (CPU_Rank > 0) // Force sequential write
-    MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  
-  if (CPU_Master) fo = fopen(outname, "w");
-  else            fo = fopen(outname, "r+");
-  
-  long offset = Nx*Y0 + Nx*NY*Z0;
-  
-  for (k=NGHZ; k<Nz+NGHZ; k++) {
-    fseek(fo, offset*sizeof(real), SEEK_SET);
-    for (j = NGHY; j < Ny+NGHY; j++) {
-      fwrite(f->field_cpu+k*Stride+j*(Nx+2*NGHX)+NGHX, sizeof(real)*Nx, 1, fo);
-    }
-    offset += (Nx+2*NGHX)*NY;
-  }
-  
-  fclose(fo);
-  
-  if (CPU_Rank < CPU_Number-1)  // Force sequential write
-    MPI_Send (&relay, 1, MPI_INT, CPU_Rank+1, 42, MPI_COMM_WORLD);
-  
-}
 
+  FILE *fo;
+  int i,j,k,m,jj;
+  char outname[MAXLINELENGTH];
+  int next, previous;
+  int relay;
+
+  sprintf(outname, "%s%s%d.dat", OUTPUTDIR, f->name, n);
+
+  if (CPU_Rank > 0) { // Force sequential read
+    MPI_Recv (&relay, 1, MPI_INT, CPU_Rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  }
+
+  if (CPU_Master){ //An inefficient way to delete a file...
+    fo = fopen(outname, "w");
+    fclose(fo);
+    fo = fopen(outname, "a+");
+  }
+  else 
+    fo = fopen(outname, "a+");
+
+  if (CPU_Rank < CPU_Number-1) {  // Force sequential read
+    MPI_Send (&relay, 1, MPI_INT, CPU_Rank+1, 42, MPI_COMM_WORLD);
+  }
+
+
+  for (k=0; k<NZ; k++) {
+    for (j = 0; j<Ncpu_x; j++) {
+      if ((J==j) && (k>=Z0) && (k<(Z0+Nz))) {
+	for (jj = NGHY; jj < Ny+NGHY; jj++)
+	  fwrite(f->field_cpu+(k-Z0+NGHZ)*Stride+jj*(Nx+2*NGHX)+NGHX, sizeof(real)*Nx, 1, fo);
+      }
+      fflush(fo);
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+  }
+  fclose(fo);
+}
 
 void Write_offset(int file_offset, char* fieldname, char* fluidname){
 
@@ -622,7 +633,7 @@ void WriteOutputs(int type) {
   if (WRITEDENSITY)
     offset = ParallelIO(Density, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
   if (WRITEENERGY)
-        if(Fluidtype != DUST) offset = ParallelIO(Energy, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
+    offset = ParallelIO(Energy, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
 #ifdef X
   if (WRITEVX)
     offset = ParallelIO(Vx, TimeStep, MPI_MODE_WRONLY|MPI_MODE_CREATE, offset,writeoffset);
@@ -668,7 +679,7 @@ void WriteOutputs(int type) {
   if (WRITEDENSITY)
     __WriteField(Density, TimeStep);
   if (WRITEENERGY)
-    if(Fluidtype != DUST) __WriteField(Energy, TimeStep);
+    __WriteField(Energy, TimeStep);
 #ifdef MHD //MHD is 3D.
   if(Fluidtype == GAS){
     if (WRITEDIVERGENCE)

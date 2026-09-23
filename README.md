@@ -1,4 +1,17 @@
-# FARGO3D #
+# TODO:
+
+1) upload the new setup that we will use (with boundaries etc..) [L]
+2) upload the file to gradually increasing the planet mass [A]
+3) upload the file with the beta cooling implementation [L]
+4) upload the script to run a batch of simulations [A]
+5) prepare the parameter file and slurm submission file for script and write instructions [A]
+
+# Notes
+* we ar eyusing the `p3disof` setup
+
+
+----------------------------------------------------------------------------------------------------------------------------------------
+# ORIGINAL --- FARGO3D #
 
 #### A versatile MULTIFLUID HD/MHD code that runs on clusters of CPUs or GPUs, with special emphasis on protoplanetary disks. 
 

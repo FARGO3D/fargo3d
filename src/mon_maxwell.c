@@ -37,7 +37,6 @@ void mon_maxwell_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
 // real Syk(Nz+2*NGHZ);
 // real InvVj(Ny+2*NGHY);
 //<\CONSTANT>
@@ -57,7 +56,7 @@ void mon_maxwell_cpu () {
 #endif
 //<#>
 	ll = l;
-	interm[ll] = .25*(bx[ll]+bx[lxp])*(by[ll]+by[lyp])/MU0*Vol(i,j,k);
+	interm[ll] = .25*(bx[ll]+bx[lxp])*(by[ll]+by[lyp])/MU0*Vol(j,k);
 //<\#>
 #ifdef X
       }

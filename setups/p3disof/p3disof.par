@@ -2,43 +2,65 @@ Setup			p3disof
 
 ### Disk parameters
 
-AspectRatio     	0.05            Thickness over Radius in the disc
-Sigma0			6.3661977237e-4	Surface Density at r=1
-Nu			1.0e-5		Uniform kinematic viscosity
-SigmaSlope		1.0		Slope of surface
-FlaringIndex		0.5
+AspectRatio     	0.1             Midplane scale height
+AspectRatio2		0.1             Atmosphere scale height
+Sigma0			1.0		Surface Density at r=1
+#Nu			1.0e-5		Uniform kinematic viscosity
+Alpha			1.0e-3
+SigmaSlope		1.5		Slope of surface
+FlaringIndex		0.25
+FlaringIndex2           0.25
+TauDamp			0.01
+Tcool                   1.0e-6
+Rc                      2.0
+Gamma                   1.4
+Densflr                 1.0e-15
+SelfConsistent          0               0 if zq=3H            
+Height                  38.220155       Height of temperature transition (only used if SelfConsistent is 1)
+Z0Slope                 1.059203        Slope of transition height
 
 ### Planet parameters
 
-PlanetConfig		planets/SuperEarth.cfg
-ThicknessSmoothing 	0.1		Smoothing parameters in disk thickness
+PlanetConfig		planets/zero.cfg
+ThicknessSmoothing 	0.13		Smoothing parameters in disk thickness
+MassTaper               628.3185307179587
 
 ### Numerical method parameters
-
+Strat                   YES
 Disk			YES
-OmegaFrame     		1.0
-Frame			F
-IndirectTerm		No
+OmegaFrame     		0.0
+Frame			C
+IndirectTerm		Yes
+Eccentricity            0.0
+
+### Dust parameters
+
+Invstokes1		1.0e6           Inverse of the Stokes number for dust1
+Invstokes2		1.0e3    	Inverse of the Stokes number for dust2
+Invstokes3		1.0e2    	Inverse of the Stokes number for dust3
+Invstokes4		1.0e1	    	Inverse of the Stokes number for dust4
+
+Epsilon                 1.0    		Dust-to-gas mass ratio
+Epsilon_init		0.1 		Initial midplane dust-to-gas ratio
 
 ### Mesh parameters
 
-Nx			100		Azimuthal number of zones 
-Ny               	80		Radial number of zones
-Nz			40		Number of zones in colatitude
-Ymin			0.6		Inner boundary radius
-Ymax			1.5		Outer boundary radius
-Zmin			1.42079632679489661922
-Zmax			1.72079632679489661922
-Xmin			-3.141592653589793
-Xmax			3.141592653589793
+Nx			880             Azimuthal number of zones 
+Ny                      369		Radial number of zones
+Nz			56		Number of zones in colatitude
+Ymin			0.3		Inner boundary radius
+Ymax			5.0		Outer boundary radius
+Zmin		        1.1707963267948966
+Zmax			1.5707963267948966
+Xmin                    -3.141592653589793
+Xmax                    3.141592653589793
+Spacing			Log
 
 ### Output control parameters
 
-Ntot			10001		Total number of time steps
-Ninterm	 		10		Time steps between outputs
-DT			0.314159265359	Time step length. 2PI = 1 orbit
+Ntot			2000			Total number of time steps
+Ninterm	 		20			Time steps between outputs
+DT			3.141592653589793  	Time step length. 2PI = 1 orbit
 OutputDir		@outputs/p3disof
-
-
 Field 			gasdens
 PlotLine		field[-1,:,:]

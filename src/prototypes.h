@@ -4,12 +4,6 @@
 #define ex extern
 #endif
 
-//mesh.c prototypes
-real ux(real);
-real uy(real);
-real bisect(real a, real b, int N, real (*u)(real), int);
-void compute_ux_constants(void);
-
 //matplotlib.c prototypes
 
 void pyrun(const char *, ...);
@@ -49,7 +43,8 @@ ex OrbitalElements SV2OE (StateVector, real);
 
 //var.c Prototypes
 ex void InitVariables(void);
-ex void Init(void);
+//ex void Init(void);
+ex void Init(real);
 
 //LowTask.c Prototypes
 ex int PrimitiveVariables (void);
@@ -215,6 +210,9 @@ ex void compute_potential(real);
 ex void InitDensPlanet(void);
 ex void InitSoundSpeedPlanet(void);
 ex void InitVazimPlanet(void);
+ex void InitDensStratPlanet(void);
+ex void InitSoundSpeedStratPlanet(void);
+ex void InitVazimStratPlanet(void);
 ex void planet2d(void);
 
 ex void compute_potential(real);
@@ -340,14 +338,9 @@ ex void InitVariables(void);
 
 //fargo.c Prototypes
 ex void ComputeVmed (Field*);
-ex void ComputeVweight_cpu(Field*,Field*);
 ex void ComputeResidual_cpu(real);
 ex void AdvectSHIFT_cpu(Field*, FieldInt2D*);
 ex void ChangeFrame_cpu(int, Field*, Field2D*);
-ex void AdvectRAM_cpu(real,Field*);
-ex void AdvectRAMlin_cpu(real,Field*);
-ex void RamComputeUstar_cpu(real);
-ex void RamSlopes_cpu(Field*);
 
 ex void copy_field_cpu(Field*,Field*);
 
@@ -545,12 +538,8 @@ ex void NewVelocity_z_gpu (void);
 
 ex void AdvectSHIFT_gpu(Field*, FieldInt2D*);
 ex void ComputeResidual_gpu(real);
-ex void ComputeVweight_gpu(Field*,Field*);
 ex void ChangeFrame_gpu(int, Field*, Field2D*);
-ex void AdvectRAM_gpu(real,Field*);
-ex void AdvectRAMlin_gpu(real,Field*);
-ex void RamComputeUstar_gpu(real);
-ex void RamSlopes_gpu(Field*);
+
 ex void Potential_gpu(void);
 ex void CorrectVtheta_gpu(real);
 ex void cfl_gpu(void);

@@ -58,7 +58,6 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -86,11 +85,11 @@ void _ComputeForce_cpu(real x, real y, real z, real rsmoothing, real mass) {
 #endif
 
 //<#>
-	/* Warning: Vol(i,j,k) must be also used
+	/* Warning: Vol(j,k) must be also used
 	   for 2D simulations (ie: surface area). */
 
 	ll = l;
-	cellmass = Vol(i,j,k)*dens[ll];
+	cellmass = Vol(j,k)*dens[ll];
 #ifdef CARTESIAN
 	dx = xmed(i)-x;
 	dy = ymed(j)-y;

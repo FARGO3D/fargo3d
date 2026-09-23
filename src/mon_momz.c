@@ -35,7 +35,6 @@ void mon_momz_cpu () {
 //<\INTERNAL>
 
 //<CONSTANT>
-// real Sxi(Nx);
 // real Syk(Nz+2*NGHZ);
 // real InvVj(Ny+2*NGHY);
 // real ymin(Ny+2*NGHY+1);
@@ -56,7 +55,7 @@ void mon_momz_cpu () {
 #endif
 //<#>
 	ll = l;
-	mom[ll] = dens[ll]*.5*(vz[ll]+vz[lzp])*Vol(i,j,k);
+	mom[ll] = dens[ll]*.5*(vz[ll]+vz[lzp])*Vol(j,k);
 #ifdef SPHERICAL
 	mom[ll] *= ymed(j);
 #endif

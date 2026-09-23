@@ -27,6 +27,7 @@ void ComputeResidual_cpu(real dt) {
   int size_x  = Nx+2*NGHX;
   int size_y  = Ny+2*NGHY;
   int size_z  = Nz+2*NGHZ;
+  real dx     = Dx;
   int pitch2d = Pitch2D;
   int pitch2d_int = Pitch_Int_gpu;
 //<\EXTERNAL>
@@ -63,17 +64,12 @@ void ComputeResidual_cpu(real dt) {
 //<#>
 	ll = l;
 	ll2D = l2D;
-
-#ifndef RAM
-	ntilde = vxmed[ll2D]*dt/zone_size_x(i,j,k);
+	ntilde = vxmed[ll2D]*dt/zone_size_x(j,k);
 	nround = floor(ntilde+0.5);
 	if(i == 0) 
 	  nshift[l2D_int] = (int)nround;
 	vxr[ll] = vx[ll]-vxmed[ll2D];
-	vx[ll] = (ntilde-nround)*zone_size_x(i,j,k)/dt;
-#else
-	vxr[ll] = vx[ll]-vxmed[ll2D];
-#endif
+	vx[ll] = (ntilde-nround)*zone_size_x(j,k)/dt;
 //<\#>
 #ifdef X
       }

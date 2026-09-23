@@ -133,13 +133,15 @@ PARACC_LINUX  = mpicc
 LIBS_LINUX    = -lm
 INC_LINUX     = 
 NVCC_LINUX    = nvcc
-CUDAOPT_LINUX = -O3 -w #-arch=sm_XX # try utils/cuda/get_cuda_sm.sh
+#CUDAOPT_LINUX = -O3 -w -arch=sm_100 # try utils/cuda/get_cuda_sm.sh
+CUDAOPT_LINUX = -O3 -w -arch=sm_89 # try utils/cuda/get_cuda_sm.sh
 PARAINC_LINUX = 
 PARALIB_LINUX =
 CUDAINC_LINUX = -I${CUDA}/include/
 CUDALIB_LINUX = -L${CUDA}/lib64/  -lcudart -lstdc++
 CXX_LINUX     = g++ -stdlib=libstdc++
 CXXPARA_LINUX = mpic++ -stdlib=libstdc++
+ENVRANK_LINUX = OMPI_COMM_WORLD_LOCAL_RANK
 #---------------------------------------------------------------------
 #KEPLER PLATFORM WITH OPENMPI-1.7.4 AT UNAM
 #FARGO_ARCH must be set to KEPLEROPENMPI
@@ -366,7 +368,7 @@ MAINOBJ  = LowTasks.o psys.o main.o param.o var.o usage.o   	    \
 	   nimhd_ohmic_diffusion.o				\
 	   nimhd_ohmic_diffusion_coeff.o			\
 	   compute_jx.o compute_jy.o compute_jz.o		\
-	   mesh.o ram_advect.o ram_advect_lin.o ram_compute_ustar.o ram_plm.o
+
 #-----------------------#Cuda objects---------------------------------
 GPU_OBJ  =  reduction_sum_device.o reduction_min_device.o	\
 	   	lowtasks_gpu.o 
@@ -418,9 +420,7 @@ GPU_OBJBLOCKS =  CompPresIso_gpu.o CompPresAd_gpu.o 		\
 	   nimhd_ambipolar_diffusion_coeff_gpu.o		\
 	   nimhd_ohmic_diffusion_gpu.o				\
 	   nimhd_ohmic_diffusion_coeff_gpu.o			\
-	   compute_jx_gpu.o compute_jy_gpu.o compute_jz_gpu.o \
-	   compute_vmed_gpu.o ram_advect_gpu.o ram_compute_ustar_gpu.o \
-	   ram_plm_gpu.o ram_advect_lin_gpu.o
+	   compute_jx_gpu.o compute_jy_gpu.o compute_jz_gpu.o
 #</CUDA OBJECTS>
 #---------------------------------------------------------------------
 
@@ -677,4 +677,4 @@ endif
 	-DMONITOR_Y='${MONITOR_Y}' -DMONITOR_Y_RAW='${MONITOR_Y_RAW}' 		\
 	-DMONITOR_Z='${MONITOR_Z}' -DMONITOR_Z_RAW='${MONITOR_Z_RAW}' 		\
 	-DSETUPNAME='${SETUP}' -DVERSION=$(GIT_VERSION) 			\
-	-DPATHARCH='$(CURDIR)/$(ARCHDIR)/$(ARCHNAME)' -DOPTIONS="${FARGO_OPT}"
+	-DPATHARCH=$(CURDIR)/$(ARCHDIR)/$(ARCHNAME) -DOPTIONS="${FARGO_OPT}"
