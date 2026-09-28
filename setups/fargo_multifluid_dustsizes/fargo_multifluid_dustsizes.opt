@@ -1,0 +1,62 @@
+# BEGIN
+# The "fargo_multifluid" setup is the 2D polar setup that corresponds to the
+# standard setup of the former FARGO code including a gas disk with multiple 
+# dust species.
+# In order to run it, do:
+# make SETUP=fargo_multifluid
+# fargo3d setups/fargo_multifluid/fargo_multifluid.par
+# END
+#-------------------------------------------------------------------------
+# Warning: You have to define the following numbers according
+# to your condinit.c file.
+# If you need N-fluids, write: FLUIDS := 0 1 2 ... N-1
+# (replace "..." with a complete list) and NFLUIDS = N
+
+FLUIDS := 0 1 2 3
+NFLUIDS = 4
+
+FARGO_OPT += -DNFLUIDS=${NFLUIDS}
+#-----------------------------------------------------------
+
+#MONITOR_SCALAR = MASS | MOM_X | TORQ
+#MONITOR_Y_RAW  = TORQ
+
+FARGO_OPT +=  -DX
+FARGO_OPT +=  -DY
+
+#Equation of State
+FARGO_OPT +=  -DISOTHERMAL
+
+#Coordinate System.
+FARGO_OPT +=  -DCYLINDRICAL
+
+FARGO_OPT += -DPOTENTIAL
+
+FARGO_OPT += -DVISCOSITY
+
+#Drag force between species
+FARGO_OPT += -DDRAGFORCE
+
+# Activate EPSTEINDRAG option to model dust fluids of constant size
+FARGO_OPT += -DEPSTEINDRAG
+# Activate DSTOKESNUMBER option to model dust fluids of constant Stokes number
+#FARGO_OPT += -DSTOKESNUMBER
+
+FARGO_OPT += -DDUSTDIFFUSION
+
+# Unactivate option to discard dust drag onto gas
+#FARGO_OPT += -DNODUSTFEEDBACK
+
+#Damping conditions
+FARGO_OPT += -DSTOCKHOLM
+
+FARGO_OPT += -DLONGSUMMARY
+
+FARGO_OPT += -DLEGACY
+
+#Cuda blocks
+ifeq (${GPU}, 1)
+FARGO_OPT += -DBLOCK_X=16
+FARGO_OPT += -DBLOCK_Y=16
+FARGO_OPT += -DBLOCK_Z=1
+endif

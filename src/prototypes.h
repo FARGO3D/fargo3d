@@ -50,6 +50,7 @@ ex OrbitalElements SV2OE (StateVector, real);
 //var.c Prototypes
 ex void InitVariables(void);
 ex void Init(void);
+ex void InitSizes(real);
 
 //LowTask.c Prototypes
 ex int PrimitiveVariables (void);

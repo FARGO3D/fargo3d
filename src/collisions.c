@@ -14,6 +14,7 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
   real *rho[NFLUIDS];
   real *velocities_input[NFLUIDS];
   real *velocities_output[NFLUIDS];
+  real *cs = Fluids[0]->Energy->field_cpu;
 
   int ii;
 
@@ -109,6 +110,9 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
   real m[NFLUIDS*NFLUIDS];  
   real omega;
   real rho_p;
+  real rho_gas;
+  real myfactor;
+  real mycs;
   real rho_o;
   real rho_q;
 //<\INTERNAL>
