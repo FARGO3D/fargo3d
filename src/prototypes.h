@@ -1,5 +1,5 @@
 #ifdef __GPU
-#define ex extern "C" 
+#define ex extern "C"
 #else
 #define ex extern
 #endif
@@ -253,9 +253,9 @@ ex void SubStep3_cpu(real);
 
 //transport Prototypes
 ex void VanLeerX(Field*, Field*, Field*, real);
-ex void TransportX(Field*, Field*, Field*, real); 
-ex void TransportY(Field*, Field*, real); 
-ex void TransportZ(Field*, Field*, real); 
+ex void TransportX(Field*, Field*, Field*, real);
+ex void TransportY(Field*, Field*, real);
+ex void TransportZ(Field*, Field*, real);
 ex void X_advection (Field*, real);
 ex void transport(real);
 
@@ -313,6 +313,14 @@ ex void WriteVTKMerging(Field *, int);
 ex void write_vtk_header(FILE*, Field*, int);
 ex void write_vtk_coordinates(FILE*, Field*);
 ex void write_vtk_scalar(FILE*, Field*);
+
+ex int SetupOutputHdf5();
+ex int WriteDomainHdf5();
+ex int WriteOutputsHdf5();
+ex int WriteOutputs2dHdf5();
+ex int WritePlanetsHdf5();
+ex int WriteParametersHdf5();
+ex void TeardownOutputHdf5();
 
 //update.c
 ex void UpdateX_cpu(real, Field*, Field*, Field*);
@@ -376,7 +384,7 @@ ex void _LorentzForce_cpu(real, int, int, int, int, int, int, int, int, int, int
 ex void UpdateMagneticField (real, int, int, int);
 ex void _UpdateMagneticField_cpu(real,int,int,int,int,int,int,int,int,int,
 			      Field*,Field*,Field*);
-  
+
 
 ex void ComputeMHD (real);
 ex void ComputeDivergence (Field *, Field *, Field *);
