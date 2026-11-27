@@ -69,6 +69,8 @@ void SubStep1_x_cpu (real dt) {
   real bmean;
 #if defined (CYLINDRICAL)|| defined (SPHERICAL)
   real brmean;
+  real wx_c;
+  real wx_m;
 #endif
 #ifdef SPHERICAL
   real btmean;
@@ -130,7 +132,9 @@ void SubStep1_x_cpu (real dt) {
 	  db1 = (bmean*bmean-bmeanm*bmeanm);
 	  
 #if defined(CYLINDRICAL) || defined(SPHERICAL)
-	  brmean = .5*(bmean+bmeanm);
+	  wx_c = 0.5*Sxi(ixm)/dxmed;
+	  wx_m = 0.5*Sxi(i)/dxmed;
+	  brmean = wx_c*bmean + wx_m*bmeanm;
 	  vx_temp[ll] += dtOVERrhom*brmean*bx[ll]/(MU0*ymed(j));
 #endif
 	  
@@ -142,7 +146,7 @@ void SubStep1_x_cpu (real dt) {
 	  vx_temp[ll] -= .5*dtOVERrhom*(db1 + db2)*Inv_zone_size_xmed(i,j,k)/MU0;
 	  
 #ifdef SPHERICAL
-	btmean = .5*(bmean+bmeanm);
+	btmean = wx_c*bmean + wx_m*bmeanm;
 	vx_temp[ll] += dtOVERrhom*btmean*cos(zmed(k))*bx[ll]/(MU0*ymed(j)*sin(zmed(k)));
 #endif
       

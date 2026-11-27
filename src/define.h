@@ -149,6 +149,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b));
 #endif
 #define max2(a,b) ((a) > (b) ? (a) : (b))
+#define min2(a,b) ((a) < (b) ? (a) : (b))
 #define max3(a,b,c) (((a)>(b)?(a):(b)) > (c) ? \
 		     ((a)>(b)?(a):(b)) :       \
 		     (c))

@@ -30,6 +30,10 @@ void VanLeerY_a_cpu(Field *Q){
   int k;
   real dqm;
   real dqp;
+  real rawm;
+  real rawp;
+  real s_harm;
+  real s_max;
   int ll;
   int llym;
   int llyp;
@@ -58,11 +62,17 @@ void VanLeerY_a_cpu(Field *Q){
 	llym = lym;
 	llyp = lyp;
 
-	dqm = (q[ll]-q[llym])/zone_size_y(j,k);
-	dqp = (q[llyp]-q[ll])/zone_size_y(j+1,k);
-	if(dqp*dqm<=0) slope[ll] = 0;
+	rawm = q[ll]-q[llym];
+	rawp = q[llyp]-q[ll];
+	dqm = rawm/(ymed(j)-ymed(j-1));
+	dqp = rawp/(ymed(j+1)-ymed(j));
+	if(dqp*dqm<=0.0) slope[ll] = 0.0;
 #ifndef DONOR
-	else  slope[ll] = 2.*dqp*dqm/(dqm+dqp);
+	else {
+	  s_harm = 2.*dqp*dqm/(dqm+dqp);
+	  s_max = 2.0*min2(fabs(rawm),fabs(rawp))/zone_size_y(j,k);
+	  slope[ll] = (s_harm > 0.0) ? min2(s_harm, s_max) : max2(s_harm, -s_max);
+	}
 #else
 	else  slope[ll] = 0.0;
 #endif

@@ -111,10 +111,17 @@ void _collisions_cpu(real dt, int id1, int id2, int id3, int option) {
   real rho_p;
   real rho_o;
   real rho_q;
+  real w_l;
+  real w_idm;
+  real inv_wsum;
 //<\INTERNAL>
 
 //<CONSTANT>
 // real Alpha(NFLUIDS*NFLUIDS);
+// real ymin(Ny+2*NGHY+1);
+// real Sxi(Nx+2*NGHX);
+// real InvVj(Ny+2*NGHY);
+// real Syk(Nz+2*NGHZ);
 //<\CONSTANT>
 
   

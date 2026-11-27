@@ -35,7 +35,7 @@ void DustDiffusion_Core_cpu(real dt) {
   real* temp  = Pressure->field_cpu;
   int pitch  = Pitch_cpu;
   int stride = Stride_cpu;
-  int size_x = Nx+2*NGHX;
+  int size_x = XIP;
   int size_y = Ny+2*NGHY-1;
   int size_z = Nz+2*NGHZ-1;
 //<\EXTERNAL>
@@ -54,6 +54,16 @@ void DustDiffusion_Core_cpu(real dt) {
   real cxm;
   int llxm;
   int llxp;
+  real dxmedm;
+  real dxmedp;
+  real dxmin;
+  real dx_c;
+  real dx_p;
+  real dx_m;
+  real wx_p_r;
+  real wx_p_l;
+  real wx_m_r;
+  real wx_m_l;
 #endif
 #ifdef Y
   real cyp;
@@ -62,6 +72,13 @@ void DustDiffusion_Core_cpu(real dt) {
   real d4;
   int llyp;
   int llym;
+  real dy_c;
+  real dy_p;
+  real dy_m;
+  real wy_p_r;
+  real wy_p_l;
+  real wy_m_r;
+  real wy_m_l;
 #endif
 #ifdef Z
   real czp;
@@ -70,10 +87,14 @@ void DustDiffusion_Core_cpu(real dt) {
   real d6;
   int llzp;
   int llzm;
+  real dz_c;
+  real dz_p;
+  real dz_m;
+  real wz_p_r;
+  real wz_p_l;
+  real wz_m_r;
+  real wz_m_l;
 #endif
-  real dxmedm;
-  real dxmedp;
-  real dxmin;
 //<\INTERNAL>
 
 //<CONSTANT>
@@ -81,6 +102,7 @@ void DustDiffusion_Core_cpu(real dt) {
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
 // real InvDiffXmed(Nx+2*NGHX);
+// real Sxi(Nx+2*NGHX);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -94,11 +116,11 @@ void DustDiffusion_Core_cpu(real dt) {
     for (j=1; j<size_y; j++) {
 #endif
 #ifdef X
-      for (i=0; i<size_x; i++ ) {
+      for (i=XIM; i<size_x; i++ ) {
 #endif
 //<#>
-#ifdef X
 	ll = l;
+#ifdef X
 	llxm = lxm;
 	llxp = lxp;
 #endif
@@ -115,13 +137,19 @@ void DustDiffusion_Core_cpu(real dt) {
 	c    = rhod[ll]/(rhod[ll] + rhog[ll]); //Cell centered
 	
 	// DUST DIFFUSION ALONG X-DIRECTION
-	dxmin  = xmin(i+1)-xmin(i);
+#ifdef X
+	dxmin  = Sxi(i);
 	dxmedp = 1.0/InvDiffXmed(ixp);
 	dxmedm = 1.0/InvDiffXmed(i);
-	
-#ifdef X
-        d1   = 0.25*(rhod[ll] + rhog[ll] + rhod[llxp] + rhog[llxp])*(sdiff_yczc[llxp]+sdiff_yczc[ll]); //face centered in X
-        d2   = 0.25*(rhod[ll] + rhog[ll] + rhod[llxm] + rhog[llxm])*(sdiff_yczc[llxm]+sdiff_yczc[ll]); //face centered in X
+	dx_c = Sxi(i);
+	dx_p = Sxi(ixp);
+	dx_m = Sxi(ixm);
+	wx_p_r = dx_c/(dx_p + dx_c);
+	wx_p_l = dx_p/(dx_p + dx_c);
+	wx_m_r = dx_m/(dx_c + dx_m);
+	wx_m_l = dx_c/(dx_c + dx_m);
+        d1   = (wx_p_r*(rhod[llxp]+rhog[llxp]) + wx_p_l*(rhod[ll]+rhog[ll]))*(wx_p_r*sdiff_yczc[llxp] + wx_p_l*sdiff_yczc[ll]); //face centered in X
+        d2   = (wx_m_r*(rhod[ll]+rhog[ll]) + wx_m_l*(rhod[llxm]+rhog[llxm]))*(wx_m_r*sdiff_yczc[ll] + wx_m_l*sdiff_yczc[llxm]); //face centered in X
 	cxp  = rhod[llxp]/(rhod[llxp] + rhog[llxp]);                                                   //Cell centered
         cxm  = rhod[llxm]/(rhod[llxm] + rhog[llxm]);                                                   //Cell centered
 	
@@ -140,8 +168,15 @@ void DustDiffusion_Core_cpu(real dt) {
 	
 	// DUST DIFFUSION ALONG Y-DIRECTION
 #ifdef Y
-	d3   = 0.5*(rhod[ll] + rhog[ll] + rhod[llyp] + rhog[llyp])*sdiff_yfzc[llyp];//face centered in Y
-	d4   = 0.5*(rhod[ll] + rhog[ll] + rhod[llym] + rhog[llym])*sdiff_yfzc[ll];  //face centered in Y
+	dy_c = ymin(j+1) - ymin(j);
+	dy_p = ymin(j+2) - ymin(j+1);
+	dy_m = ymin(j) - ymin(j-1);
+	wy_p_r = dy_c/(dy_p + dy_c);
+	wy_p_l = dy_p/(dy_p + dy_c);
+	wy_m_r = dy_m/(dy_c + dy_m);
+	wy_m_l = dy_c/(dy_c + dy_m);
+	d3   = (wy_p_r*(rhod[llyp]+rhog[llyp]) + wy_p_l*(rhod[ll]+rhog[ll]))*sdiff_yfzc[llyp];//face centered in Y
+	d4   = (wy_m_r*(rhod[ll]+rhog[ll]) + wy_m_l*(rhod[llym]+rhog[llym]))*sdiff_yfzc[ll];  //face centered in Y
 	cyp  = rhod[llyp]/(rhod[llyp] + rhog[llyp]);                                //Cell centered
 	cym  = rhod[llym]/(rhod[llym] + rhog[llym]);                                //Cell centered
 	
@@ -162,8 +197,15 @@ void DustDiffusion_Core_cpu(real dt) {
 
         // DUST DIFFUSION ALONG Z-DIRECTION
 #ifdef Z
-	d5   = 0.5*(rhod[ll] + rhog[ll] + rhod[llzp] + rhog[llzp])*sdiff_yczf[llzp]; // face centered in Z
-	d6   = 0.5*(rhod[ll] + rhog[ll] + rhod[llzm] + rhog[llzm])*sdiff_yczf[ll];   // face centered in Z
+	dz_c = zmin(k+1) - zmin(k);
+	dz_p = zmin(k+2) - zmin(k+1);
+	dz_m = zmin(k) - zmin(k-1);
+	wz_p_r = dz_c/(dz_p + dz_c);
+	wz_p_l = dz_p/(dz_p + dz_c);
+	wz_m_r = dz_m/(dz_c + dz_m);
+	wz_m_l = dz_c/(dz_c + dz_m);
+	d5   = (wz_p_r*(rhod[llzp]+rhog[llzp]) + wz_p_l*(rhod[ll]+rhog[ll]))*sdiff_yczf[llzp]; // face centered in Z
+	d6   = (wz_m_r*(rhod[ll]+rhog[ll]) + wz_m_l*(rhod[llzm]+rhog[llzm]))*sdiff_yczf[ll];   // face centered in Z
 	czp  = rhod[llzp]/(rhod[llzp] + rhog[llzp]);                                 // Cell centered
 	czm  = rhod[llzm]/(rhod[llzm] + rhog[llzm]);                                 // Cell centered
 #ifdef CARTESIAN

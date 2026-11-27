@@ -64,11 +64,27 @@ void DustDiffusion_Coefficients_cpu() {
   real soundspeed2;
   real soundspeedf2;
   real soundspeedfz2;
+#ifdef Y
+  real dy_c;
+  real dy_m;
+  real wy_c;
+  real wy_m;
+#endif
+#ifdef Z
+  real dz_c;
+  real dz_m;
+  real wz_c;
+  real wz_m;
+#endif
+#ifdef ISOTHERMAL
+  real cs_f;
+#endif
 #endif
 //<\INTERNAL>
 
 //<CONSTANT>
 // real ymin(Ny+2*NGHY+1);
+// real zmin(Nz+2*NGHZ+1);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -93,23 +109,59 @@ void DustDiffusion_Coefficients_cpu() {
 #ifdef ALPHAVISCOSITY
 #ifdef ISOTHERMAL
 	soundspeed2 = cs[ll]*cs[ll];
+#ifdef Y
 	if(j==0)
 	  soundspeedf2 = soundspeed2;
-	else
-	  soundspeedf2 = 0.5*(cs[ll]+cs[llym])*0.5*(cs[ll]+cs[llym]);
+	else {
+	  dy_c = ymin(j+1) - ymin(j);
+	  dy_m = ymin(j) - ymin(j-1);
+	  wy_c = dy_m/(dy_c + dy_m);
+	  wy_m = dy_c/(dy_c + dy_m);
+	  cs_f = wy_c*cs[ll] + wy_m*cs[llym];
+	  soundspeedf2 = cs_f*cs_f;
+	}
+#else
+	soundspeedf2 = soundspeed2;
+#endif
 #ifdef Z
 	if(k==0)
           soundspeedfz2 = soundspeed2;
-        else
-          soundspeedfz2 = 0.5*(cs[ll]+cs[llzm])*0.5*(cs[ll]+cs[llzm]);
+        else {
+          dz_c = zmin(k+1) - zmin(k);
+          dz_m = zmin(k) - zmin(k-1);
+          wz_c = dz_m/(dz_c + dz_m);
+          wz_m = dz_c/(dz_c + dz_m);
+          cs_f = wz_c*cs[ll] + wz_m*cs[llzm];
+          soundspeedfz2 = cs_f*cs_f;
+        }
 #endif //Z
 #endif
 #ifdef ADIABATIC
 	soundspeed2 = gamma*(gamma-1.0)*e[ll]/rhog[ll];
+#ifdef Y
 	if(j==0)
 	  soundspeedf2 = soundspeed2;
-	else
-	  soundspeedf2 = gamma*(gamma-1.0)*(e[ll]+e[llym])/(rhog[ll]+rhog[llym]);
+	else {
+	  dy_c = ymin(j+1) - ymin(j);
+	  dy_m = ymin(j) - ymin(j-1);
+	  wy_c = dy_m/(dy_c + dy_m);
+	  wy_m = dy_c/(dy_c + dy_m);
+	  soundspeedf2 = gamma*(gamma-1.0)*(wy_c*e[ll]+wy_m*e[llym])/(wy_c*rhog[ll]+wy_m*rhog[llym]);
+	}
+#else
+	soundspeedf2 = soundspeed2;
+#endif
+#ifdef Z
+	if(k==0)
+	  soundspeedfz2 = soundspeed2;
+	else {
+	  dz_c = zmin(k+1) - zmin(k);
+	  dz_m = zmin(k) - zmin(k-1);
+	  wz_c = dz_m/(dz_c + dz_m);
+	  wz_m = dz_c/(dz_c + dz_m);
+	  soundspeedfz2 = gamma*(gamma-1.0)*(wz_c*e[ll]+wz_m*e[llzm])/(wz_c*rhog[ll]+wz_m*rhog[llzm]);
+	}
+#endif //Z
 #endif
 	r3yczc = ymed(j)*ymed(j)*ymed(j);
 	r3yfzc = ymin(j)*ymin(j)*ymin(j);

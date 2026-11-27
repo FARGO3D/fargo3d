@@ -120,12 +120,18 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
   real delta2;
   real d1bs1;
   real d2bs2;
+  real dq_c;
+  real dq_m;
+  real inv_rho_cons;
+  real w_c;
+  real w_m;
 //<\INTERNAL>
 
 //<CONSTANT>
-// real xmin(Nx+1);
+// real xmin(Nx+2*NGHX+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
+// real Sxi(Nx+2*NGHX);
 // real Sxj(Ny+2*NGHY);
 // real Syj(Ny+2*NGHY);
 // real Szj(Ny+2*NGHY);
@@ -150,13 +156,22 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
 	lmperp1plus = lm+stride1;
 	lmperp2plus = lm+stride2;
 
-	delta1 = (zone_size_x(i,j,k)*idx1	+ \
-		  zone_size_y(j,k)*idy1 + \
-		  zone_size_z(j,k)*idz1);
-	
-	delta2 = (zone_size_x(i,j,k)*idx2 + \
-		  zone_size_y(j,k)*idy2 + \
-		  zone_size_z(j,k)*idz2);
+	if (idx == 1) {
+	  delta1 = zone_size_y(j,k);
+	  delta2 = zone_size_z(j,k);
+	} else if (idy == 1) {
+	  delta1 = edge_size_z(j,k);
+	  delta2 = edge_size_x_middlez_lowy(i,j,k);
+	} else {
+	  delta1 = edge_size_x_middley_lowz(i,j,k);
+	  delta2 = zone_size_y(j,k);
+	}
+
+	dq_c = Sxi(i)*idx + (ymin(j+1)-ymin(j))*idy + (zmin(k+1)-zmin(k))*idz;
+	dq_m = Sxi(ixm)*idx + (ymin(j)-ymin(j-1))*idy + (zmin(k)-zmin(k-1))*idz;
+	inv_rho_cons = (dq_c + dq_m)/(rho[ll]*dq_c + rho[lm]*dq_m);
+	w_c = dq_m/(dq_c + dq_m);
+	w_m = dq_c/(dq_c + dq_m);
 	
 	/* The test below MUST be "if (idz == 1)" and NOT "if (stride1
 	   == 1)". What is intended is to flush the index to the mesh
@@ -178,17 +193,17 @@ void _LorentzForce_cpu(real dt, int idx, int idy, int idz, int idx1, int idy1, i
 	}
 #endif
 	
-	b1_mean1 = 0.5*(b1[lp1]+b1[lmperp1plus]);
-	b1_mean2 = 0.5*(b1[ll]+b1[lm]);
-	b1_mean  = 0.5*(b1_mean1+b1_mean2);
-	b2_mean1 = 0.5*(b2[lp2]+b2[lmperp2plus]);
-	b2_mean2 = 0.5*(b2[ll]+b2[lm]);
-	b2_mean  = 0.5*(b2_mean1+b2_mean2);
+	b1_mean1 = 0.5*(b1[ll]+b1[lp1]);
+	b1_mean2 = 0.5*(b1[lm]+b1[lmperp1plus]);
+	b1_mean  = w_c*b1_mean1 + w_m*b1_mean2;
+	b2_mean1 = 0.5*(b2[ll]+b2[lp2]);
+	b2_mean2 = 0.5*(b2[lm]+b2[lmperp2plus]);
+	b2_mean  = w_c*b2_mean1 + w_m*b2_mean2;
 
 	d1bs1 = (bs1[lp1]-bs1[ll])/delta1;
 	d2bs2 = (bs2[lp2]-bs2[ll])/delta2;
 	
-	v[ll] += 2.0*dt/(rho[ll]+rho[lm])*(b1_mean*d1bs1 + b2_mean*d2bs2)/MU0;
+	v[ll] += dt*inv_rho_cons*(b1_mean*d1bs1 + b2_mean*d2bs2)/MU0;
 //<\#>
       }
     }
