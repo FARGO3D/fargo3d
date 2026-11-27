@@ -101,7 +101,7 @@ def mrproper_check(parameters, makeline):
 
 def jobs_check(parameters):
     for param in parameters:
-        njobs = re.match("jobs=(\d+)\s*",param.lower())
+        njobs = re.match(r"jobs=(\d+)\s*",param.lower())
         if njobs:
             return njobs.group(1)
     return None
@@ -127,13 +127,13 @@ def nfluid_check(parameters):
     lines = opt_file.readlines()
     count = 0
     for line in lines:
-        if re.match('\s*#.*\n',line): ## Skipping comments
+        if re.match(r'\s*#.*\n',line): ## Skipping comments
             continue
-        if re.search('\s*FLUIDS\s*:=',line):
+        if re.search(r'\s*FLUIDS\s*:=',line):
             count += 1
         if re.search('^[^A-Z]*NFLUIDS',line):
             count += 1
-        if re.search('-DNFLUIDS\s*=',line):
+        if re.search(r'-DNFLUIDS\s*=',line):
             count += 1
     if(count < 3):
         print(msg)

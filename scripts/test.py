@@ -416,7 +416,7 @@ class GenericTest():
                 continue
             if parameters != None:
                 for key in parameters:
-                    if re.match("\s*" + key.lower() + "\s+",line.lower()):
+                    if re.match(r"\s*" + key.lower() + r"\s+",line.lower()):
                         new_par.write(key.lower() + "\t" + str(parameters[key]) + "\n")
                         found = True
                         break

@@ -75,7 +75,7 @@ def analyze_data():
     temp.close()
     name = []; nx = []; ny = []; nz = []; time = []
     for line in lines:
-        match = re.match("("+BINDIR+"/"+FILENAME+'u'+")\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+.\d+)",line)
+        match = re.match("("+BINDIR+"/"+FILENAME+'u'+r")\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+.\d+)",line)
         if match:
             name.append(match.group(1))
             nx.append(int(match.group(2)))
