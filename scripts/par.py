@@ -15,25 +15,25 @@ def get_pardata(parname):
     strvariables  = {}
 
     for line in par:
-        skip = re.match("\s*#+",line)
+        skip = re.match(r"\s*#+",line)
         if skip != None:
             continue    
-        varname = re.search("(\w+)\s",line)
+        varname = re.search(r"(\w+)\s",line)
         if varname != None:
-            realvar = re.match("(\w+)\s+(\+?-?\d+\.\d+e?[+-]?\d*)",line)
+            realvar = re.match(r"(\w+)\s+(\+?-?\d+\.\d+e?[+-]?\d*)",line)
             if realvar != None:
                 name  = realvar.group(1).upper()
                 value = realvar.group(2)
                 realvariables[name] = value
                 continue
-            intvar = re.match("(\w+)\s+(\+?-?\d+)\s+",line)
+            intvar = re.match(r"(\w+)\s+(\+?-?\d+)\s+",line)
             if intvar != None:
                 name  = intvar.group(1).upper()
                 value = intvar.group(2)
                 intvariables[name] = value
                 continue
 
-            boolvar = re.match("(\w+)\s+(\w+)",line)
+            boolvar = re.match(r"(\w+)\s+(\w+)",line)
             if boolvar != None:
                 name  = boolvar.group(1).upper()
                 value = boolvar.group(2).lower()
@@ -45,7 +45,7 @@ def get_pardata(parname):
                     boolvariables[name] = value
                     continue
                     
-            strvar = re.match("(\w+)\s+(.*)\s?",line)
+            strvar = re.match(r"(\w+)\s+(.*)\s?",line)
             if strvar != None:
                 name  = strvar.group(1).upper()
                 value = strvar.group(2)
@@ -98,10 +98,10 @@ def get_mandatories(filename):
     mandatories = {}
     
     for line in mandatory:
-        skip = re.match("\s*#+",line)
+        skip = re.match(r"\s*#+",line)
         if skip != None:
             continue
-        varname = re.search("(\w+)\s",line)
+        varname = re.search(r"(\w+)\s",line)
         if varname != None:
             mandatories[varname.group(0).strip().upper()] = "M"
     return mandatories

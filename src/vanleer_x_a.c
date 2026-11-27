@@ -33,12 +33,17 @@ void VanLeerX_a_cpu(Field *Q){
   int llxp;
   real dqm;
   real dqp;
+  real rawm;
+  real rawp;
+  real s_harm;
+  real s_max;
 //<\INTERNAL>
 
 //<CONSTANT>
-// real xmin(Nx+1);
+// real xmin(Nx+2*NGHX+1);
 // real ymin(Ny+2*NGHY+1);
 // real zmin(Nz+2*NGHZ+1);
+// real InvDiffXmed(Nx+2*NGHX);
 //<\CONSTANT>
 
 //<MAIN_LOOP>
@@ -59,12 +64,18 @@ void VanLeerX_a_cpu(Field *Q){
 	llxm = lxm;
 	llxp = lxp;
 	
-	dqm = (q[ll]-q[llxm])/zone_size_x(i,j,k);
-	dqp = (q[llxp]-q[ll])/zone_size_x(ixp,j,k);
+	rawm = q[ll]-q[llxm];
+	rawp = q[llxp]-q[ll];
+	dqm = rawm*Inv_zone_size_xmed(i,j,k);
+	dqp = rawp*Inv_zone_size_xmed(ixp,j,k);
 
 	if(dqp*dqm<=0.0)  slope[ll] = 0.0;
 #ifndef DONOR
-	else  slope[ll] = (2.*dqp*dqm) /(dqm+dqp);
+	else {
+	  s_harm = (2.*dqp*dqm) /(dqm+dqp);
+	  s_max = 2.0*min2(fabs(rawm),fabs(rawp))/zone_size_x(i,j,k);
+	  slope[ll] = (s_harm > 0.0) ? min2(s_harm, s_max) : max2(s_harm, -s_max);
+	}
 #else
 	else  slope[ll] = 0.0;
 #endif

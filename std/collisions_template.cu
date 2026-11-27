@@ -4,7 +4,13 @@
 #include "fargo3d.h"
 
 #define ymin(i) ymin_s[(i)]
-CONSTANT(real, ymin_s, 3846);
+#define Sxi(i) Sxi_s[(i)]
+#define InvVj(i) InvVj_s[(i)]
+#define Syk(i) Syk_s[(i)]
+CONSTANT(real, ymin_s, 1923);
+CONSTANT(real, Sxi_s, 1923);
+CONSTANT(real, InvVj_s, 1923);
+CONSTANT(real, Syk_s, 1923);
 
 __global__ void _collisions_kernel(real dt, 
 				   int id1, 
@@ -42,6 +48,9 @@ __global__ void _collisions_kernel(real dt,
   real rho_p;
   real rho_o;
   real rho_q;
+  real w_l;
+  real w_idm;
+  real inv_wsum;
 
   %FLUIDS1;
 
@@ -68,7 +77,7 @@ __global__ void _collisions_kernel(real dt,
     if(j>=1 && j<size_y) {
 #endif
 #ifdef X
-      if(i<size_x) {
+      if(i>=XIM && i<size_x) {
 #endif
 	
 #include  "collision_kernel.h"
@@ -164,9 +173,15 @@ extern "C" void _collisions_gpu(real dt, int id1, int id2, int id3, int option) 
   
 #ifdef BIGMEM
 #define ymin_d &Ymin_d
+#define Sxi_d &Sxi_d
+#define InvVj_d &InvVj_d
+#define Syk_d &Syk_d
 #endif
 
   CUDAMEMCPY(ymin_s, ymin_d, sizeof(real)*(Ny+2*NGHY+1), 0, cudaMemcpyDeviceToDevice);
+  CUDAMEMCPY(Sxi_s, Sxi_d, sizeof(real)*(Nx+2*NGHX), 0, cudaMemcpyDeviceToDevice);
+  CUDAMEMCPY(InvVj_s, InvVj_d, sizeof(real)*(Ny+2*NGHY), 0, cudaMemcpyDeviceToDevice);
+  CUDAMEMCPY(Syk_s, Syk_d, sizeof(real)*(Nz+2*NGHZ), 0, cudaMemcpyDeviceToDevice);
 
   cudaFuncSetCacheConfig(_collisions_kernel, cudaFuncCachePreferL1 );
 

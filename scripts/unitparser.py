@@ -20,7 +20,7 @@ def pformat_read(name):
     field_name = ''
     field = {}
     for line in lines:
-        search = re.match("\s*(\w+)\s*.*=\s*(.*)",line)  
+        search = re.match(r"\s*(\w+)\s*.*=\s*(.*)",line)  
         if search != None:
             field_name = search.group(1)
             field_rule = search.group(2)

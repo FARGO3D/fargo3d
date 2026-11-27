@@ -35,11 +35,11 @@ def pformat_read(name,dataformat):
     init = 0
     for line in lines:
         search = None
-        skip = re.match("\s*#+",line) #Comment line
+        skip = re.match(r"\s*#+",line) #Comment line
         if skip != None:
             continue
-        search1 = re.match("\s*(\w+)\s*:\s*\n",line)    #without comment
-        search2 = re.match("\s*(\w+)\s*:\s*#.*\n",line) #with a comment
+        search1 = re.match(r"\s*(\w+)\s*:\s*\n",line)    #without comment
+        search2 = re.match(r"\s*(\w+)\s*:\s*#.*\n",line) #with a comment
         if search1 != None:
             search = search1
         if search2 != None:
@@ -54,7 +54,7 @@ def pformat_read(name,dataformat):
             continue
         if temp_field == field_name:
             field['name'] = field_name #ugly but it works! It can be improved
-            search = re.match("\s*(\w+)\s*:\s*("+dataformat+")",line)
+            search = re.match(r"\s*(\w+)\s*:\s*("+dataformat+")",line)
             if search != None:
                 prop  = search.group(1).lower()
                 value = search.group(2).lower()
@@ -69,8 +69,8 @@ class Library():
     Centering and boundaries library.
     """
     def __init__(self,boundaries, centering):
-        self.boundaries = pformat_read(boundaries,"\|.*\|")
-        self.centering  = pformat_read(centering,"\w+")
+        self.boundaries = pformat_read(boundaries,r"\|.*\|")
+        self.centering  = pformat_read(centering,r"\w+")
         
 class Field():
     def __init__(self,name,library):
@@ -87,7 +87,7 @@ class Field():
 
 class Setup():
     def __init__(self,setup,boundaries,centering):
-        self.fields = pformat_read(setup,"\w+")
+        self.fields = pformat_read(setup,r"\w+")
         self.library = Library(boundaries,centering)
         fields = []
         for field in self.fields:
@@ -123,7 +123,7 @@ class Template():
         n = 0
         stones = {}
         for line in self.template:
-            stone = re.match(".*(%\w+)\s*",line)
+            stone = re.match(r".*(%\w+)\s*",line)
             if stone != None:
                 stones[stone.group(1)] = n
             n += 1
@@ -292,7 +292,7 @@ class Boundary():
                               "but you are trying to use a centered condition for it. Please review the "
                               "definition of", boundary['name'].upper(), "if you want to use this condition.")
                         exit()                        
-                    groups = re.match("\|(.*)\|(.*)\|(\w*)\|",bound)
+                    groups = re.match(r"\|(.*)\|(.*)\|(\w*)\|",bound)
                     active = groups.group(1).replace(groups.group(3),field.variable+"[lacts]")
                     ghosts = groups.group(2).replace(groups.group(3),field.variable+"[lacts]")
                     ghostsm = groups.group(2).replace(groups.group(3),field.variable+"[lacts_null_mirror]")
@@ -310,7 +310,7 @@ class Boundary():
                               "but you are trying to use a staggered condition for it. Please review the "
                               "definition of", boundary['name'].upper(), "if you want to use this condition.")
                         exit()
-                    groups = re.match("\|(.*)\|(\w*)\|",bound)
+                    groups = re.match(r"\|(.*)\|(\w*)\|",bound)
                     active = groups.group(1).replace(groups.group(2),field.variable+"[lact]")  
                     output += active + ";\n"
         if bound == False:
@@ -410,7 +410,7 @@ def write_mute(side, number, template):
 def process_arguments(arguments):
     SETUP = FLUIDNUMBER = BOUNDARIES = CENTERING = None
     for argument in arguments:
-        search = re.search(".*\.bound.(\d+)",argument)
+        search = re.search(r".*\.bound.(\d+)",argument)
         if search!=None:
             SETUP = search.group(0)
             FLUIDNUMBER = int(search.group(1))

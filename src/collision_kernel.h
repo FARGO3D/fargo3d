@@ -13,6 +13,18 @@
 
 idm = lxm*id1 + lym*id2 + lzm*id3;
 
+if (id1 == 1) {
+  w_l   = Sxi(i);
+  w_idm = Sxi(ixm);
+} else if (id2 == 1) {
+  w_l   = 1.0/InvVj(j);
+  w_idm = 1.0/InvVj(j-1);
+} else {
+  w_l   = Syk(k);
+  w_idm = Syk(k-1);
+}
+inv_wsum = 1.0/(w_l + w_idm);
+
 #ifdef STOKESNUMBER
 omega = (id1+id3)*sqrt(G*MSTAR/(ymed(j)*ymed(j)*ymed(j))) +
   id2*sqrt(G*MSTAR/(ymin(j)*ymin(j)*ymin(j)));
@@ -32,12 +44,12 @@ omega = 1.0;
 for (o=0; o<NFLUIDS; o++) {
   for (p=0; p<NFLUIDS; p++) {
     
-    rho_p  = 0.5*(rho[p][l] + rho[p][idm]);
+    rho_p  = (rho[p][l]*w_l + rho[p][idm]*w_idm)*inv_wsum;
     
     // off-diagonal elements
     if (p != o) {
       
-      rho_o  = 0.5*(rho[o][l] + rho[o][idm]);
+      rho_o  = (rho[o][l]*w_l + rho[o][idm]*w_idm)*inv_wsum;
       
       /* In the line below, the collision term should be
 	 alpha[o+p*NFLUIDS], however, we use alpha[p+o*NFLUIDS] to
@@ -64,7 +76,7 @@ for (o=0; o<NFLUIDS; o++) {
 	//Element pp not included
 	if (q != p){
 	  
-	  rho_q  = 0.5*(rho[q][l] + rho[q][idm]);
+	  rho_q  = (rho[q][l]*w_l + rho[q][idm]*w_idm)*inv_wsum;
 	  
 #if defined(STOKESNUMBER) || defined(CONSTANTSTOKESNUMBER)
 	  

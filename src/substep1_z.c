@@ -78,12 +78,22 @@ void SubStep1_z_cpu (real dt) {
 #endif
 #ifdef Z
   int llzm;
+  real dz_c;
+  real dz_m;
+  real wz_c;
+  real wz_m;
 #endif
 #ifdef MHD
   real db1;
   real db2;
   real bmeanm;
   real bmean;
+  real bface;
+#endif
+#if defined(KEPLERIAN_MESH_WEIGHTS) && defined(POTENTIAL) && !defined(NODEFAULTSTAR) && defined(CYLINDRICAL)
+  real pot_star_c;
+  real pot_star_m;
+  real r_star;
 #endif
   real vphi;
 //<\INTERNAL>
@@ -121,6 +131,10 @@ void SubStep1_z_cpu (real dt) {
 	llzm = lzm;
 
 	dtOVERrhom = 2.0*dt/(rho[ll]*(zmin(k+1)-zmin(k))+rho[llzm]*(zmin(k)-zmin(k-1)))*(zmed(k)-zmed(k-1));
+	dz_c = zmin(k+1) - zmin(k);
+	dz_m = zmin(k) - zmin(k-1);
+	wz_c = dz_m / (dz_c + dz_m);
+	wz_m = dz_c / (dz_c + dz_m);
 
 #ifdef CARTESIAN
 	vz_temp[ll] = vz[ll];
@@ -151,7 +165,14 @@ void SubStep1_z_cpu (real dt) {
 	if(fluidtype != DUST) vz_temp[ll] -= dtOVERrhom*(p[ll]-p[llzm])/(zmed(k)-zmed(k-1));
 
 #ifdef POTENTIAL
+#if defined(KEPLERIAN_MESH_WEIGHTS) && !defined(NODEFAULTSTAR)
+	pot_star_c = -G*MSTAR/sqrt(ymed(j)*ymed(j)+zmed(k)*zmed(k));
+	pot_star_m = -G*MSTAR/sqrt(ymed(j)*ymed(j)+zmed(k-1)*zmed(k-1));
+	r_star = sqrt(ymed(j)*ymed(j)+zmin(k)*zmin(k));
+	vz_temp[ll] -= (((pot[ll]-pot_star_c)-(pot[llzm]-pot_star_m))/(zmed(k)-zmed(k-1)) + G*MSTAR*zmin(k)/(r_star*r_star*r_star))*dt;
+#else
 	vz_temp[ll] -= (pot[ll]-pot[llzm]) * dt / (zmed(k)-zmed(k-1));
+#endif
 #endif //END POTENTIAL
 	
 #ifdef MHD
@@ -166,14 +187,14 @@ void SubStep1_z_cpu (real dt) {
 	  
 	  db2 = (bmean*bmean-bmeanm*bmeanm);
 	  
-	  vz_temp[l] -= (db1 + db2)/(rho[l]+rho[lzm])*dt/((zmed(k)-zmed(k-1))*MU0);
+	  vz_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/((zmed(k)-zmed(k-1))*MU0);
 #endif //END PASSIVEMHD
 	}
 #endif //END MHD
 #endif //END CYLINDRICAL
 	  
 #ifdef SPHERICAL
-	vphi = .25*(vx_half[ll] + vx_half[llxp] + vx_half[llzm] + vx_half[llxp-stride]);
+	vphi = wz_c*0.5*(vx_half[ll] + vx_half[llxp]) + wz_m*0.5*(vx_half[llzm] + vx_half[llxp-stride]);
 	vphi += ymed(j)*sin(zmin(k))*OMEGAFRAME;
 	vz_temp[ll] = vz[ll];
 	if(fluidtype != DUST) vz_temp[ll] -= dtOVERrhom*(p[ll]-p[llzm])/(ymed(j)*(zmed(k)-zmed(k-1)));
@@ -190,8 +211,9 @@ void SubStep1_z_cpu (real dt) {
 	  bmean  = 0.5*(bx[ll] + bx[llxp]);
 	  bmeanm = 0.5*(bx[llzm] + bx[llxp-stride]);
 	  db1 = (bmean*bmean-bmeanm*bmeanm);
+	  bface = wz_c*bmean + wz_m*bmeanm;
 	  
-	  vz_temp[ll] -= (dtOVERrhom*.25*(bmean+bmeanm)*(bmean+bmeanm)	\
+	  vz_temp[ll] -= (dtOVERrhom*bface*bface	\
 			  *cos(zmin(k))/sin(zmin(k))/(MU0*ymed(j)));
 	  /* Above: geometric source term -B_\phi^2*cot(theta)/(mu0*rho*r) */
 	
@@ -200,7 +222,7 @@ void SubStep1_z_cpu (real dt) {
 	  
 	  db2 = (bmean*bmean-bmeanm*bmeanm);
 	  
-	  vz_temp[ll] += dtOVERrhom*bz[ll]*.5*(bmean+bmeanm)/(MU0*ymed(j));
+	  vz_temp[ll] += dtOVERrhom*bz[ll]*(wz_c*bmean+wz_m*bmeanm)/(MU0*ymed(j));
 	  /* Above: geometric source term +B_r * B_\theta/(MU0*rho*r) */
 
 	  vz_temp[ll] -= .5*dtOVERrhom*(db1 + db2)/(ymed(j)*(zmed(k)-zmed(k-1))*MU0);

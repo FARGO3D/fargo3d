@@ -154,7 +154,7 @@ def main_func(lines, verbose=False, test=False):
             if(s):
                 func_type = s.group(1)
                 func_name = s.group(2)
-                func_var  = re.sub(',(\s+|\s?)',', ',s.group(4))
+                func_var  = re.sub(r',(\s+|\s?)',', ',s.group(4))
                 parsed_line = func_type + ' ' + func_name
                 parsed_line += '_gpu' + '(' + func_var + ') {\n'
                 print(line, " was parsed as ")
@@ -166,7 +166,7 @@ def main_func(lines, verbose=False, test=False):
         if(s):
             func_type = s.group(1)
             func_name = s.group(2)
-            func_var  = re.sub(',(\s+|\s?)',', ',s.group(4)) 
+            func_var  = re.sub(r',(\s+|\s?)',', ',s.group(4)) 
             parsed_line = func_type + ' ' + func_name
             parsed_line += '_gpu' + '(' + func_var + ') {\n'
             if(verbose):
@@ -221,7 +221,7 @@ def parsing_external(external):
     externals = []
 
     for element in external:
-        if not re.search("\s?//",element): #Avoiding comments...
+        if not re.search(r"\s?//",element): #Avoiding comments...
             if element[0] == '#':
                 declarations.append(element)
                 calls.append(element)
@@ -239,11 +239,11 @@ def parsing_external(external):
 
 def make_launcher(gpu_func,calls):
 
-    launcher = re.search("\w*\s*(.*)",gpu_func).group(1) #avoiding type
+    launcher = re.search(r"\w*\s*(.*)",gpu_func).group(1) #avoiding type
     
-    func_name = re.search("(.*)\(",launcher).group(1)
+    func_name = re.search(r"(.*)\(",launcher).group(1)
 
-    variables = re.search("\((.*)\)",launcher).group(1).split(',')
+    variables = re.search(r"\((.*)\)",launcher).group(1).split(',')
     var = []
     for i in variables:
         if re.search('Field',i):
@@ -266,7 +266,7 @@ def make_launcher(gpu_func,calls):
     
 def make_kernel(gpu_func,declarations):
     launcher = re.sub("_gpu","_kernel",gpu_func)        
-    if re.search("\(\s*\)",launcher):
+    if re.search(r"\(\s*\)",launcher):
 #Avoiding problems if there is no argument.
         launcher = "__global__ " + launcher[:-4] + '\n'
     else:
@@ -277,9 +277,9 @@ def make_kernel(gpu_func,declarations):
     So, in order to avoid problems, you must define
     all the Field variables at the end of the function!!!
     """
-    temporal1 = re.search("\(.*",launcher).group(0)
+    temporal1 = re.search(r"\(.*",launcher).group(0)
     temporal1 = re.sub("Field.*"," ",temporal1)
-    launcher = re.search("(.*)\(",launcher).group(1) + \
+    launcher = re.search(r"(.*)\(",launcher).group(1) + \
         temporal1   
     for element in declarations:
         if(element[0] == '#'):

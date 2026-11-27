@@ -45,7 +45,7 @@ optfile = open(setup+".opt","w")
 
 write_newlines = True
 for line in optlines:
-    if re.match("FARGO_OPT\s*\+=",line) and write_newlines:
+    if re.match(r"FARGO_OPT\s*\+=",line) and write_newlines:
         optfile.write(newlines)
         write_newlines = False 
     optfile.write(line)
@@ -58,7 +58,7 @@ cifile.close()
 cifile = open("condinit.c","w")
 
 for line in cilines:
-    if re.match("void CondInit\s*\(",line):
+    if re.match(r"void CondInit\s*\(",line):
         line = line.replace("CondInit","Init")
     cifile.write(line)
 

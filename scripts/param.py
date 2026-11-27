@@ -28,9 +28,9 @@ externals = ("#ifdef __LOCAL\n" +
 param.write(externals)
 for line in VAR:
 
-    v_name = re.search("\(\"(\S+)\"",line)       # variable name
-    v_type = re.search("\",\s\S+,\s(\S+),",line) # variable type
-    v_referenced = re.search("\",\s(\S+)", line) #reference type for variable
+    v_name = re.search(r'\("(\S+)"',line)       # variable name
+    v_type = re.search(r'",\s\S+,\s(\S+),',line) # variable type
+    v_referenced = re.search(r'",\s(\S+)', line) #reference type for variable
     if(v_name):
         if(v_type.group(1) == "STRING"):
             new_line = "char " + v_name.group(1) + "[512]"
