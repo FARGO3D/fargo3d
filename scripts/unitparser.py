@@ -1,4 +1,3 @@
-from __future__ import print_function
 import re
 import copy
 import sys
@@ -12,11 +11,10 @@ SETUPDIR = "../setups/"
 
 def pformat_read(name):
     try:
-        datafile = open(name,'r')
-    except IOError:
+        with open(name, 'r', encoding='utf-8') as datafile:
+            lines = datafile.readlines()
+    except OSError:
         return {}
-    lines = datafile.readlines()
-    datafile.close()
     field_name = ''
     field = {}
     for line in lines:
@@ -34,29 +32,27 @@ fieldstd = pformat_read ("../std/standard.units")
 fieldsetup = pformat_read ("../setups/"+SETUPNAME+"/"+SETUPNAME+".units")
 var = get_pardata ("../setups/"+SETUPNAME+"/"+SETUPNAME+".par")
 realvar = var[0]
-try:
-    rescale = open(BINDIR+"/rescale.c","w")
-except IOError:
-    print("Could not open rescale.c in "+BINDIR)
-    exit()
-    
 output = """
 #include "fargo3d.h"
 
 void rescale () {
 """
-rescale.write(output)
-for key in realvar:
-    if key in fieldsetup:
-        rescale.write(fieldsetup[key])
-    else:
-        if key in fieldstd:
-            rescale.write(fieldstd[key])
-        else:
-            if ((key != 'XMIN') and (key != 'XMAX') \
-                and (key != 'YMIN') and (key != 'YMAX') \
-                and (key != 'ZMIN') and (key != 'ZMAX')):
-                print("Warning ! Scaling rule not found for "+key+". Is it dimensionless ?")
-rescale.write("}\n")
-rescale.close()
+try:
+    with open(BINDIR+"/rescale.c", 'w', encoding='utf-8') as rescale:
+        rescale.write(output)
+        for key in realvar:
+            if key in fieldsetup:
+                rescale.write(fieldsetup[key])
+            else:
+                if key in fieldstd:
+                    rescale.write(fieldstd[key])
+                else:
+                    if ((key != 'XMIN') and (key != 'XMAX') \
+                        and (key != 'YMIN') and (key != 'YMAX') \
+                        and (key != 'ZMIN') and (key != 'ZMAX')):
+                        print("Warning ! Scaling rule not found for "+key+". Is it dimensionless ?")
+        rescale.write("}\n")
+except OSError:
+    print("Could not open rescale.c in "+BINDIR)
+    exit()
 

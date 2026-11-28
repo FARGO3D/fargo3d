@@ -1,4 +1,3 @@
-from __future__ import print_function
 import re
 import copy
 import sys
@@ -25,9 +24,8 @@ def pformat_read(name,dataformat):
     the rest is a collection of parameters
     """
 
-    datafile = open(name,'r')
-    lines = datafile.readlines()
-    datafile.close()
+    with open(name, 'r', encoding='utf-8') as datafile:
+        lines = datafile.readlines()
     temp_field = ''
     field_name = ''
     field = {}
@@ -114,10 +112,8 @@ class Template():
         self.stones = self.get_stones() #Dictionary
 
     def read_template(self,name):
-        template_file = open(name,"r")
-        template = template_file.readlines()
-        template_file.close()
-        return template
+        with open(name, 'r', encoding='utf-8') as template_file:
+            return template_file.readlines()
 
     def get_stones(self):
         n = 0
@@ -154,9 +150,8 @@ class Boundary():
         self.write_output()
 
     def write_output(self):
-        output = open(self.side+"_bound_{:d}.c".format(self.number),"w")
-        for line in self.template.template:
-            output.write(line)
+        with open(self.side+"_bound_{:d}.c".format(self.number), 'w', encoding='utf-8') as output:
+            output.writelines(self.template.template)
 
     def process_side(self):
         string = "%side"
@@ -368,7 +363,6 @@ def write_mute(side, number, template):
     template2 = copy.deepcopy(template)
     stones = template.stones
 
-    output1 = open(side+"min_bound_{:d}.c".format(number),"w")
     template1.template[stones['%side']] = \
         template1.template[stones['%side']].replace("%side",side+"min_{:d}_cpu".format(number))
     for key in stones.keys():
@@ -383,11 +377,9 @@ def write_mute(side, number, template):
         if key != "%side":
             n = template1.stones[key]
             template1.template[n] = ""
-    for line in template1.template:
-        output1.write(line)
-    output1.close()
+    with open(side+"min_bound_{:d}.c".format(number), 'w', encoding='utf-8') as output1:
+        output1.writelines(template1.template)
 
-    output2 = open(side+"max_bound_{:d}.c".format(number),"w")
     template2.template[stones['%side']] = \
         template2.template[stones['%side']].replace("%side",side+"max_{:d}_cpu".format(number))
     for key in stones.keys():
@@ -403,9 +395,8 @@ def write_mute(side, number, template):
             n = template2.stones[key]
             template2.template[n] = ""
             continue
-    for line in template2.template:
-        output2.write(line)
-    output2.close()
+    with open(side+"max_bound_{:d}.c".format(number), 'w', encoding='utf-8') as output2:
+        output2.writelines(template2.template)
 
 def process_arguments(arguments):
     SETUP = FLUIDNUMBER = BOUNDARIES = CENTERING = None

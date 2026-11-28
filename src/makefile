@@ -13,10 +13,11 @@ GIT_VERSION := $(shell git describe --abbrev=8 --dirty --always --tags 2>/dev/nu
 ARCH_CREATE := $(shell mkdir -p $(ARCHDIR))
 SHORTARCH := $(shell echo $(ARCHDIR) | sed -e 's|../||')
 
-ifneq (, $(shell which python3))
+ifndef PYTHON
 	PYTHON := $(shell which python3)
-else
-	PYTHON := $(shell which python2)
+endif
+ifeq (, $(strip $(PYTHON)))
+$(error Python 3 is required to build FARGO3D, but 'python3' was not found in PATH)
 endif
 
 #------------------------OPTIONS FILE---------------------------------
@@ -119,10 +120,6 @@ else
 CUDA = /usr/local/cuda
 endif # select cuda path
 endif # ifndef CUDA
-# Python include
-ifndef PYTHON_INCLUDE
-PYTHON_INCLUDE = /usr/include/python3.8
-endif
 #---------------------------------------------------------------------
 #LINUX PLATFORM (GENERIC, default)
 #FARGO_ARCH must be set to LINUX
@@ -473,9 +470,30 @@ endif
 #if matplotlib is not installed
 ifeq (MATPLOTLIB,${findstring MATPLOTLIB,${FARGO_DISPLAY}})
 	FARGO_OPT += -DMATPLOTLIB
-	INCLUDE   += -I${PYTHON_INCLUDE}
+	PYTHON_CONFIG := $(shell if [ -x "${PYTHON}-config" ]; then echo "${PYTHON}-config"; else which python3-config 2>/dev/null; fi)
+ifndef PYTHON_INCLUDE
+ifneq (,$(PYTHON_CONFIG))
+	PYTHON_INCLUDES := $(shell "${PYTHON_CONFIG}" --includes)
+else
+	PYTHON_INCLUDES := -I$(shell "${PYTHON}" -c "import sysconfig; print(sysconfig.get_path('include'))")
+endif
+else
+	PYTHON_INCLUDES := -I${PYTHON_INCLUDE}
+endif
+ifndef PYTHON_LIBS
+ifneq (,$(PYTHON_CONFIG))
+	PYTHON_LIBS := $(shell "${PYTHON_CONFIG}" --ldflags --embed 2>/dev/null || "${PYTHON_CONFIG}" --ldflags)
+else
+	PYTHON_LIBS := $(shell "${PYTHON}" -c "import sysconfig; print('-L' + (sysconfig.get_config_var('LIBDIR') or ''), '-lpython' + (sysconfig.get_config_var('VERSION') or '') + (sysconfig.get_config_var('ABIFLAGS') or ''), sysconfig.get_config_var('LIBS') or '', sysconfig.get_config_var('SYSLIBS') or '')")
+endif
+	PYTHON_LIBDIR := $(shell "${PYTHON}" -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR') or '')")
+ifneq (,$(PYTHON_LIBDIR))
+	PYTHON_LIBS := -L"${PYTHON_LIBDIR}" ${PYTHON_LIBS} -Wl,-rpath,"${PYTHON_LIBDIR}"
+endif
+endif
+	INCLUDE   += ${PYTHON_INCLUDES}
 	OBJECTS   +=  matplotlib.o
-	LIBS      += -lpython3.8
+	LIBS      += ${PYTHON_LIBS}
 endif
 # Debug mode if FARGO_DEBUG = 1, Note that this mode is only 
 # meant to execute gdb (or lldb, etc.) or valgrind.

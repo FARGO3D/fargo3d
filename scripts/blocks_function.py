@@ -1,6 +1,6 @@
-from __future__ import print_function
 import re
 import getopt
+import shlex
 import sys
 import os
 import numpy as np
@@ -10,7 +10,7 @@ SCRIPTSDIR = "scripts"
 SRCDIR     = "src"
 BINDIR     = "bin"
 C2CUDA     = "scripts/c2cuda.py"
-PYTHON_CMD = "python" + sys.version[0] + " "
+PYTHON_CMD = shlex.quote(sys.executable) + " "
     
 def usage():
     print('\n(blocks.py) Usage: -s --setup=  --> SETUP NAME')
@@ -52,27 +52,24 @@ def opt_reader():
 
 def append_blocks(x,y,z):
     try:
-        blocks = open(SETUPDIR+'/'+SETUPNAME+'/'+SETUPNAME+".blocks",'a+')
-    except IOError:
+        with open(SETUPDIR+'/'+SETUPNAME+'/'+SETUPNAME+".blocks", 'a+', encoding='utf-8') as blocks:
+            blocks.seek(0)
+            found = False
+            for line in blocks:
+                new_line = line.split()
+                if new_line and new_line[0] == FILENAME[:-2]:
+                    found = True
+            if not found:
+                blocks.write(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}\n'.format(x,y,z))
+                print(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t appended")
+            else:
+                print(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t not appended")
+    except OSError:
         print("(blocks.py): Error opening "+SETUPNAME+".blocks")
-    
-    found = False
-    for line in blocks.readlines():
-        new_line = line.split()
-        if new_line[0] == FILENAME[:-2]:
-            found = True
-    if not found:
-        blocks.write(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}\n'.format(x,y,z))
-        print(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t appended")
-    else:
-        print(FILENAME[:-2]+'\t{0:d}\t{1:d}\t{2:d}'.format(x,y,z) + "\t not appended")
-
-    blocks.close()
         
 def analyze_data():
-    temp = open(FILENAME[:-2]+'_blocks.temp',"r")
-    lines = temp.readlines()
-    temp.close()
+    with open(FILENAME[:-2]+'_blocks.temp', 'r', encoding='utf-8') as temp:
+        lines = temp.readlines()
     name = []; nx = []; ny = []; nz = []; time = []
     for line in lines:
         match = re.match("("+BINDIR+"/"+FILENAME+'u'+r")\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+.\d+)",line)

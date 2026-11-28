@@ -28,31 +28,30 @@ class Fields():
         self.filename  = fluid + "_" + str(n)+".mpiio"
         self.directory = directory
         self.dtype     = dtype
-        self.ifile     = open(directory+self.filename,"r")
         self.offsets, self.count = self.parse_offsets_file(directory)
         if dtype == "float64":
             self.dtype_int = 8
         else:
-            self.dtype = 4
+            self.dtype_int = 4
         
     def parse_offsets_file(self,directory):
-        offsets = open(directory+"output{:s}.dat".format(self.name))
         dict_offset = {}
-        for i,line in enumerate(offsets.readlines()):
-            offset   = int(line.split()[0])
-            fullname = line.split()[1]
-            dict_offset[fullname] = offset
-            if i == 0:
-                count = -1
-            else: #Assuming that all fields have the same count...
-                count = offset-old_offset
-            old_offset = offset
-        offsets.close()
+        with open(directory+"output{:s}.dat".format(self.name), 'r', encoding='utf-8') as offsets:
+            for i,line in enumerate(offsets):
+                offset   = int(line.split()[0])
+                fullname = line.split()[1]
+                dict_offset[fullname] = offset
+                if i == 0:
+                    count = -1
+                else: #Assuming that all fields have the same count...
+                    count = offset-old_offset
+                old_offset = offset
         return dict_offset,count
     
     def get_field(self, fieldname):
-        if fieldname not in["bx","by","bz","divb"]:
-            self.ifile.seek(self.offsets[self.name+fieldname]*self.dtype_int)
-        else:
-            self.ifile.seek(self.offsets[fieldname]*self.dtype_int)
-        return fromfile(self.ifile,count=self.count, dtype=self.dtype)
+        with open(self.directory+self.filename, 'rb') as ifile:
+            if fieldname not in["bx","by","bz","divb"]:
+                ifile.seek(self.offsets[self.name+fieldname]*self.dtype_int)
+            else:
+                ifile.seek(self.offsets[fieldname]*self.dtype_int)
+            return fromfile(ifile,count=self.count, dtype=self.dtype)

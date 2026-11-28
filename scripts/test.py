@@ -1,4 +1,3 @@
-from __future__ import print_function
 import numpy as np
 import inspect
 import sys
@@ -8,9 +7,6 @@ except ImportError:
     print("Matplotlib not found")
 import os
 import re
-
-# raw_input is not defined in python 3
-if sys.version[0]=="3": raw_input = input
 
 def color(name):
     colors = {}
@@ -313,27 +309,23 @@ class GenericTest():
         if self.clean == True:
             print("Cleaning " +  self.testname + "...")
             self._clean()
-        if self.log == True:
-            logfile = open('tests.log', 'a')
-            logfile.write (inspect.stack()[1][1]+' ('+self.testname+') \t==>\t ')
         if status:
             print(color('bgreen'))
             print("%%%%%%%%%%%%%%%%%%%")
             print("%   TEST PASSED   %")
             print("%%%%%%%%%%%%%%%%%%%")
             print( color('reset'))
-            if self.log:
-                logfile.write ('PASSED ('+str(reldev)+')\n')
+            result_str = 'PASSED (' + str(reldev) + ')\n'
         else:
             print(color('bred'))
             print("%%%%%%%%%%%%%%%%%%%")
             print("%   TEST FAILED   %")
             print("%%%%%%%%%%%%%%%%%%%")
             print( color('reset'))
-            if self.log:
-                logfile.write ('FAILED ('+str(reldev)+')\n')
+            result_str = 'FAILED (' + str(reldev) + ')\n'
         if self.log == True:
-            logfile.close()
+            with open('tests.log', 'a', encoding='utf-8') as logfile:
+                logfile.write(inspect.stack()[1][1] + ' (' + self.testname + ') \t==>\t ' + result_str)
 
         print("Test done.")
 
@@ -392,7 +384,7 @@ class GenericTest():
                   "Directory " + self.testname + " already exist.")
             while(1):
                 print("Do you want to clean it? (N/y)")
-                proceed = raw_input().lower()
+                proceed = input().lower()
                 if proceed == "y" or proceed == "yes":
                     print("Cleaning " + self.testname + "...")
                     os.system("/bin/rm -fr " + self.testname + "/*" + self.verbosity)
@@ -403,26 +395,25 @@ class GenericTest():
                     exit()
                 else:
                     print("Do you want to clean it? (N/y)")
-                    proceed = raw_input().lower()
+                    proceed = input().lower()
 
     def process_parfile(self,number,parameters):
-        par = open(self.parfile)
-        new_par = open(self.testname+"/parfile"+str(number)+'.par',"w")
-        for line in par.readlines():
-            found = False
-            if re.search("outputdir",line.lower()):
-                new_par.write("OutputDir" + "\t" + self.testname + 
-                              "/test" + str(number) +"\n")
-                continue
-            if parameters != None:
-                for key in parameters:
-                    if re.match(r"\s*" + key.lower() + r"\s+",line.lower()):
-                        new_par.write(key.lower() + "\t" + str(parameters[key]) + "\n")
-                        found = True
-                        break
-                if found: continue
-            new_par.write(line)
-        new_par.close()
+        with open(self.parfile, 'r', encoding='utf-8') as par, \
+             open(self.testname+"/parfile"+str(number)+'.par', 'w', encoding='utf-8') as new_par:
+            for line in par:
+                found = False
+                if re.search("outputdir",line.lower()):
+                    new_par.write("OutputDir" + "\t" + self.testname + 
+                                  "/test" + str(number) +"\n")
+                    continue
+                if parameters != None:
+                    for key in parameters:
+                        if re.match(r"\s*" + key.lower() + r"\s+",line.lower()):
+                            new_par.write(key.lower() + "\t" + str(parameters[key]) + "\n")
+                            found = True
+                            break
+                    if found: continue
+                new_par.write(line)
 
     def compile(self,flags):
         os.system("make " + flags +  self.verbosity)

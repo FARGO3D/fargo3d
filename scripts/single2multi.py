@@ -1,4 +1,3 @@
-from __future__ import print_function
 import re
 import shutil
 import sys
@@ -25,7 +24,7 @@ try:
     setupdir = "../setups/"+setup
     shutil.os.chdir(setupdir)
 except IndexError:
-    print("Usage: python3/python2 single2multi.py setupname")
+    print("Usage: python3 single2multi.py setupname")
     exit()
     
 def backup():
@@ -37,29 +36,24 @@ def backup():
 backup()
 shutil.move(setup+".bound",setup+".bound.0")
 
-optfile = open(setup+".opt","r")
-optlines = optfile.readlines()
-optfile.close()
+with open(setup+".opt", 'r', encoding='utf-8') as optfile:
+    optlines = optfile.readlines()
 
-optfile = open(setup+".opt","w")
+with open(setup+".opt", 'w', encoding='utf-8') as optfile:
+    write_newlines = True
+    for line in optlines:
+        if re.match(r"FARGO_OPT\s*\+=",line) and write_newlines:
+            optfile.write(newlines)
+            write_newlines = False 
+        optfile.write(line)
 
-write_newlines = True
-for line in optlines:
-    if re.match(r"FARGO_OPT\s*\+=",line) and write_newlines:
-        optfile.write(newlines)
-        write_newlines = False 
-    optfile.write(line)
-optfile.close()
+with open("condinit.c", 'r', encoding='utf-8') as cifile:
+    cilines = cifile.readlines()
 
-cifile = open("condinit.c","r")
-cilines = cifile.readlines()
-cifile.close()
+with open("condinit.c", 'w', encoding='utf-8') as cifile:
+    for line in cilines:
+        if re.match(r"void CondInit\s*\(",line):
+            line = line.replace("CondInit","Init")
+        cifile.write(line)
 
-cifile = open("condinit.c","w")
-
-for line in cilines:
-    if re.match(r"void CondInit\s*\(",line):
-        line = line.replace("CondInit","Init")
-    cifile.write(line)
-
-cifile.write(newcilines)
+    cifile.write(newcilines)
