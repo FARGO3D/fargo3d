@@ -36,7 +36,11 @@ void initialize_python() {
   pyrun("import signal;" 
 	"signal.signal(signal.SIGINT, signal.SIG_DFL);");
   pyrun("import matplotlib");
+#ifdef __APPLE__
+  pyrun("matplotlib.use('MacOSX')");
+#else
   pyrun("matplotlib.use('TKAgg')");
+#endif
   pyrun("import matplotlib.pyplot as plt");
   pyrun("import matplotlib as mpl");
   pyrun("import numpy as np");
@@ -98,7 +102,7 @@ void plot1d(char* name, int n, int merge) {
   }
 
   if (init == 0) {
-    pyrun("ax = fig.add_subplot(111,axisbg='k')");
+    pyrun("ax = fig.add_subplot(111, facecolor='k')");
     pyrun("ax.set_title('Field: %s',color='w')",name);  
 
     pyrun("ax.set_ylabel('%s')",name);
@@ -211,16 +215,16 @@ void plot2d(char* name, int n, int merge) {
 #endif
   if (merge) {
     if (VTK)
-      pyrun("f = open('%s%s%d.vtk')",OUTPUTDIR, name, n);
+      pyrun("f = open('%s%s%d.vtk', 'rb')",OUTPUTDIR, name, n);
     else {
-      pyrun("f = open('%s%s%d.dat')",OUTPUTDIR, name, n);
+      pyrun("f = open('%s%s%d.dat', 'rb')",OUTPUTDIR, name, n);
     }
   }
   else {
     if (VTK)
-      pyrun("f = open('%s%s%d_%d.vtk')",OUTPUTDIR, name, n,CPU_Rank);
+      pyrun("f = open('%s%s%d_%d.vtk', 'rb')",OUTPUTDIR, name, n,CPU_Rank);
     else
-      pyrun("f = open('%s%s%d_%d.dat')",OUTPUTDIR, name, n,CPU_Rank);
+      pyrun("f = open('%s%s%d_%d.dat', 'rb')",OUTPUTDIR, name, n,CPU_Rank);
   }
 
   if (VTK) {
@@ -318,15 +322,15 @@ void plot3d(char* name, int n, int merge) {
 #endif
   if (merge) {
     if (VTK)
-      pyrun("f = open('%s%s%d.vtk')",OUTPUTDIR, name, n);
+      pyrun("f = open('%s%s%d.vtk', 'rb')",OUTPUTDIR, name, n);
     else
-      pyrun("f = open('%s%s%d.dat')",OUTPUTDIR, name, n);
+      pyrun("f = open('%s%s%d.dat', 'rb')",OUTPUTDIR, name, n);
   }
   else {
     if (VTK)
-      pyrun("f = open('%s%s%d_%d.vtk')",OUTPUTDIR, name, n,CPU_Rank);
+      pyrun("f = open('%s%s%d_%d.vtk', 'rb')",OUTPUTDIR, name, n,CPU_Rank);
     else
-      pyrun("f = open('%s%s%d_%d.dat')",OUTPUTDIR, name, n,CPU_Rank);
+      pyrun("f = open('%s%s%d_%d.dat', 'rb')",OUTPUTDIR, name, n,CPU_Rank);
   }
   if (VTK) {
     pyrun("f.seek(%d,0)",VtkPosition);

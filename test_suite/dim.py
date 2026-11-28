@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys
 import os
 here = os.path.realpath("."); path = sys.path.insert(0,here+"/scripts")
@@ -20,9 +19,8 @@ except ImportError:
 #################################
         
 
-cmd = os.popen('grep STRICTSYM setups/mri/mri.opt   | grep -c "#"')
-c = cmd.read()
-cmd.close()
+with os.popen('grep STRICTSYM setups/mri/mri.opt   | grep -c "#"') as cmd:
+    c = cmd.read()
 if (int(c) > 0):
     print("\033[1m\033[31mPLEASE READ THE IMPORTANT NOTE IN FILE "+__file__+"\033[0m")
     print("Take action and retry")

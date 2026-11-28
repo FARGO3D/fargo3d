@@ -9,13 +9,13 @@ class Mesh():
                 directory += '/'
         try:
             domain_x = np.loadtxt(directory+"domain_x.dat")
-        except IOError:
-            print "IOError with domain_x.dat"
+        except OSError:
+            print("IOError with domain_x.dat")
         try:
             #We have to avoid ghost cells!
             domain_y = np.loadtxt(directory+"domain_y.dat")[3:-3]
-        except IOError:
-            print "IOError with domain_y.dat"
+        except OSError:
+            print("IOError with domain_y.dat")
         self.xm = domain_x #X-Edge
         self.ym = domain_y #Y-Edge
         
@@ -38,12 +38,11 @@ class Parameters():
             if directory[-1] != '/':
                 directory += '/'
         try:
-            params = open(directory+"variables.par",'r') #Opening the parfile
-        except IOError:                  # Error checker.
-            print  paramfile + " not found."
+            with open(directory+"variables.par", 'r', encoding='utf-8') as params: #Opening the parfile
+                lines = params.readlines()     # Reading the parfile
+        except OSError:                  # Error checker.
+            print(directory + "variables.par not found.")
             return
-        lines = params.readlines()     # Reading the parfile
-        params.close()                 # Closing the parfile
         par = {}                       # Allocating a dictionary
         for line in lines:             # Iterating over the parfile
             name, value = line.split() # Spliting the name and the value (first blank)
@@ -331,21 +330,21 @@ def get_stream(vx, vy, x0, y0, nmax=1000000, maxlength=4*np.pi, bidirectional=Tr
     x = [x0]
     y = [y0]
 
-    for i in xrange(nmax):
+    for i in range(nmax):
         ds = euler(vx, vy, x0, y0, reverse=reverse)
         if ds[0] == None:
             if(len(x)==1):
-                print "There was an error getting the stream, ds was NULL (see get_stream)."
+                print("There was an error getting the stream, ds was NULL (see get_stream).")
             break
         l += np.sqrt(ds[0]**2+ds[1]**2)
         dx = ds[0]
         dy = ds[1]
         if(np.sqrt(dx**2+dy**2)<1e-13):
-            print "Warning (get_stream): ds is very small, maybe you're in a stagnation point."
-            print "Try selecting another initial point."
+            print("Warning (get_stream): ds is very small, maybe you're in a stagnation point.")
+            print("Try selecting another initial point.")
             break
         if l > maxlength:
-            print "maxlength reached: ", l
+            print("maxlength reached: ", l)
             break
         x0 += dx
         y0 += dy
@@ -370,12 +369,12 @@ def get_random_streams(vx, vy, xmin=None, xmax=None, ymin=None, ymax=None, n=30,
         stream = get_stream(vx, vy, x, y, nmax=nmax, bidirectional=True)
         streams.append(stream)
         counter += 1
-        print "stream ",counter, "done"
+        print("stream ",counter, "done")
     return streams
 
 def plot_random_streams(streams, cartesian=False, **kargs):
     ax = plt.gca()
-    print np.shape(streams)
+    print(np.shape(streams))
     for stream in streams:
         for sub_stream in stream:
             if cartesian:

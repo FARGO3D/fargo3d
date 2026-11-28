@@ -1,10 +1,11 @@
 SCRIPTSDIR=scripts
 TESTSDIR=test_suite
 
-ifneq (, $(shell which python3))
+ifndef PYTHON
 	PYTHON := $(shell which python3)
-else
-	PYTHON := $(shell which python2)
+endif
+ifeq (, $(strip $(PYTHON)))
+$(error Python 3 is required to build FARGO3D, but 'python3' was not found in PATH)
 endif
 
 all:

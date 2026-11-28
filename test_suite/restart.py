@@ -1,5 +1,4 @@
 # Test used for backward compatibility nightly built
-from __future__ import print_function
 import sys
 import os
 here = os.path.realpath("."); path = sys.path.insert(0,here+"/scripts")

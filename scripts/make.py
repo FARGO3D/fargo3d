@@ -1,5 +1,5 @@
-from __future__ import print_function
 import re
+import shlex
 import sys
 import os
 
@@ -18,24 +18,25 @@ STDDIR     = "../std/"
 SCRIPTSDIR = "../scripts/"
 SRCDIR     = "../src/"
 
-PYTHON_CMD = "python" + sys.version[0] + " "
+PYTHON_CMD = shlex.quote(sys.executable) + " "
 
 def get_defaults(filename=STDDIR+"defaultflags"):
     params = {}
-    lines = open(filename,'r').readlines()
-    for line in lines:
-        try:
-            split = line.split("=")
-            params[split[0].strip()] = split[1].strip()
-        except IndexError:
-            continue
+    with open(filename, 'r', encoding='utf-8') as f:
+        for line in f:
+            try:
+                split = line.split("=")
+                params[split[0].strip()] = split[1].strip()
+            except IndexError:
+                continue
     return params
 
 def get_last(filename=STDDIR+".lastflags"):
     params = {}
     try:
-        lines = open(filename,'r').readlines()
-    except IOError:
+        with open(filename, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+    except OSError:
         return 0
     for line in lines:
         try:
@@ -67,7 +68,7 @@ def complete_parameters(base,params):
     return params
 
 def check_coherence(base,params):
-    for key in params.keys():
+    for key in list(params.keys()):
             if key in base:
                 continue
             else:
@@ -82,10 +83,9 @@ def build_is_fresh(base,params):
     return 1
     
 def write_last(parameters):
-    last = open(STDDIR+".lastflags",'w')
-    for key in parameters.keys():
-        last.write(key+"="+parameters[key]+"\n")
-    last.close()
+    with open(STDDIR+".lastflags", 'w', encoding='utf-8') as last:
+        for key in parameters.keys():
+            last.write(key+"="+parameters[key]+"\n")
 
 def clean_check(parameters, makeline):
     for param in parameters:
@@ -119,12 +119,12 @@ def nfluid_check(parameters):
 *  A python script is provided in this distribution which  *
 *  can perform these changes automatically:                *
 *  Go to the scripts/ directory (cd scripts) and issue:    *
-*  "python single2multi.py {0:s}".                         * 
+*  "python3 single2multi.py {0:s}".                        * 
 *  See chapter multifluid in the documentation.            *
 ============================================================\n'''.format(setup)
 
-    opt_file = open('../setups/{0:s}/{0:s}.opt'.format(setup), 'r')
-    lines = opt_file.readlines()
+    with open('../setups/{0:s}/{0:s}.opt'.format(setup), 'r', encoding='utf-8') as opt_file:
+        lines = opt_file.readlines()
     count = 0
     for line in lines:
         if re.match(r'\s*#.*\n',line): ## Skipping comments

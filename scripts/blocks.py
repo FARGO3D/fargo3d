@@ -1,6 +1,6 @@
-from __future__ import print_function
 import re
 import getopt
+import shlex
 import sys
 import os
 import numpy as np
@@ -10,7 +10,7 @@ SCRIPTSDIR = "scripts"
 SRCDIR     = "src"
 BINDIR     = "bin"
 C2CUDA     = "scripts/c2cuda.py"
-PYTHON_CMD = "python" + sys.version[0] + " "
+PYTHON_CMD = shlex.quote(sys.executable) + " "
 
     
 def usage():
@@ -24,7 +24,7 @@ def opt_reader():
                                            's:f',
                                            ['setup=',
                                             'force'])
-    except getopt.GetoptError(err):
+    except getopt.GetoptError as err:
         print(str(err))
         usage()
 
@@ -46,18 +46,18 @@ def opt_reader():
     global FORCE; FORCE = force
 
 def analyze_makefile():
-    makefile = open(SRCDIR+"/makefile","r")
     gpu_lines = []
     found = False
-    for line in makefile.readlines():
-        if line[0:6] == "#<CUDA":
-            found = True
-            continue
-        if line[0:6] == "#</CUD":
-            found = False
-            continue
-        if found:
-            gpu_lines.append(line)
+    with open(SRCDIR+"/makefile", 'r', encoding='utf-8') as makefile:
+        for line in makefile:
+            if line[0:6] == "#<CUDA":
+                found = True
+                continue
+            if line[0:6] == "#</CUD":
+                found = False
+                continue
+            if found:
+                gpu_lines.append(line)
 
     gpu_objects = []
 
@@ -66,7 +66,6 @@ def analyze_makefile():
         for o in obj:
             if o[-1] == 'o':
                 gpu_objects.append(o[:-6]+'.c')
-    makefile.close()
 
     return gpu_objects
 

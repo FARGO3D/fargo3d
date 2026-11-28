@@ -1,11 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 C2CUDA parser developped for the FARGO3D code (http://fargo.in2p3.fr)
 Pablo Benitez Llambay, 2012-2014
 """
 
-from __future__ import print_function
 import re
 import sys
 import getopt
@@ -19,11 +18,11 @@ def verb(ifile, ofile):
 
 def read_file(input_file):
     try:
-        ifile = open(input_file,'r')
-    except IOError:
+        with open(input_file, 'r', encoding='utf-8') as ifile:
+            return ifile.readlines()
+    except OSError:
         print('\nI/O error in c2cuda.py! Please, verify your input/output files.\n')
         exit()
-    return ifile.readlines()
 
 def usage():
     print('\nUsage: -i --input=  --> input_file')
@@ -475,17 +474,17 @@ def make_topology(var_loop, externals):
 
 def analyze_blocks():
     try:
-        blocks = open("../setups/"+SETUP+"/"+SETUP+".blocks","r")
-    except IOError:
+        with open("../setups/"+SETUP+"/"+SETUP+".blocks", 'r', encoding='utf-8') as blocks:
+            for line in blocks:
+                split = line.split()
+                search = re.search(split[0], INPUT[:-2])
+                if search:
+                    BLOCK_X = split[1]
+                    BLOCK_Y = split[2]
+                    BLOCK_Z = split[3]
+                    return BLOCK_X, BLOCK_Y, BLOCK_Z
+    except OSError:
         return None
-    for line in blocks.readlines():        
-        split = line.split()
-        search = re.search(split[0],INPUT[:-2])
-        if search:
-            BLOCK_X = split[1]
-            BLOCK_Y = split[2]
-            BLOCK_Z = split[3]
-            return BLOCK_X,BLOCK_Y,BLOCK_Z
     return None
 
 def make_output(f,output_file, formated=False):
@@ -631,8 +630,8 @@ printf ("{:s}\\t%d\\t%d\\t%d\\t%f\\n", block.x, block.y, block.z, time);
     if(len(output_file)==0):
         print(output)
     else:
-        out = open(output_file,'w')
-        out.write(output)
+        with open(output_file, 'w', encoding='utf-8') as out:
+            out.write(output)
     if(formated == True):
         os.system('astyle ' + output_file + "&")
     return
